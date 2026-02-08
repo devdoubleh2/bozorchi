@@ -1,0 +1,5 @@
+appId: com.doubleh.bozorchi
+ios:
+  app: "ios/build/Build/Products/Debug-iphonesimulator/Bozorchi.app"
+  device: "iPhone 15"
+  reuse: true

@@ -1,0 +1,21 @@
+{
+  "name": "bozorchi",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Bozorchi workspace monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "dev": "bun run --filter '*' dev",
+    "lint": "bun run --filter '*' lint",
+    "test": "bun run --filter '*' test",
+    "clean": "bun run --filter '*' clean && rm -rf node_modules"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

@@ -1,0 +1,58 @@
+$ bun --hot --env-file=.env.development app.ts
+[REDIS] Initializing: redis://localhost:6379
+{
+  timestamp: 1770532145926,
+  source: "[MinIO] ========== CONFIGURATION DEBUG ==========",
+  level: 1,
+  message: "fileUpload",
+  data: undefined,
+}
+{
+  timestamp: 1770532145927,
+  source: "[MinIO] Raw env values:",
+  level: 1,
+  message: "fileUpload",
+  data: {
+    MINIO_ENDPOINT: "minio.bozorchi.store",
+    MINIO_PORT: "443",
+    MINIO_USE_SSL: "true",
+    MINIO_ACCESS_KEY: "[SET]",
+    MINIO_SECRET_KEY: "[SET]",
+    MINIO_BUCKET: "uploads",
+    MINIO_PUBLIC_URL: "https://minio.bozorchi.store",
+  },
+}
+{
+  timestamp: 1770532145927,
+  source: "[MinIO] Resolved config:",
+  level: 1,
+  message: "fileUpload",
+  data: {
+    endpoint: "minio.bozorchi.store",
+    port: 443,
+    useSSL: true,
+    bucket: "uploads",
+    publicEndpoint: "https://minio.bozorchi.store",
+  },
+}
+{
+  timestamp: 1770532145927,
+  source: "[MinIO] ==========================================",
+  level: 1,
+  message: "fileUpload",
+  data: undefined,
+}
+🔭 OpenTelemetry SDK started
+✅ Prisma connected to database
+Server running on port 3000
+API Documentation: http://0.0.0.0:3000/api
+Health Check: http://0.0.0.0:3000/health
+Environment: development
+[REDIS] ❌ Connection error: 
+[REDIS] Connection closed
+[REDIS] ❌ Connection error: 
+[REDIS] Connection closed
+[REDIS] ❌ Connection error: 
+[REDIS] Connection closed
+[REDIS] ❌ Connection error: 
+[REDIS] Connection closed

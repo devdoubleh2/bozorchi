@@ -1,0 +1,18 @@
+{
+  "name": "sp-backend",
+  "description": "Backend API for SP",
+  "keywords": [
+    "api",
+    "backend",
+    "express"
+  ],
+  "repository": "https://github.com/your-repo/sp",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "release": "npx prisma migrate deploy"
+  }
+}

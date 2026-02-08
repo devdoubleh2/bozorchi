@@ -1,0 +1,571 @@
+import { useState, useCallback, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal, Settings } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+
+type PermissionType = "POS_ACCESS" | "MANAGE_PRODUCTS" | "MANAGE_INVENTORY" | "VIEW_COST_PRICE" | "VIEW_ANALYTICS";
+
+interface StaffAssignment {
+  id: string;
+  user: {
+    email: string;
+    name?: string | null;
+  };
+  role: string;
+  approved: boolean;
+  transaction_view_limit_days: number | null;
+  permissions: PermissionType[];
+  created_at: string;
+}
+
+interface StaffAssignmentsResponse {
+  pending: StaffAssignment[];
+  approved: StaffAssignment[];
+}
+
+interface StaffPageProps {
+  standalone?: boolean;
+}
+
+export default function StaffPage({ standalone = false }: StaffPageProps) {
+  const { t } = useTranslation();
+  const { userStore, user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<StaffAssignment | null>(null);
+
+  const storeId = userStore?.store?.id ?? "";
+
+  const isAdmin = userStore?.role === "admin";
+
+  const { data: assignments } = useQuery({
+    queryKey: ["staffAssignments", storeId],
+    queryFn: async () =>
+      api.get<StaffAssignmentsResponse>("/api/staff/assignments"),
+    enabled: isAdmin && Boolean(storeId),
+    refetchInterval: isAdmin ? 5000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  const pendingAssignments: StaffAssignment[] = (assignments?.pending ?? []).filter(
+    (a) => a.user.email !== user?.email
+  );
+  const activeAssignments: StaffAssignment[] = (assignments?.approved ?? []).filter(
+    (a) => a.user.email !== user?.email
+  );
+
+  const invalidateAssignments = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["staffAssignments", storeId],
+    });
+  }, [queryClient, storeId]);
+
+  const approveMutation = useMutation({
+    mutationFn: (assignmentId: string) =>
+      api.post<{ message: string }>(
+        `/api/staff/assignments/${assignmentId}/approve`
+      ),
+    onSuccess: () => {
+      setActionMessage(t("staff.approveSuccess"));
+      invalidateAssignments();
+    },
+    onError: (error: Error) => {
+      setActionMessage(error.message || t("errors.generic"));
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (assignmentId: string) =>
+      api.delete<{ message: string }>(`/api/staff/assignments/${assignmentId}`),
+    onSuccess: () => {
+      setActionMessage(t("staff.removeSuccess"));
+      invalidateAssignments();
+    },
+    onError: (error: Error) => {
+      setActionMessage(error.message || t("errors.generic"));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { assignmentId: string; limit: number | null; permissions?: PermissionType[] }) =>
+      api.put<{ message: string }>(
+        `/api/staff/assignments/${data.assignmentId}`,
+        {
+          transaction_view_limit_days: data.limit,
+          permissions: data.permissions
+        }
+      ),
+    onSuccess: () => {
+      setActionMessage(t("staff.updateSuccess"));
+      invalidateAssignments();
+    },
+    onError: (error: Error) => {
+      setActionMessage(error.message || t("errors.generic"));
+    },
+  });
+
+  interface WrapperProps {
+    children: ReactNode;
+  }
+
+  const Wrapper = ({ children }: WrapperProps) =>
+    standalone ? (
+      <div className="min-h-screen bg-muted/30 px-4 py-8">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+          {children}
+        </div>
+      </div>
+    ) : (
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
+        {children}
+      </div>
+    );
+
+  const renderAssignmentRow = (
+    assignment: StaffAssignment,
+    isPending: boolean
+  ) => {
+    const PERMISSION_LABELS: Record<PermissionType, string> = {
+      POS_ACCESS: t("staff.permissions.posAccess", { defaultValue: "POS" }),
+      MANAGE_PRODUCTS: t("staff.permissions.manageProducts", { defaultValue: "Products" }),
+      MANAGE_INVENTORY: t("staff.permissions.manageInventory", { defaultValue: "Inventory" }),
+      VIEW_COST_PRICE: t("staff.permissions.viewCostPrice", { defaultValue: "Cost Price" }),
+      VIEW_ANALYTICS: t("staff.permissions.viewAnalytics", { defaultValue: "Analytics" }),
+    };
+
+    return (
+      <TableRow key={assignment.id}>
+        <TableCell>
+          <span className="font-medium">
+            {assignment.user.name || "-"}
+          </span>
+        </TableCell>
+        <TableCell>
+          <span className="text-muted-foreground">
+            {assignment.user.email}
+          </span>
+        </TableCell>
+        <TableCell>
+          {isPending ? (
+            <Badge variant="secondary">{t("common.pending")}</Badge>
+          ) : (
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+              {t("common.approved")}
+            </Badge>
+          )}
+        </TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {new Date(assignment.created_at).toLocaleDateString()}
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-wrap gap-1">
+            {assignment.permissions && assignment.permissions.length > 0 ? (
+              assignment.permissions.map((perm) => (
+                <Badge key={perm} variant="outline" className="text-xs">
+                  {PERMISSION_LABELS[perm]}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-sm text-muted-foreground">{t("staff.noPermissions", { defaultValue: "No permissions" })}</span>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
+          {assignment.transaction_view_limit_days ? (
+            <span className="text-sm">{assignment.transaction_view_limit_days} {t("common.days")}</span>
+          ) : (
+            <span className="text-sm text-muted-foreground">{t("staff.unlimited")}</span>
+          )}
+        </TableCell>
+        <TableCell className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {isPending ? (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => approveMutation.mutate(assignment.id)}
+                    disabled={approveMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {t("staff.approve")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => removeMutation.mutate(assignment.id)}
+                    disabled={removeMutation.isPending}
+                    className="text-destructive flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t("common.remove")}
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedAssignment(assignment);
+                      setSettingsDialogOpen(true);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {t("staff.settings")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedAssignment(assignment);
+                      setRoleDialogOpen(true);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {t("staff.assignRole", { defaultValue: "Assign Role" })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => removeMutation.mutate(assignment.id)}
+                    disabled={removeMutation.isPending}
+                    className="text-destructive flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t("common.remove")}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  if (!userStore) {
+    return (
+      <Wrapper>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("common.loading")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{t("common.loading")}</p>
+          </CardContent>
+        </Card>
+      </Wrapper>
+    );
+  }
+
+  return (
+    <Wrapper>
+      {actionMessage ? (
+        <div className="rounded-md border border-border/60 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          {actionMessage}
+        </div>
+      ) : null}
+
+      {!isAdmin && (
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="size-5 text-muted-foreground" />
+              {t("staff.sellerPendingTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              {t("staff.sellerPendingDescription")}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin && (
+        <>
+          <Card className="border-border/60">
+            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>{t("staff.pendingRequests")}</CardTitle>
+              <Badge variant="outline">
+                {pendingAssignments.length} {t("staff.requests")}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              {pendingAssignments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("staff.noPending")}
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("common.name", { defaultValue: "Name" })}</TableHead>
+                        <TableHead>{t("common.email")}</TableHead>
+                        <TableHead>{t("common.status")}</TableHead>
+                        <TableHead>{t("common.date")}</TableHead>
+                        <TableHead>{t("staff.permissions.title", { defaultValue: "Permissions" })}</TableHead>
+                        <TableHead>{t("staff.limitDays", { defaultValue: "Limit (days)" })}</TableHead>
+                        <TableHead className="text-right">{t("common.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingAssignments.map((assignment) =>
+                        renderAssignmentRow(assignment, true)
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>{t("staff.currentStaff")}</CardTitle>
+              <Badge variant="outline">
+                {activeAssignments.length} {t("staff.members")}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              {activeAssignments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("staff.noStaff")}
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("common.name", { defaultValue: "Name" })}</TableHead>
+                        <TableHead>{t("common.email")}</TableHead>
+                        <TableHead>{t("common.status")}</TableHead>
+                        <TableHead>{t("common.date")}</TableHead>
+                        <TableHead>{t("staff.permissions.title", { defaultValue: "Permissions" })}</TableHead>
+                        <TableHead>{t("staff.limitDays", { defaultValue: "Limit (days)" })}</TableHead>
+                        <TableHead className="text-right">{t("common.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {activeAssignments.map((assignment) =>
+                        renderAssignmentRow(assignment, false)
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Settings Dialog */}
+          {selectedAssignment && (
+            <StaffSettingsDialog
+              open={settingsDialogOpen}
+              onOpenChange={setSettingsDialogOpen}
+              assignment={selectedAssignment}
+              onUpdate={(limit, permissions) => {
+                updateMutation.mutate({ assignmentId: selectedAssignment.id, limit, permissions });
+                setSettingsDialogOpen(false);
+              }}
+              isUpdating={updateMutation.isPending}
+            />
+          )}
+
+          {/* Role Assignment Dialog */}
+          {selectedAssignment && (
+            <RoleAssignmentDialog
+              open={roleDialogOpen}
+              onOpenChange={setRoleDialogOpen}
+              assignment={selectedAssignment}
+              onUpdate={(permissions) => {
+                updateMutation.mutate({ assignmentId: selectedAssignment.id, limit: selectedAssignment.transaction_view_limit_days, permissions });
+                setRoleDialogOpen(false);
+              }}
+              isUpdating={updateMutation.isPending}
+            />
+          )}
+        </>
+      )}
+    </Wrapper>
+  );
+}
+
+function StaffSettingsDialog({
+  open,
+  onOpenChange,
+  assignment,
+  onUpdate,
+  isUpdating,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  assignment: StaffAssignment;
+  onUpdate: (limit: number | null, permissions: PermissionType[]) => void;
+  isUpdating: boolean;
+}) {
+  const { t } = useTranslation();
+  const [limit, setLimit] = useState<string>(
+    assignment.transaction_view_limit_days?.toString() ?? "7"
+  );
+
+  const handleSave = () => {
+    const val = limit === "" ? null : parseInt(limit);
+    onUpdate(val, assignment.permissions);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("staff.settings")}</DialogTitle>
+          <DialogDescription>
+            {t("staff.updateTransactionViewLimit", { defaultValue: "Update transaction view limit for this staff member" })}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="limit">{t("staff.limitDays")}</Label>
+            <Input
+              id="limit"
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("staff.transactionLimitDescription", { defaultValue: "Number of days to view transaction history" })}
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleSave} disabled={isUpdating}>
+              {isUpdating && <RefreshCcw className="mr-2 size-4 animate-spin" />}
+              {t("common.save")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RoleAssignmentDialog({
+  open,
+  onOpenChange,
+  assignment,
+  onUpdate,
+  isUpdating,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  assignment: StaffAssignment;
+  onUpdate: (permissions: PermissionType[]) => void;
+  isUpdating: boolean;
+}) {
+  const { t } = useTranslation();
+  const [permissions, setPermissions] = useState<PermissionType[]>(assignment.permissions || []);
+
+  const PERMISSION_LIST: { value: PermissionType; label: string; description: string }[] = [
+    { value: "POS_ACCESS", label: t("staff.permissions.posAccess", { defaultValue: "POS Access" }), description: t("staff.permissions.posAccessDesc", { defaultValue: "Access to point of sale system" }) },
+    { value: "MANAGE_PRODUCTS", label: t("staff.permissions.manageProducts", { defaultValue: "Manage Products" }), description: t("staff.permissions.manageProductsDesc", { defaultValue: "Create, edit, and delete products" }) },
+    { value: "MANAGE_INVENTORY", label: t("staff.permissions.manageInventory", { defaultValue: "Manage Inventory" }), description: t("staff.permissions.manageInventoryDesc", { defaultValue: "Manage inventory levels and restocking" }) },
+    { value: "VIEW_COST_PRICE", label: t("staff.permissions.viewCostPrice", { defaultValue: "View Cost Price" }), description: t("staff.permissions.viewCostPriceDesc", { defaultValue: "View product cost prices" }) },
+    { value: "VIEW_ANALYTICS", label: t("staff.permissions.viewAnalytics", { defaultValue: "View Analytics" }), description: t("staff.permissions.viewAnalyticsDesc", { defaultValue: "View sales analytics and reports" }) },
+  ];
+
+  const togglePermission = (permission: PermissionType) => {
+    setPermissions((prev) =>
+      prev.includes(permission)
+        ? prev.filter((p) => p !== permission)
+        : [...prev, permission]
+    );
+  };
+
+  const handleSave = () => {
+    onUpdate(permissions);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("staff.assignRole", { defaultValue: "Assign Permissions" })}</DialogTitle>
+          <DialogDescription>
+            {t("staff.selectPermissionsDesc", { defaultValue: "Select permissions for this staff member" })}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3 max-h-96 overflow-y-auto">
+          {PERMISSION_LIST.map((permission) => (
+            <div
+              key={permission.value}
+              className="flex items-start gap-3 rounded border border-border/40 p-3 hover:bg-muted/50 cursor-pointer"
+              onClick={() => togglePermission(permission.value)}
+            >
+              <Checkbox
+                id={permission.value}
+                checked={permissions.includes(permission.value)}
+                onCheckedChange={() => togglePermission(permission.value)}
+                className="mt-1"
+              />
+              <div className="flex-1 min-w-0">
+                <label
+                  htmlFor={permission.value}
+                  className="text-sm font-medium leading-none cursor-pointer"
+                >
+                  {permission.label}
+                </label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {permission.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button onClick={handleSave} disabled={isUpdating}>
+            {isUpdating && <RefreshCcw className="mr-2 size-4 animate-spin" />}
+            {t("common.save")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

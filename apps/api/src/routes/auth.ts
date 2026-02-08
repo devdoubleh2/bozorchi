@@ -1,0 +1,82 @@
+import { Router } from "express";
+import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { validateRequest } from "../middleware/validation";
+import { AuthController } from "../controllers/authController";
+import {
+  registerSchema,
+  loginSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../validators/authValidator";
+
+const router: Router = Router();
+const authController = new AuthController();
+
+// Register endpoint
+router.post("/register", validateRequest(registerSchema), (req, res) =>
+  authController.register(req, res)
+);
+
+// Get profile endpoint
+router.get(
+  "/profile",
+  createAuthMiddleware({ requireStore: false }),
+  createAuthHandler((req, res) => authController.getProfile(req, res))
+);
+
+// Login endpoint
+router.post("/login", validateRequest(loginSchema), (req, res) =>
+  authController.login(req, res)
+);
+
+// Logout endpoint - clears the HttpOnly auth cookie
+router.post("/logout", (_req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env["NODE_ENV"] === "production",
+    sameSite: "none",
+    expires: new Date(0), // Expire immediately
+  });
+  return res.json({ message: "Logged out successfully" });
+});
+
+// Change password endpoint
+router.put(
+  "/password",
+  createAuthMiddleware(),
+  validateRequest(changePasswordSchema),
+  createAuthHandler((req, res) => authController.updatePassword(req, res))
+);
+
+// Update profile endpoint
+router.put(
+  "/profile",
+  createAuthMiddleware(),
+  validateRequest(updateProfileSchema),
+  createAuthHandler((req, res) => authController.updateProfile(req, res))
+);
+
+
+
+router.delete(
+  "/me",
+  createAuthMiddleware(),
+  createAuthHandler((req, res) => authController.deleteMe(req, res))
+);
+
+// Password reset endpoints
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  (req, res) => authController.forgotPassword(req, res)
+);
+
+router.post(
+  "/reset-password",
+  validateRequest(resetPasswordSchema),
+  (req, res) => authController.resetPassword(req, res)
+);
+
+export default router;

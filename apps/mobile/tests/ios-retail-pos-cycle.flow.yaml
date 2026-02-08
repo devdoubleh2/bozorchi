@@ -1,0 +1,41 @@
+appId: com.doubleh.bozorchi
+---
+- launchApp:
+    clearState: true
+
+# Register and create store
+- assertVisible:
+    id: login-screen
+- tapOn:
+    id: login-register-link
+- assertVisible:
+    id: register-screen
+- runScript: scripts/retail-pos-cycle.js
+- tapOn:
+    id: register-name-input
+- inputText: ${output.userName}
+- tapOn:
+    id: register-email-input
+- inputText: ${output.email}
+- tapOn:
+    id: register-password-input
+- inputText: ${output.password}
+- tapOn:
+    id: register-confirm-password-input
+- inputText: ${output.password}
+- tapOn:
+    id: register-org-name-input
+- inputText: ${output.storeName}
+- tapOn:
+    id: register-address-input
+- inputText: ${output.storeAddress}
+- tapOn:
+    id: register-phone-input
+- inputText: ${output.storePhone}
+- hideKeyboard
+- tapOn:
+    id: register-submit-button
+
+# Land on Home
+- assertVisible:
+    id: home-screen

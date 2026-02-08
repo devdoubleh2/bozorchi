@@ -1,0 +1,19 @@
+[phases.setup]
+nixPkgs = ["bun", "openssl"]
+
+[variables]
+SKIP_ENV_VALIDATION = "true"
+
+[phases.install]
+cmds = [
+  "bun i --no-save --ignore-scripts"
+]
+
+[phases.build]
+cmds = [
+  "bunx prisma generate",
+  "bun run build"
+]
+
+[start]
+cmd = "bun run start"
