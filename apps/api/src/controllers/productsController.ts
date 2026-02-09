@@ -864,12 +864,19 @@ export class ProductsController {
       const variations = await req.tenantPrisma.productVariation.findMany({
         where: { product_id: id },
       });
+      const variationIds = variations.map((variation) => variation.id);
       const variationImageUrls = variations
         .map((v) => v.image_url)
         .filter((url): url is string => !!url);
 
       await req.tenantPrisma.$transaction(
         async (tx: Prisma.TransactionClient) => {
+          if (variationIds.length > 0) {
+            await tx.transaction.deleteMany({
+              where: { product_variation_id: { in: variationIds } },
+            });
+          }
+
           for (const variation of variations) {
             await tx.inventory.deleteMany({
               where: { product_variation_id: variation.id },
