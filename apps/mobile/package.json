@@ -18,6 +18,7 @@
     "clean": "rm -rf .expo dist build"
   },
   "dependencies": {
+    "@bozorchi/shared": "workspace:*",
     "@babel/plugin-proposal-decorators": "^7.28.0",
     "@candlefinance/faster-image": "^1.7.2",
     "@expo/metro-config": "54.0.7",

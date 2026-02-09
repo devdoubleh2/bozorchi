@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/generated dist/generated",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist"
   },

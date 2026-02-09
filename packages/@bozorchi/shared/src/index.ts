@@ -1,3 +1,6 @@
 // Shared types and utilities for Bozorchi
-// This is the main entry point for the shared package
-// Add shared code here as needed
+// Export Prisma generated types
+export * from './generated';
+
+// Export auth types
+export * from './auth';

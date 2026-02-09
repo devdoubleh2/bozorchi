@@ -1,0 +1,487 @@
+generator tenant_client {
+  provider      = "prisma-client-js"
+  output        = "../../../../../packages/@bozorchi/shared/src/generated"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Order {
+  id                     String   @id @default(cuid())
+  user_id                String
+  status                 String   @default("pending")
+  checkout_id            String?
+  checkout_client_secret String?
+  polar_customer_id      String?
+  amount_cents           Int?
+  currency               String?  @default("usd")
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  @@map("polar_orders")
+}
+
+model Unit {
+  id                 String             @id @default(cuid())
+  name               String
+  organization_id    String
+  store_id           String?
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+  product_variations ProductVariation[]
+
+  @@map("units")
+}
+
+model Store {
+  id                          String     @id @default(cuid())
+  name                        String
+  organization_id             String
+  currency                    String?
+  loyalty_cashback_percentage Float      @default(0)
+  address                     String?
+  phone                       String?
+  transaction_view_limit_days Int        @default(7)
+  created_at                  DateTime   @default(now())
+  updated_at                  DateTime   @updatedAt
+  currencies                  Currency[]
+
+  @@map("stores")
+}
+
+model Currency {
+  id         String   @id @default(cuid())
+  code       String
+  symbol     String
+  name       String
+  rate       Decimal  @default(1) @db.Decimal(15, 6)
+  is_base    Boolean  @default(false)
+  is_active  Boolean  @default(true)
+  store_id   String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  store      Store    @relation(fields: [store_id], references: [id], onDelete: Cascade)
+
+  @@unique([store_id, code])
+  @@map("currencies")
+}
+
+model ProductCategory {
+  id         String    @id @default(cuid())
+  name       String
+  color      String?   @default("#4fc3f7")
+  store_id   String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  products   Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id                  String             @id @default(cuid())
+  name                String
+  image_url           String?
+  product_category_id String?
+  organization_id     String
+  store_id            String?
+  user_id             String?
+  type                ProductType        @default(simple)
+  created_at          DateTime           @default(now())
+  updated_at          DateTime           @updatedAt
+  product_variations  ProductVariation[]
+  product_category    ProductCategory?   @relation(fields: [product_category_id], references: [id])
+
+  @@map("products")
+}
+
+model ProductVariation {
+  id                     String               @id @default(cuid())
+  name                   String
+  description            String?
+  barcode                String?
+  sku                    String?
+  price                  Decimal              @default(0) @db.Decimal(15, 2)
+  selling_price          Decimal              @default(0) @db.Decimal(15, 2)
+  delivery_cost          Decimal              @default(0) @db.Decimal(15, 2)
+  wholesale_price        Decimal              @default(0) @db.Decimal(15, 2)
+  unit_id                String
+  product_id             String
+  store_id               String?
+  image_url              String?
+  color                  String?              @default("#4fc3f7")
+  supplier_id            String?
+  delivery_cost_currency String               @default("UZS")
+  delivery_cost_base     Decimal              @default(0) @db.Decimal(15, 2)
+  last_exchange_rate     Decimal              @default(1) @db.Decimal(15, 6)
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  inventory              Inventory[]
+  inventory_audit_items  InventoryAuditItem[]
+  inventory_batches      InventoryBatch[]
+  price_history          PriceHistory[]
+  pricelist_items        PricelistItem[]
+  product                Product              @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  supplier               Supplier?            @relation(fields: [supplier_id], references: [id])
+  unit                   Unit                 @relation(fields: [unit_id], references: [id])
+  transactions           Transaction[]
+  write_offs             WriteOff[]
+
+  @@map("product_variations")
+}
+
+model Inventory {
+  id                   String           @id @default(cuid())
+  product_variation_id String
+  quantity_in_stock    Int
+  store_id             String
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+  product_variation    ProductVariation @relation(fields: [product_variation_id], references: [id])
+
+  @@unique([product_variation_id, store_id])
+  @@map("inventory")
+}
+
+model InventoryBatch {
+  id                   String                     @id @default(cuid())
+  product_variation_id String
+  store_id             String
+  transaction_id       String?
+  batch_code           String?
+  received_at          DateTime                   @default(now())
+  cost_price           Decimal                    @db.Decimal(15, 2)
+  delivery_cost        Decimal?                   @db.Decimal(15, 2)
+  cost_currency        String                     @default("UZS")
+  exchange_rate        Decimal                    @default(1) @db.Decimal(15, 6)
+  quantity_received    Int
+  quantity_remaining   Int
+  created_at           DateTime                   @default(now())
+  updated_at           DateTime                   @updatedAt
+  allocations          InventoryBatchAllocation[]
+  product_variation    ProductVariation           @relation(fields: [product_variation_id], references: [id], onDelete: Cascade)
+  transaction          Transaction?               @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
+
+  @@index([product_variation_id, store_id])
+  @@map("inventory_batches")
+}
+
+model InventoryBatchAllocation {
+  id             String                       @id @default(cuid())
+  batch_id       String
+  reference_type InventoryAllocationReference
+  reference_id   String
+  quantity       Int
+  created_at     DateTime                     @default(now())
+  batch          InventoryBatch               @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+
+  @@index([reference_type, reference_id])
+  @@map("inventory_batch_allocations")
+}
+
+model Customer {
+  id              String        @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  language        String?       @default("uz")
+  gender          String?
+  date_of_birth   DateTime?
+  social_links    Json?
+  organization_id String
+  store_id        String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  loyalty_card    LoyaltyCard?
+  payments_made   Payment[]
+  transactions    Transaction[]
+
+  @@map("customers")
+}
+
+model Transaction {
+  id                      String            @id @default(cuid())
+  product_variation_id    String?
+  quantity                Int
+  selling_price           Decimal           @db.Decimal(15, 2)
+  delivery_cost           Decimal           @db.Decimal(15, 2)
+  unit_price              Decimal           @db.Decimal(15, 2)
+  total_amount            Decimal           @db.Decimal(15, 2)
+  currency                String            @default("UZS")
+  exchange_rate           Decimal           @default(1) @db.Decimal(15, 6)
+  source_currency         String?
+  source_amount           Decimal?          @db.Decimal(15, 2)
+  transaction_type        TransactionType
+  transaction_date        DateTime          @default(now())
+  remarks                 String?
+  customer_id             String?
+  store_id                String
+  user_id                 String?
+  payment_method          PaymentMethod?
+  supplier_id             String?
+  supplier_order_id       String?
+  loyalty_points_earned   Int               @default(0)
+  loyalty_points_redeemed Int               @default(0)
+  loyalty_discount_amount Decimal           @default(0) @db.Decimal(15, 2)
+  // group_id links related transactions: 
+  // - POS checkout (multiple items in same sale)
+  // - Transfers (transfer_in + transfer_out pair)
+  group_id                String?
+  original_transaction_id String?
+  created_at              DateTime          @default(now())
+  updated_at              DateTime          @updatedAt
+  inventory_batches       InventoryBatch[]
+  payments                Payment[]
+  customer                Customer?         @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  original_transaction    Transaction?      @relation("TransactionReturns", fields: [original_transaction_id], references: [id])
+  returns                 Transaction[]     @relation("TransactionReturns")
+  product_variation       ProductVariation? @relation(fields: [product_variation_id], references: [id], onDelete: Restrict)
+  supplier                Supplier?         @relation(fields: [supplier_id], references: [id], onDelete: Restrict)
+
+  @@index([store_id, transaction_date])
+  @@index([group_id])
+  @@map("transactions")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  transaction_id  String?
+  amount          Decimal       @db.Decimal(15, 2)
+  currency        String        @default("UZS")
+  exchange_rate   Decimal       @default(1) @db.Decimal(15, 6)
+  payment_method  PaymentMethod
+  reference       String?
+  collected_by_id String?
+  webhook_data    Json?
+  error_message   String?
+  received_at     DateTime?     @default(now())
+  order_id        String?
+  payer_id        String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  payer           Customer?     @relation(fields: [payer_id], references: [id])
+  transaction     Transaction?  @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
+
+  // Uzum FastPay specific fields
+  uzum_payment_id String? // Uzum's payment ID
+  uzum_order_id   String? // Our order ID sent to Uzum
+  uzum_status     String? // SUCCESS, FAILED, HOLD, REVERSED, etc.
+
+  @@index([transaction_id])
+  @@index([order_id])
+  @@index([collected_by_id])
+  @@index([payer_id])
+  @@index([uzum_payment_id])
+  @@map("payments")
+}
+
+model LoyaltyCard {
+  id          String   @id @default(cuid())
+  card_number String
+  customer_id String   @unique
+  points      Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_cards")
+}
+
+model Supplier {
+  id                 String             @id @default(cuid())
+  name               String
+  contact            String?
+  phone              String?
+  email              String?
+  address            String?
+  notes              String?
+  inn                String?
+  bank_account       String?
+  mfo                String?
+  bank_name          String?
+  director_name      String?
+  organization_id    String
+  store_id           String?
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+  product_variations ProductVariation[]
+  supplier_payments  SupplierPayment[]
+  transactions       Transaction[]
+
+  @@map("suppliers")
+}
+
+model SupplierPayment {
+  id                String        @id @default(cuid())
+  supplier_id       String
+  supplier_order_id String?
+  store_id          String
+  amount            Decimal       @db.Decimal(15, 2)
+  payment_date      DateTime      @default(now())
+  payment_method    PaymentMethod @default(cash)
+  notes             String?
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  supplier          Supplier      @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+
+  @@map("supplier_payments")
+}
+
+model WriteOff {
+  id                   String           @id @default(cuid())
+  product_variation_id String
+  store_id             String
+  user_id              String
+  quantity             Int
+  reason               WriteOffReason
+  notes                String?
+  write_off_date       DateTime         @default(now())
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+  product_variation    ProductVariation @relation(fields: [product_variation_id], references: [id], onDelete: Cascade)
+
+  @@map("write_offs")
+}
+
+model InventoryAudit {
+  id          String               @id @default(cuid())
+  store_id    String
+  user_id     String
+  audit_date  DateTime             @default(now())
+  status      AuditStatus          @default(in_progress)
+  notes       String?
+  created_at  DateTime             @default(now())
+  updated_at  DateTime             @updatedAt
+  audit_items InventoryAuditItem[]
+
+  @@map("inventory_audits")
+}
+
+model InventoryAuditItem {
+  id                   String           @id @default(cuid())
+  inventory_audit_id   String
+  product_variation_id String
+  expected_quantity    Int
+  actual_quantity      Int
+  difference           Int
+  notes                String?
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+  inventory_audit      InventoryAudit   @relation(fields: [inventory_audit_id], references: [id], onDelete: Cascade)
+  product_variation    ProductVariation @relation(fields: [product_variation_id], references: [id], onDelete: Cascade)
+
+  @@unique([inventory_audit_id, product_variation_id])
+  @@map("inventory_audit_items")
+}
+
+model PriceHistory {
+  id                   String           @id @default(cuid())
+  product_variation_id String
+  old_price            Decimal          @db.Decimal(15, 2)
+  new_price            Decimal          @db.Decimal(15, 2)
+  changed_by           String
+  change_date          DateTime         @default(now())
+  reason               String?
+  created_at           DateTime         @default(now())
+  product_variation    ProductVariation @relation(fields: [product_variation_id], references: [id], onDelete: Cascade)
+
+  @@map("price_history")
+}
+
+model Tax {
+  id         String   @id @default(cuid())
+  name       String
+  rate       Float
+  store_id   String
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([store_id])
+  @@map("taxes")
+}
+
+model Pricelist {
+  id         String          @id @default(cuid())
+  name       String
+  store_id   String
+  currency   String          @default("UZS")
+  is_active  Boolean         @default(true)
+  created_at DateTime        @default(now())
+  updated_at DateTime        @updatedAt
+  items      PricelistItem[]
+
+  @@index([store_id])
+  @@map("pricelists")
+}
+
+model PricelistItem {
+  id                   String           @id @default(cuid())
+  pricelist_id         String
+  product_variation_id String
+  price                Decimal          @db.Decimal(15, 2)
+  min_quantity         Int              @default(1)
+  valid_from           DateTime?
+  valid_to             DateTime?
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+  pricelist            Pricelist        @relation(fields: [pricelist_id], references: [id], onDelete: Cascade)
+  product_variation    ProductVariation @relation(fields: [product_variation_id], references: [id], onDelete: Cascade)
+
+  @@index([pricelist_id])
+  @@index([product_variation_id])
+  @@map("pricelist_items")
+}
+
+enum ProductType {
+  simple
+  variable
+  service
+}
+
+enum TransactionType {
+  import
+  export
+  return
+  adjustment
+  debt
+  repayment
+  exchange
+  internal_use
+  transfer_in
+  transfer_out
+  supplier_return
+}
+
+enum InventoryAllocationReference {
+  transaction
+  order
+  reservation
+  adjustment
+  manual
+}
+
+enum PaymentMethod {
+  cash
+  card
+  transfer
+  mobile
+  voucher
+  dynamic_qr
+}
+
+enum WriteOffReason {
+  theft
+  damage
+  expiry
+  defect
+  other
+}
+
+enum AuditStatus {
+  in_progress
+  completed
+  cancelled
+}

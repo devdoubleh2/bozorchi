@@ -105,6 +105,7 @@
       "version": "2.4.6",
       "dependencies": {
         "@babel/plugin-proposal-decorators": "^7.28.0",
+        "@bozorchi/shared": "workspace:*",
         "@candlefinance/faster-image": "^1.7.2",
         "@expo/metro-config": "54.0.7",
         "@expo/metro-runtime": "~6.1.2",
@@ -207,6 +208,7 @@
       "name": "@bozorchi/web",
       "version": "0.0.0",
       "dependencies": {
+        "@bozorchi/shared": "workspace:*",
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/modifiers": "^9.0.0",
         "@dnd-kit/sortable": "^10.0.0",
@@ -308,6 +310,13 @@
         "workbox-precaching": "^7.4.0",
         "workbox-routing": "^7.4.0",
         "workbox-strategies": "^7.4.0",
+      },
+    },
+    "packages/@bozorchi/shared": {
+      "name": "@bozorchi/shared",
+      "version": "1.0.0",
+      "devDependencies": {
+        "typescript": "^5.3.3",
       },
     },
   },
@@ -584,6 +593,8 @@
     "@bozorchi/api": ["@bozorchi/api@workspace:apps/api"],
 
     "@bozorchi/mobile": ["@bozorchi/mobile@workspace:apps/mobile"],
+
+    "@bozorchi/shared": ["@bozorchi/shared@workspace:packages/@bozorchi/shared"],
 
     "@bozorchi/web": ["@bozorchi/web@workspace:apps/web"],
 

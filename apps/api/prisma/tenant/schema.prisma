@@ -1,6 +1,6 @@
 generator tenant_client {
   provider      = "prisma-client-js"
-  output        = "../../src/generated/tenant/client"
+  output        = "../../../../../packages/@bozorchi/shared/src/generated"
   binaryTargets = ["native", "linux-musl"]
 }
 

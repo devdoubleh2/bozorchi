@@ -6,14 +6,21 @@
   "description": "Bozorchi workspace monorepo",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/@bozorchi/*"
   ],
   "scripts": {
     "build": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
     "lint": "bun run --filter '*' lint",
     "test": "bun run --filter '*' test",
-    "clean": "bun run --filter '*' clean && rm -rf node_modules"
+    "clean": "bun run --filter '*' clean && rm -rf node_modules",
+    "web": "bun run --filter '@bozorchi/web' dev",
+    "api": "bun run --filter '@bozorchi/api' dev",
+    "mobile": "bun run --filter '@bozorchi/mobile' start",
+    "api:build": "bun run --filter '@bozorchi/api' build",
+    "web:build": "bun run --filter '@bozorchi/web' build",
+    "mobile:build": "bun run --filter '@bozorchi/mobile' build"
   },
   "engines": {
     "bun": ">=1.0.0"

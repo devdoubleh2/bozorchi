@@ -1,0 +1,106 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../src/generated/public/client"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id                   String              @id @default(cuid())
+  name                 String
+  slug                 String              @unique
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+  subscription_id      String?
+  subscription_status  SubscriptionStatus? @default(incomplete)
+  subscription_ends_at DateTime?
+  owner_id             String              @unique
+  owner                User                @relation("OrgOwner", fields: [owner_id], references: [id], onDelete: Cascade)
+  members              UserOrganization[]
+
+  // Uzum FastPay Configuration
+  uzum_fastpay_enabled                  Boolean @default(false)
+  uzum_fastpay_merchant_id              String?
+  uzum_fastpay_secret_key               String? // Encrypted
+  uzum_fastpay_service_id               String?
+  uzum_fastpay_merchant_service_user_id String?
+
+  // E-commerce Configuration
+  ecommerce_enabled Boolean @default(false)
+
+  @@map("organizations")
+}
+
+model User {
+  id                    String               @id @default(cuid())
+  name                  String?
+  email                 String               @unique
+  password_hash         String
+  created_at            DateTime             @default(now())
+  updated_at            DateTime             @updatedAt
+  push_token            String?
+  owned_organization    Organization?        @relation("OrgOwner")
+  password_reset_tokens PasswordResetToken[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  token_hash String    @unique
+  user_id    String
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([token_hash])
+  @@index([user_id])
+  @@map("password_reset_tokens")
+}
+
+model UserOrganization {
+  id                          String       @id @default(cuid())
+  user_id                     String       @unique
+  organization_id             String
+  store_id                    String
+  role                        Role         @default(user)
+  permissions                 Permission[]
+  approved                    Boolean      @default(false)
+  transaction_view_limit_days Int?
+  created_at                  DateTime     @default(now())
+  updated_at                  DateTime     @updatedAt
+  organization                Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, organization_id, store_id])
+  @@index([user_id])
+  @@index([organization_id])
+  @@index([store_id])
+  @@map("user_organizations")
+}
+
+enum Permission {
+  POS_ACCESS
+  MANAGE_PRODUCTS
+  MANAGE_INVENTORY
+  VIEW_COST_PRICE
+  VIEW_ANALYTICS
+}
+
+enum SubscriptionStatus {
+  incomplete
+  incomplete_expired
+  trialing
+  active
+  past_due
+  canceled
+  unpaid
+}
+
+enum Role {
+  admin
+  user
+}
