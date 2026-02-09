@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "dev": "bun --hot --env-file=.env.development app.ts",
-    "build": "dotenv -e .env -- bun run generate:all && tsc && tsc-alias",
+    "build": "dotenv -e .env -- bun run generate:api && tsc && tsc-alias",
+    "generate:api": "bun run generate:public && bun run generate:tenant",
     "generate:public": "bunx prisma generate --schema=prisma/schema/public.prisma",
     "generate:tenant": "bunx prisma generate --schema=prisma/tenant/schema.prisma",
     "generate:shared": "bunx prisma generate --schema=../../packages/@bozorchi/shared/src/generated/schema.prisma",
@@ -24,7 +25,7 @@
     "clean": "rm -rf dist",
     "seed:basic": "dotenv -e .env.development -- ts-node scripts/seed.ts",
     "preinstall": "echo 'Installing with Bun'",
-    "postinstall": "bunx prisma generate",
+    "postinstall": "bun run generate:api",
     "seed:production": "dotenv -e .env -- tsx scripts/seed/index.ts"
   },
   "keywords": [

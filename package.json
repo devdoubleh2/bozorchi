@@ -10,7 +10,8 @@
     "packages/@bozorchi/*"
   ],
   "scripts": {
-    "build": "bun run --filter '*' build",
+    "build": "bun run --filter '@bozorchi/shared' build && bun run --filter '@bozorchi/api' build && bun run --filter '@bozorchi/web' build",
+    "build:all": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
     "lint": "bun run --filter '*' lint",
     "test": "bun run --filter '*' test",
