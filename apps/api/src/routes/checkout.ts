@@ -3,7 +3,7 @@ import express from "express";
 import { polarApi } from "@/services/polar";
 import { createAuthMiddleware, createAuthHandler } from "@/middleware/auth";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 router.use(createAuthMiddleware());
 

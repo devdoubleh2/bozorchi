@@ -20,9 +20,13 @@
     "mobile": "bun run --filter '@bozorchi/mobile' start",
     "api:build": "bun run --filter '@bozorchi/api' build",
     "web:build": "bun run --filter '@bozorchi/web' build",
-    "mobile:build": "bun run --filter '@bozorchi/mobile' build"
+    "mobile:build": "bun run --filter '@bozorchi/mobile' build",
+    "generate": "bun run --filter '@bozorchi/api' generate:all"
   },
   "engines": {
     "bun": ">=1.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.3.9"
   }
 }

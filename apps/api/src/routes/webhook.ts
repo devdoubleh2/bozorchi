@@ -7,7 +7,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { log } from "../../logs/log";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 
 router.post(

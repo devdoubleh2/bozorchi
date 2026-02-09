@@ -2,7 +2,7 @@ import { Router } from "express";
 import { CustomersController } from "../controllers/customersController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
 
-const router = Router();
+const router: Router = Router();
 const customersController = new CustomersController();
 
 // Apply authentication middleware with store requirement

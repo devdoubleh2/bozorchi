@@ -3,7 +3,7 @@ import multer from "multer";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
 import { ImportController } from "../controllers/importController";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const importController = new ImportController();
 
 // Configure multer for file uploads (memory storage)

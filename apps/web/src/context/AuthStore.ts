@@ -17,7 +17,7 @@ import type {
   Organization,
   RegisterData,
   Store,
-} from "@bozorchi/shared";
+} from "@/types/auth";
 import { parseApiError, type ParsedApiError } from "@/lib/utils";
 import { toast } from "sonner";
 

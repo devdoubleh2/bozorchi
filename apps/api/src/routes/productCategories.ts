@@ -4,7 +4,7 @@ import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
 import { validateParams, validateRequest } from "../middleware/validation";
 import { z } from "zod";
 
-const router = Router();
+const router: Router = Router();
 const productCategoriesController = new ProductCategoriesController();
 
 // Validation schemas

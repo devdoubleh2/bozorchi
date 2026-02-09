@@ -2,7 +2,7 @@ import express from "express";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
 import { AuditController } from "../controllers/auditController";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const auditController = new AuditController();
 
 // All routes require authentication

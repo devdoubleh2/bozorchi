@@ -2,7 +2,7 @@ import express from "express";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
 import { WriteOffController } from "../controllers/writeOffController";
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const writeOffController = new WriteOffController();
 
 // All routes require authentication

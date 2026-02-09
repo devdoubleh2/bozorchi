@@ -1,4 +1,4 @@
-import { Prisma } from '../generated/tenant/client';
+import { Prisma } from "../generated/tenant/client";
 
 /**
  * Type alias for database client operations

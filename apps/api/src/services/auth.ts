@@ -11,7 +11,6 @@ import { prisma, getTenantPrisma, createTenantSchema } from "../lib/prisma";
 import { AuthRequest } from "@/middleware/auth";
 import { Prisma } from "../generated/public/client";
 import logger from "../../logs/log";
-import { StringValue } from "ms";
 
 interface AccessTokenPayload {
   userId: string;
@@ -98,7 +97,7 @@ class AuthService {
       activeStoreId: storeId
     };
     const options: SignOptions = {
-      expiresIn: this.JWT_REFRESH_EXPIRES_IN as StringValue, // Use longer expiry (30d)
+      expiresIn: this.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"], // Use longer expiry (30d)
     };
     return jwt.sign(payload, this.JWT_SECRET, options);
   }
