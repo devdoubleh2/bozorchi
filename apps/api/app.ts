@@ -32,10 +32,12 @@ import organizationsRouter from "./src/routes/organizations";
 import reportsRouter from "./src/routes/reports";
 import dynamicQrRouter from "./src/routes/dynamicQr";
 import telegramRouter from "./src/routes/telegram";
+import backupRouter from "./src/routes/backup";
 
 import currenciesRouter from "./src/routes/currencies";
 import { sanitizeInput } from "./src/middleware/sanitization";
 import { log } from "./logs/log";
+import { initializeBackupScheduler } from "./src/lib/backupScheduler";
 
 
 const app: express.Application = express();
@@ -264,6 +266,7 @@ app.use("/api/reports", reportsRouter);
 app.use("/api/currencies", currenciesRouter);
 app.use("/api/payments/dynamic-qr", dynamicQrRouter);
 app.use("/api/telegram", telegramRouter);
+app.use("/api/backup", backupRouter);
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -308,6 +311,10 @@ async function startServer() {
     // Connect to database first
     await prisma.$connect();
     console.log("✅ Prisma connected to database");
+
+    // Initialize database backup scheduler
+    initializeBackupScheduler();
+    console.log("✅ Database backup scheduler initialized");
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
