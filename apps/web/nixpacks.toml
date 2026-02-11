@@ -1,8 +1,8 @@
-[phases.setup]
-nixPkgs = ["bun", "openssl", "postgresql"]
+[buildpacks]
+buildpacks = ["custom", "nix"]
 
-[variables]
-SKIP_ENV_VALIDATION = "true"
+[phases.setup]
+nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
@@ -15,4 +15,4 @@ cmds = [
 ]
 
 [start]
-cmd = "bun run start"
+cmd = "bun run --filter @bozorchi/web preview -- --host 0.0.0.0 --port 3000"
