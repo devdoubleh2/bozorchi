@@ -33,22 +33,51 @@ class FileUploadService {
     if (FileUploadService.initialized) return;
 
     // Read config from environment at runtime (not at module load time)
-    const endpoint = process.env["MINIO_ENDPOINT"] || "minio";
-    const port = parseInt(process.env["MINIO_PORT"] || "9000", 10);
-    const useSSL = process.env["MINIO_USE_SSL"] === "true";
+    const rawEndpoint = process.env["MINIO_ENDPOINT"]?.trim() || "";
+    const rawPort = process.env["MINIO_PORT"]?.trim() || "";
+    const rawUseSSL = process.env["MINIO_USE_SSL"]?.trim() || "";
+    const rawPublicUrl = process.env["MINIO_PUBLIC_URL"]?.trim() || "https://minio.bozorchi.store";
+
+    let derivedEndpoint = rawEndpoint;
+    let derivedPort: number | undefined;
+    let derivedUseSSL = rawUseSSL === "true";
+
+    const shouldDeriveFromPublicUrl =
+      !derivedEndpoint || derivedEndpoint === "minio";
+
+    if (shouldDeriveFromPublicUrl) {
+      try {
+        const urlObj = new URL(rawPublicUrl);
+        derivedEndpoint = urlObj.hostname || derivedEndpoint;
+        if (urlObj.port) {
+          const parsed = parseInt(urlObj.port, 10);
+          if (!Number.isNaN(parsed)) derivedPort = parsed;
+        } else {
+          derivedPort = urlObj.protocol === "https:" ? 443 : 80;
+        }
+        if (!rawUseSSL) derivedUseSSL = urlObj.protocol === "https:";
+      } catch {
+        // Ignore URL parsing errors and fall back to defaults below
+      }
+    }
+
+    const parsedPort = rawPort ? parseInt(rawPort, 10) : undefined;
+    const port = !Number.isNaN(parsedPort) && parsedPort ? parsedPort : derivedPort ?? 9000;
+    const endpoint = derivedEndpoint || "minio";
+    const useSSL = derivedUseSSL;
     const accessKey = process.env["MINIO_ACCESS_KEY"] || "minioadmin";
     const secretKey = process.env["MINIO_SECRET_KEY"] || "xhzjs55iu6sqxg7x";
 
     // Update static properties from env
     FileUploadService.bucketName = process.env["MINIO_BUCKET"] || "uploads";
-    FileUploadService.publicEndpoint = process.env["MINIO_PUBLIC_URL"] || "https://minio.bozorchi.store";
+    FileUploadService.publicEndpoint = rawPublicUrl || "https://minio.bozorchi.store";
 
     // === OBSERVABILITY: Log all MinIO config values ===
     logger.info("[MinIO] ========== CONFIGURATION DEBUG ==========", "fileUpload");
     logger.info("[MinIO] Raw env values:", "fileUpload", {
-      MINIO_ENDPOINT: process.env["MINIO_ENDPOINT"] || "(not set, using default: minio)",
-      MINIO_PORT: process.env["MINIO_PORT"] || "(not set, using default: 9000)",
-      MINIO_USE_SSL: process.env["MINIO_USE_SSL"] || "(not set, using default: false)",
+      MINIO_ENDPOINT: process.env["MINIO_ENDPOINT"] || "(not set)",
+      MINIO_PORT: process.env["MINIO_PORT"] || "(not set)",
+      MINIO_USE_SSL: process.env["MINIO_USE_SSL"] || "(not set)",
       MINIO_ACCESS_KEY: process.env["MINIO_ACCESS_KEY"] ? "[SET]" : "(not set, using default)",
       MINIO_SECRET_KEY: process.env["MINIO_SECRET_KEY"] ? "[SET]" : "(not set, using default)",
       MINIO_BUCKET: process.env["MINIO_BUCKET"] || "(not set, using default: uploads)",
