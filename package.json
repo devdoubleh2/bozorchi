@@ -6,7 +6,6 @@
   "description": "Bozorchi workspace monorepo",
   "workspaces": [
     "apps/*",
-    "packages/*",
     "packages/@bozorchi/*"
   ],
   "scripts": {
