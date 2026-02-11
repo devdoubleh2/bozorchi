@@ -24,7 +24,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { ArrowLeft, Save, Upload, Loader2, Package2, X } from "lucide-react";
 import { useInventoryMutations, type BulkUpdateItem } from "@/hooks/useInventoryMutations";
 import type { FlattenedInventoryItem, StockStatus } from "@/hooks/useInventoryData";
-import type { Unit } from "@/types/generated/tenant/client";
+import type { Unit } from "@bozorchi/shared";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);

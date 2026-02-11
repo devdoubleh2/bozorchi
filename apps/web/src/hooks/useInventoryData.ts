@@ -7,7 +7,7 @@ import type {
   Prisma,
   ProductCategory,
   Unit,
-} from "@/types/generated/tenant/client";
+} from "@bozorchi/shared";
 
 const LOW_STOCK_THRESHOLD = 10;
 const DEFAULT_CATEGORY = "Uncategorized";
