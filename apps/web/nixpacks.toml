@@ -1,0 +1,18 @@
+[buildpacks]
+buildpacks = ["custom", "nix"]
+
+[phases.setup]
+nixPkgs = ["bun"]
+
+[phases.install]
+cmds = [
+  "bun install --filter @bozorchi/web --no-save --ignore-scripts"
+]
+
+[phases.build]
+cmds = [
+  "bun run --filter @bozorchi/web build"
+]
+
+[start]
+cmd = "bun run --filter @bozorchi/web preview -- --host 0.0.0.0 --port 3000"

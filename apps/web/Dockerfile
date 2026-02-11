@@ -16,16 +16,18 @@ RUN bun install --filter @bozorchi/web
 RUN cd apps/web && bun run build
 
 # Production stage
-FROM node:22-alpine
+FROM oven/bun:latest
 
 WORKDIR /app
 
-# Copy built web app from builder
-COPY --from=builder /app/apps/web/dist ./dist
+# Copy package.json for vite preview
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/apps/web ./apps/web
+COPY --from=builder /app/bun.lockb ./
 
-# Install a simple HTTP server to serve the static files
-RUN npm install -g serve
+# Install minimal dependencies for preview
+RUN bun install --filter @bozorchi/web --no-save --ignore-scripts
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["bun", "run", "--filter", "@bozorchi/web", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]

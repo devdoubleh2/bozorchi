@@ -1,3 +1,6 @@
+[buildpacks]
+buildpacks = ["custom", "nix"]
+
 [phases.setup]
 nixPkgs = ["bun"]
 
