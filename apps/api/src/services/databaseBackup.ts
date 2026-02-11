@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import logger from "../../logs/log";
@@ -11,6 +11,7 @@ export class DatabaseBackupService {
   private bot: TelegramBot | null = null;
   private readonly YOUR_TELEGRAM_ID = 559366407;
   private readonly backupDir: string;
+  private readonly timezone = "Asia/Tashkent";
 
   constructor() {
     const token = process.env["TELEGRAM_BOT_TOKEN"];
@@ -30,18 +31,18 @@ export class DatabaseBackupService {
    */
   async createAndSendBackup(): Promise<void> {
     if (!this.bot) {
-      logger.error("Telegram bot not configured", "databaseBackup");
+      logger.error("databaseBackup", "Telegram bot not configured");
       return;
     }
 
     const DATABASE_URL = process.env["DATABASE_URL"];
     if (!DATABASE_URL) {
-      logger.error("DATABASE_URL not configured", "databaseBackup");
+      logger.error("databaseBackup", "DATABASE_URL not configured");
       return;
     }
 
     try {
-      logger.info("Starting database backup...", "databaseBackup");
+      logger.info("databaseBackup", "Starting database backup...");
 
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -52,28 +53,22 @@ export class DatabaseBackupService {
       const dbUrl = new URL(DATABASE_URL);
       const host = dbUrl.hostname;
       const port = dbUrl.port || "5432";
-      const database = dbUrl.pathname.slice(1); // Remove leading slash
-      const username = dbUrl.username;
-      const password = dbUrl.password;
-
-      // Set PGPASSWORD environment variable for pg_dump
-      const env = {
-        ...process.env,
-        PGPASSWORD: password,
-      };
+      const database = decodeURIComponent(dbUrl.pathname.slice(1)); // Remove leading slash
+      const username = decodeURIComponent(dbUrl.username);
+      const password = decodeURIComponent(dbUrl.password);
 
       // Execute pg_dump command
-      logger.info("Running pg_dump...", "databaseBackup", { filename });
-      
-      const pgDumpCommand = `pg_dump -h ${host} -p ${port} -U ${username} -d ${database} -F c -f "${filepath}"`;
-      
-      execSync(pgDumpCommand, {
-        env,
-        encoding: "utf-8",
-        stdio: "pipe",
+      logger.info("databaseBackup", "Running pg_dump...", { filename });
+      this.runPgDump({
+        host,
+        port,
+        username,
+        password,
+        database,
+        filepath,
       });
 
-      logger.info("Backup created successfully", "databaseBackup", {
+      logger.info("databaseBackup", "Backup created successfully", {
         filename,
         size: fs.statSync(filepath).size,
       });
@@ -84,9 +79,9 @@ export class DatabaseBackupService {
       // Clean up old backups (keep only last 7 days)
       await this.cleanupOldBackups();
 
-      logger.info("Backup sent successfully to Telegram", "databaseBackup");
+      logger.info("databaseBackup", "Backup sent successfully to Telegram");
     } catch (error) {
-      logger.error("Failed to create or send database backup", "databaseBackup", {
+      logger.error("databaseBackup", "Failed to create or send database backup", {
         error: (error as Error).message,
       });
 
@@ -112,12 +107,12 @@ export class DatabaseBackupService {
       // Send a message first
       await this.bot.sendMessage(
         this.YOUR_TELEGRAM_ID,
-        `📦 *Database Backup*\n\n` +
-          `🗓 Date: ${new Date().toLocaleString("en-US", { timeZone: "Asia/Tashkent" })}\n` +
-          `📁 File: \`${filename}\`\n` +
+        `📦 <b>Database Backup</b>\n\n` +
+          `🗓 Date: ${this.escapeHtml(this.getCurrentDate())}\n` +
+          `📁 File: <code>${this.escapeHtml(filename)}</code>\n` +
           `💾 Size: ${fileSizeInMB} MB\n\n` +
           `Uploading...`,
-        { parse_mode: "Markdown" }
+        { parse_mode: "HTML" }
       );
 
       // Send the backup file
@@ -125,12 +120,12 @@ export class DatabaseBackupService {
         caption: `Database backup for ${new Date().toLocaleDateString()}`,
       });
 
-      logger.info("Backup file sent to Telegram", "databaseBackup", {
+      logger.info("databaseBackup", "Backup file sent to Telegram", {
         chatId: this.YOUR_TELEGRAM_ID,
         filename,
       });
     } catch (error) {
-      logger.error("Failed to send backup to Telegram", "databaseBackup", {
+      logger.error("databaseBackup", "Failed to send backup to Telegram", {
         error: (error as Error).message,
       });
       throw error;
@@ -146,14 +141,14 @@ export class DatabaseBackupService {
     try {
       await this.bot.sendMessage(
         this.YOUR_TELEGRAM_ID,
-        `❌ *Database Backup Failed*\n\n` +
-          `🗓 Date: ${new Date().toLocaleString("en-US", { timeZone: "Asia/Tashkent" })}\n` +
-          `⚠️ Error: ${error.message}\n\n` +
+        `❌ <b>Database Backup Failed</b>\n\n` +
+          `🗓 Date: ${this.escapeHtml(this.getCurrentDate())}\n` +
+          `⚠️ Error:\n<code>${this.escapeHtml(error.message)}</code>\n\n` +
           `Please check the server logs for more details.`,
-        { parse_mode: "Markdown" }
+        { parse_mode: "HTML" }
       );
     } catch (telegramError) {
-      logger.error("Failed to send error notification", "databaseBackup", {
+      logger.error("databaseBackup", "Failed to send error notification", {
         error: (telegramError as Error).message,
       });
     }
@@ -176,11 +171,11 @@ export class DatabaseBackupService {
         // Delete files older than 7 days
         if (fileAge > sevenDaysInMs) {
           fs.unlinkSync(filepath);
-          logger.info("Deleted old backup file", "databaseBackup", { file });
+          logger.info("databaseBackup", "Deleted old backup file", { file });
         }
       }
     } catch (error) {
-      logger.error("Failed to cleanup old backups", "databaseBackup", {
+      logger.error("databaseBackup", "Failed to cleanup old backups", {
         error: (error as Error).message,
       });
     }
@@ -190,7 +185,72 @@ export class DatabaseBackupService {
    * Tests the backup service (useful for initial setup)
    */
   async testBackup(): Promise<void> {
-    logger.info("Running backup test...", "databaseBackup");
+    logger.info("databaseBackup", "Running backup test...");
     await this.createAndSendBackup();
+  }
+
+  private runPgDump(params: {
+    host: string;
+    port: string;
+    username: string;
+    password: string;
+    database: string;
+    filepath: string;
+  }): void {
+    const pgDumpBinary = process.env["PG_DUMP_PATH"] || "pg_dump";
+    const result = spawnSync(
+      pgDumpBinary,
+      [
+        "-h",
+        params.host,
+        "-p",
+        params.port,
+        "-U",
+        params.username,
+        "-d",
+        params.database,
+        "-F",
+        "c",
+        "-f",
+        params.filepath,
+      ],
+      {
+        env: {
+          ...process.env,
+          PGPASSWORD: params.password,
+        },
+        encoding: "utf-8",
+        stdio: "pipe",
+      }
+    );
+
+    if (result.error) {
+      const code = (result.error as NodeJS.ErrnoException).code;
+      if (code === "ENOENT") {
+        throw new Error(
+          "pg_dump is not installed or not in PATH. Install PostgreSQL client tools or set PG_DUMP_PATH."
+        );
+      }
+      throw new Error(`pg_dump failed to start: ${(result.error as Error).message}`);
+    }
+
+    if (result.status !== 0) {
+      const stderr = result.stderr?.trim();
+      const stdout = result.stdout?.trim();
+      const details =
+        stderr || stdout || `pg_dump exited with code ${result.status ?? "unknown"}`;
+      throw new Error(`pg_dump failed: ${details}`);
+    }
+  }
+
+  private getCurrentDate(): string {
+    return new Date().toLocaleString("en-US", { timeZone: this.timezone });
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
   }
 }

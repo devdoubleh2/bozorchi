@@ -4,24 +4,24 @@ import logger from "../../logs/log";
 
 /**
  * Initializes the database backup cron job
- * Runs every day at 2:00 AM
+ * Runs every hour
  */
 export function initializeBackupScheduler(): void {
   const backupService = new DatabaseBackupService();
 
-  // Schedule backup to run daily at 2:00 AM
-  // Cron format: '0 2 * * *' means "at 02:00 every day"
-  const schedule = "0 2 * * *";
+  // Schedule backup to run at minute 0 of every hour
+  // Cron format: '0 * * * *' means "at minute 0 of every hour"
+  const schedule = "0 * * * *";
 
   cron.schedule(
     schedule,
     async () => {
-      logger.info("Starting scheduled database backup", "backupScheduler");
+      logger.info("backupScheduler", "Starting scheduled database backup");
       try {
         await backupService.createAndSendBackup();
-        logger.info("Scheduled backup completed successfully", "backupScheduler");
+        logger.info("backupScheduler", "Scheduled backup completed successfully");
       } catch (error) {
-        logger.error("Scheduled backup failed", "backupScheduler", {
+        logger.error("backupScheduler", "Scheduled backup failed", {
           error: (error as Error).message,
         });
       }
@@ -31,9 +31,9 @@ export function initializeBackupScheduler(): void {
     }
   );
 
-  logger.info("Database backup scheduler initialized", "backupScheduler", {
-    schedule: "Daily at 2:00 AM (Asia/Tashkent)",
-    nextRun: "Next backup at 2:00 AM",
+  logger.info("backupScheduler", "Database backup scheduler initialized", {
+    schedule: "Every hour at minute 0 (Asia/Tashkent)",
+    nextRun: "Next backup at the top of the hour",
   });
 }
 
@@ -42,6 +42,6 @@ export function initializeBackupScheduler(): void {
  */
 export async function runManualBackup(): Promise<void> {
   const backupService = new DatabaseBackupService();
-  logger.info("Running manual backup", "backupScheduler");
+  logger.info("backupScheduler", "Running manual backup");
   await backupService.testBackup();
 }

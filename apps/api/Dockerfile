@@ -2,6 +2,11 @@ FROM oven/bun:latest
 
 WORKDIR /app
 
+# Install PostgreSQL client tools (pg_dump)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
 # Copy root package files and lock
 COPY package.json bun.lockb ./
 

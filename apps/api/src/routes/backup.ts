@@ -19,13 +19,13 @@ router.post(
       //   return res.status(403).json({ error: "Forbidden" });
       // }
 
-      logger.info("Manual backup triggered", "backupRoute", {
+      logger.info("backupRoute", "Manual backup triggered", {
         userId: req.user?.id,
       });
 
       // Run backup asynchronously
       runManualBackup().catch((error) => {
-        logger.error("Manual backup failed", "backupRoute", {
+        logger.error("backupRoute", "Manual backup failed", {
           error: error.message,
         });
       });
@@ -35,7 +35,7 @@ router.post(
         note: "You will receive the backup on Telegram shortly",
       });
     } catch (error) {
-      logger.error("Error triggering manual backup", "backupRoute", {
+      logger.error("backupRoute", "Error triggering manual backup", {
         error: (error as Error).message,
       });
       return res.status(500).json({
