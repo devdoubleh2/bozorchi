@@ -11,7 +11,7 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "bun run build"
+  "bun run --filter @bozorchi/web build"
 ]
 
 [start]
