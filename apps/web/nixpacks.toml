@@ -6,7 +6,7 @@ nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
-  "bun install --filter @bozorchi/web --no-save --ignore-scripts"
+  "bun install"
 ]
 
 [phases.build]
