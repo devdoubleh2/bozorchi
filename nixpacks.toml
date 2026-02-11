@@ -11,6 +11,7 @@ cmds = [
 
 [phases.build]
 cmds = [
+  "bun run --filter @bozorchi/shared build",
   "bun run --filter @bozorchi/web build"
 ]
 
