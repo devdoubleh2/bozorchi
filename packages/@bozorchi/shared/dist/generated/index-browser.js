@@ -150,7 +150,6 @@ exports.Prisma.StoreScalarFieldEnum = {
   loyalty_cashback_percentage: 'loyalty_cashback_percentage',
   address: 'address',
   phone: 'phone',
-  transaction_view_limit_days: 'transaction_view_limit_days',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };

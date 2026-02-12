@@ -496,7 +496,6 @@ export class StoresController {
         loyalty_cashback_percentage,
         address,
         phone,
-        transaction_view_limit_days,
       } = req.body;
 
       const updatedStore = await req.tenantPrisma.store.update({
@@ -509,9 +508,6 @@ export class StoresController {
           }),
           ...(address !== undefined && { address }),
           ...(phone !== undefined && { phone }),
-          ...(transaction_view_limit_days !== undefined && {
-            transaction_view_limit_days: Number(transaction_view_limit_days),
-          }),
         },
       });
 

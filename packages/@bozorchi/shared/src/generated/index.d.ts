@@ -5592,12 +5592,10 @@ export namespace Prisma {
 
   export type StoreAvgAggregateOutputType = {
     loyalty_cashback_percentage: number | null
-    transaction_view_limit_days: number | null
   }
 
   export type StoreSumAggregateOutputType = {
     loyalty_cashback_percentage: number | null
-    transaction_view_limit_days: number | null
   }
 
   export type StoreMinAggregateOutputType = {
@@ -5608,7 +5606,6 @@ export namespace Prisma {
     loyalty_cashback_percentage: number | null
     address: string | null
     phone: string | null
-    transaction_view_limit_days: number | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -5621,7 +5618,6 @@ export namespace Prisma {
     loyalty_cashback_percentage: number | null
     address: string | null
     phone: string | null
-    transaction_view_limit_days: number | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -5634,7 +5630,6 @@ export namespace Prisma {
     loyalty_cashback_percentage: number
     address: number
     phone: number
-    transaction_view_limit_days: number
     created_at: number
     updated_at: number
     _all: number
@@ -5643,12 +5638,10 @@ export namespace Prisma {
 
   export type StoreAvgAggregateInputType = {
     loyalty_cashback_percentage?: true
-    transaction_view_limit_days?: true
   }
 
   export type StoreSumAggregateInputType = {
     loyalty_cashback_percentage?: true
-    transaction_view_limit_days?: true
   }
 
   export type StoreMinAggregateInputType = {
@@ -5659,7 +5652,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: true
     address?: true
     phone?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
   }
@@ -5672,7 +5664,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: true
     address?: true
     phone?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
   }
@@ -5685,7 +5676,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: true
     address?: true
     phone?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
     _all?: true
@@ -5785,7 +5775,6 @@ export namespace Prisma {
     loyalty_cashback_percentage: number
     address: string | null
     phone: string | null
-    transaction_view_limit_days: number
     created_at: Date
     updated_at: Date
     _count: StoreCountAggregateOutputType | null
@@ -5817,7 +5806,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: boolean
     address?: boolean
     phone?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
     currencies?: boolean | Store$currenciesArgs<ExtArgs>
@@ -5832,7 +5820,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: boolean
     address?: boolean
     phone?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
   }, ExtArgs["result"]["store"]>
@@ -5845,7 +5832,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: boolean
     address?: boolean
     phone?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
   }, ExtArgs["result"]["store"]>
@@ -5858,12 +5844,11 @@ export namespace Prisma {
     loyalty_cashback_percentage?: boolean
     address?: boolean
     phone?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type StoreOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organization_id" | "currency" | "loyalty_cashback_percentage" | "address" | "phone" | "transaction_view_limit_days" | "created_at" | "updated_at", ExtArgs["result"]["store"]>
+  export type StoreOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organization_id" | "currency" | "loyalty_cashback_percentage" | "address" | "phone" | "created_at" | "updated_at", ExtArgs["result"]["store"]>
   export type StoreInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     currencies?: boolean | Store$currenciesArgs<ExtArgs>
     _count?: boolean | StoreCountOutputTypeDefaultArgs<ExtArgs>
@@ -5884,7 +5869,6 @@ export namespace Prisma {
       loyalty_cashback_percentage: number
       address: string | null
       phone: string | null
-      transaction_view_limit_days: number
       created_at: Date
       updated_at: Date
     }, ExtArgs["result"]["store"]>
@@ -6318,7 +6302,6 @@ export namespace Prisma {
     readonly loyalty_cashback_percentage: FieldRef<"Store", 'Float'>
     readonly address: FieldRef<"Store", 'String'>
     readonly phone: FieldRef<"Store", 'String'>
-    readonly transaction_view_limit_days: FieldRef<"Store", 'Int'>
     readonly created_at: FieldRef<"Store", 'DateTime'>
     readonly updated_at: FieldRef<"Store", 'DateTime'>
   }
@@ -30759,7 +30742,6 @@ export namespace Prisma {
     loyalty_cashback_percentage: 'loyalty_cashback_percentage',
     address: 'address',
     phone: 'phone',
-    transaction_view_limit_days: 'transaction_view_limit_days',
     created_at: 'created_at',
     updated_at: 'updated_at'
   };
@@ -31480,7 +31462,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFilter<"Store"> | number
     address?: StringNullableFilter<"Store"> | string | null
     phone?: StringNullableFilter<"Store"> | string | null
-    transaction_view_limit_days?: IntFilter<"Store"> | number
     created_at?: DateTimeFilter<"Store"> | Date | string
     updated_at?: DateTimeFilter<"Store"> | Date | string
     currencies?: CurrencyListRelationFilter
@@ -31494,7 +31475,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     currencies?: CurrencyOrderByRelationAggregateInput
@@ -31511,7 +31491,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFilter<"Store"> | number
     address?: StringNullableFilter<"Store"> | string | null
     phone?: StringNullableFilter<"Store"> | string | null
-    transaction_view_limit_days?: IntFilter<"Store"> | number
     created_at?: DateTimeFilter<"Store"> | Date | string
     updated_at?: DateTimeFilter<"Store"> | Date | string
     currencies?: CurrencyListRelationFilter
@@ -31525,7 +31504,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: SortOrder
     address?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     _count?: StoreCountOrderByAggregateInput
@@ -31546,7 +31524,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatWithAggregatesFilter<"Store"> | number
     address?: StringNullableWithAggregatesFilter<"Store"> | string | null
     phone?: StringNullableWithAggregatesFilter<"Store"> | string | null
-    transaction_view_limit_days?: IntWithAggregatesFilter<"Store"> | number
     created_at?: DateTimeWithAggregatesFilter<"Store"> | Date | string
     updated_at?: DateTimeWithAggregatesFilter<"Store"> | Date | string
   }
@@ -33515,7 +33492,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: number
     address?: string | null
     phone?: string | null
-    transaction_view_limit_days?: number
     created_at?: Date | string
     updated_at?: Date | string
     currencies?: CurrencyCreateNestedManyWithoutStoreInput
@@ -33529,7 +33505,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: number
     address?: string | null
     phone?: string | null
-    transaction_view_limit_days?: number
     created_at?: Date | string
     updated_at?: Date | string
     currencies?: CurrencyUncheckedCreateNestedManyWithoutStoreInput
@@ -33543,7 +33518,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     currencies?: CurrencyUpdateManyWithoutStoreNestedInput
@@ -33557,7 +33531,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     currencies?: CurrencyUncheckedUpdateManyWithoutStoreNestedInput
@@ -33571,7 +33544,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: number
     address?: string | null
     phone?: string | null
-    transaction_view_limit_days?: number
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -33584,7 +33556,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -33597,7 +33568,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -35834,17 +35804,6 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type CurrencyListRelationFilter = {
     every?: CurrencyWhereInput
     some?: CurrencyWhereInput
@@ -35863,14 +35822,12 @@ export namespace Prisma {
     loyalty_cashback_percentage?: SortOrder
     address?: SortOrder
     phone?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
 
   export type StoreAvgOrderByAggregateInput = {
     loyalty_cashback_percentage?: SortOrder
-    transaction_view_limit_days?: SortOrder
   }
 
   export type StoreMaxOrderByAggregateInput = {
@@ -35881,7 +35838,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: SortOrder
     address?: SortOrder
     phone?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -35894,14 +35850,12 @@ export namespace Prisma {
     loyalty_cashback_percentage?: SortOrder
     address?: SortOrder
     phone?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
 
   export type StoreSumOrderByAggregateInput = {
     loyalty_cashback_percentage?: SortOrder
-    transaction_view_limit_days?: SortOrder
   }
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -35918,22 +35872,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type DecimalFilter<$PrismaModel = never> = {
@@ -36303,6 +36241,17 @@ export namespace Prisma {
     last_exchange_rate?: SortOrder
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
   export type ProductVariationScalarRelationFilter = {
     is?: ProductVariationWhereInput
     isNot?: ProductVariationWhereInput
@@ -36346,6 +36295,22 @@ export namespace Prisma {
 
   export type InventorySumOrderByAggregateInput = {
     quantity_in_stock?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type DecimalNullableFilter<$PrismaModel = never> = {
@@ -37471,14 +37436,6 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type CurrencyUpdateManyWithoutStoreNestedInput = {
     create?: XOR<CurrencyCreateWithoutStoreInput, CurrencyUncheckedCreateWithoutStoreInput> | CurrencyCreateWithoutStoreInput[] | CurrencyUncheckedCreateWithoutStoreInput[]
     connectOrCreate?: CurrencyCreateOrConnectWithoutStoreInput | CurrencyCreateOrConnectWithoutStoreInput[]
@@ -37979,6 +37936,14 @@ export namespace Prisma {
     create?: XOR<ProductVariationCreateWithoutInventoryInput, ProductVariationUncheckedCreateWithoutInventoryInput>
     connectOrCreate?: ProductVariationCreateOrConnectWithoutInventoryInput
     connect?: ProductVariationWhereUniqueInput
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type ProductVariationUpdateOneRequiredWithoutInventoryNestedInput = {
@@ -38934,22 +38899,6 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
   export type NestedDecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
@@ -39005,6 +38954,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumProductTypeFilter<$PrismaModel>
     _max?: NestedEnumProductTypeFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type NestedDecimalNullableFilter<$PrismaModel = never> = {
@@ -39368,7 +39333,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: number
     address?: string | null
     phone?: string | null
-    transaction_view_limit_days?: number
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -39381,7 +39345,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: number
     address?: string | null
     phone?: string | null
-    transaction_view_limit_days?: number
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -39410,7 +39373,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39423,7 +39385,6 @@ export namespace Prisma {
     loyalty_cashback_percentage?: FloatFieldUpdateOperationsInput | number
     address?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
-    transaction_view_limit_days?: IntFieldUpdateOperationsInput | number
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }

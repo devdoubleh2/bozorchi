@@ -44,7 +44,6 @@ export interface UserOrganization {
     role: Role;
     permissions: Permission[];
     approved: boolean;
-    transaction_view_limit_days?: number | null;
     created_at: string;
     updated_at: string;
 }

@@ -165,7 +165,6 @@ exports.Prisma.UserOrganizationScalarFieldEnum = {
   role: 'role',
   permissions: 'permissions',
   approved: 'approved',
-  transaction_view_limit_days: 'transaction_view_limit_days',
   created_at: 'created_at',
   updated_at: 'updated_at'
 };

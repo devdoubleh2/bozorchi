@@ -2,6 +2,15 @@ import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import logger from "../../logs/log";
 import { AuthRequest } from "../middleware/auth";
+import { Permission } from "../generated/public/client";
+
+const ALLOWED_PERMISSIONS = new Set<Permission>([
+  Permission.POS_ACCESS,
+  Permission.MANAGE_PRODUCTS,
+  Permission.MANAGE_INVENTORY,
+  Permission.VIEW_COST_PRICE,
+  Permission.VIEW_ANALYTICS,
+]);
 
 export class StaffController {
   async listAssignments(req: AuthRequest, res: Response) {
@@ -35,7 +44,7 @@ export class StaffController {
           },
           role: assignment.role,
           approved: assignment.approved,
-          transaction_view_limit_days: assignment.transaction_view_limit_days,
+          permissions: assignment.permissions,
           created_at: assignment.created_at,
         };
       });
@@ -62,11 +71,30 @@ export class StaffController {
       }
 
       const { assignmentId } = req.params;
-      const { transaction_view_limit_days } = req.body;
+      const { permissions } = req.body as { permissions?: unknown };
 
       if (!assignmentId) {
         return res.status(400).json({
           error: "Assignment ID is required",
+        });
+      }
+
+      if (!Array.isArray(permissions)) {
+        return res.status(400).json({
+          error: "Permissions array is required",
+        });
+      }
+
+      const normalizedPermissions = [...new Set(permissions)];
+      const hasInvalidPermissions = normalizedPermissions.some(
+        (permission) =>
+          typeof permission !== "string" ||
+          !ALLOWED_PERMISSIONS.has(permission as Permission)
+      );
+
+      if (hasInvalidPermissions) {
+        return res.status(400).json({
+          error: "Invalid permissions provided",
         });
       }
 
@@ -83,7 +111,7 @@ export class StaffController {
       await prisma.userOrganization.update({
         where: { id: assignmentId },
         data: {
-          transaction_view_limit_days: transaction_view_limit_days !== undefined ? transaction_view_limit_days : undefined,
+          permissions: normalizedPermissions as Permission[],
         },
       });
 

@@ -41,7 +41,6 @@ export interface StaffAssignment {
     store_id: string | null;
     role: "admin" | "user";
     approved: boolean;
-    transaction_view_limit_days: number | null;
     created_at: string;
     updated_at: string;
     user: {

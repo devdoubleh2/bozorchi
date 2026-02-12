@@ -4659,18 +4659,8 @@ export namespace Prisma {
 
   export type AggregateUserOrganization = {
     _count: UserOrganizationCountAggregateOutputType | null
-    _avg: UserOrganizationAvgAggregateOutputType | null
-    _sum: UserOrganizationSumAggregateOutputType | null
     _min: UserOrganizationMinAggregateOutputType | null
     _max: UserOrganizationMaxAggregateOutputType | null
-  }
-
-  export type UserOrganizationAvgAggregateOutputType = {
-    transaction_view_limit_days: number | null
-  }
-
-  export type UserOrganizationSumAggregateOutputType = {
-    transaction_view_limit_days: number | null
   }
 
   export type UserOrganizationMinAggregateOutputType = {
@@ -4680,7 +4670,6 @@ export namespace Prisma {
     store_id: string | null
     role: $Enums.Role | null
     approved: boolean | null
-    transaction_view_limit_days: number | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -4692,7 +4681,6 @@ export namespace Prisma {
     store_id: string | null
     role: $Enums.Role | null
     approved: boolean | null
-    transaction_view_limit_days: number | null
     created_at: Date | null
     updated_at: Date | null
   }
@@ -4705,20 +4693,11 @@ export namespace Prisma {
     role: number
     permissions: number
     approved: number
-    transaction_view_limit_days: number
     created_at: number
     updated_at: number
     _all: number
   }
 
-
-  export type UserOrganizationAvgAggregateInputType = {
-    transaction_view_limit_days?: true
-  }
-
-  export type UserOrganizationSumAggregateInputType = {
-    transaction_view_limit_days?: true
-  }
 
   export type UserOrganizationMinAggregateInputType = {
     id?: true
@@ -4727,7 +4706,6 @@ export namespace Prisma {
     store_id?: true
     role?: true
     approved?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
   }
@@ -4739,7 +4717,6 @@ export namespace Prisma {
     store_id?: true
     role?: true
     approved?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
   }
@@ -4752,7 +4729,6 @@ export namespace Prisma {
     role?: true
     permissions?: true
     approved?: true
-    transaction_view_limit_days?: true
     created_at?: true
     updated_at?: true
     _all?: true
@@ -4796,18 +4772,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: UserOrganizationAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: UserOrganizationSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: UserOrganizationMinAggregateInputType
@@ -4838,8 +4802,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: UserOrganizationCountAggregateInputType | true
-    _avg?: UserOrganizationAvgAggregateInputType
-    _sum?: UserOrganizationSumAggregateInputType
     _min?: UserOrganizationMinAggregateInputType
     _max?: UserOrganizationMaxAggregateInputType
   }
@@ -4852,12 +4814,9 @@ export namespace Prisma {
     role: $Enums.Role
     permissions: $Enums.Permission[]
     approved: boolean
-    transaction_view_limit_days: number | null
     created_at: Date
     updated_at: Date
     _count: UserOrganizationCountAggregateOutputType | null
-    _avg: UserOrganizationAvgAggregateOutputType | null
-    _sum: UserOrganizationSumAggregateOutputType | null
     _min: UserOrganizationMinAggregateOutputType | null
     _max: UserOrganizationMaxAggregateOutputType | null
   }
@@ -4884,7 +4843,6 @@ export namespace Prisma {
     role?: boolean
     permissions?: boolean
     approved?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -4898,7 +4856,6 @@ export namespace Prisma {
     role?: boolean
     permissions?: boolean
     approved?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -4912,7 +4869,6 @@ export namespace Prisma {
     role?: boolean
     permissions?: boolean
     approved?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -4926,12 +4882,11 @@ export namespace Prisma {
     role?: boolean
     permissions?: boolean
     approved?: boolean
-    transaction_view_limit_days?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type UserOrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "organization_id" | "store_id" | "role" | "permissions" | "approved" | "transaction_view_limit_days" | "created_at" | "updated_at", ExtArgs["result"]["userOrganization"]>
+  export type UserOrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "organization_id" | "store_id" | "role" | "permissions" | "approved" | "created_at" | "updated_at", ExtArgs["result"]["userOrganization"]>
   export type UserOrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }
@@ -4955,7 +4910,6 @@ export namespace Prisma {
       role: $Enums.Role
       permissions: $Enums.Permission[]
       approved: boolean
-      transaction_view_limit_days: number | null
       created_at: Date
       updated_at: Date
     }, ExtArgs["result"]["userOrganization"]>
@@ -5389,7 +5343,6 @@ export namespace Prisma {
     readonly role: FieldRef<"UserOrganization", 'Role'>
     readonly permissions: FieldRef<"UserOrganization", 'Permission[]'>
     readonly approved: FieldRef<"UserOrganization", 'Boolean'>
-    readonly transaction_view_limit_days: FieldRef<"UserOrganization", 'Int'>
     readonly created_at: FieldRef<"UserOrganization", 'DateTime'>
     readonly updated_at: FieldRef<"UserOrganization", 'DateTime'>
   }
@@ -5874,7 +5827,6 @@ export namespace Prisma {
     role: 'role',
     permissions: 'permissions',
     approved: 'approved',
-    transaction_view_limit_days: 'transaction_view_limit_days',
     created_at: 'created_at',
     updated_at: 'updated_at'
   };
@@ -5999,20 +5951,6 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
   /**
    * Deep Input Types
@@ -6266,7 +6204,6 @@ export namespace Prisma {
     role?: EnumRoleFilter<"UserOrganization"> | $Enums.Role
     permissions?: EnumPermissionNullableListFilter<"UserOrganization">
     approved?: BoolFilter<"UserOrganization"> | boolean
-    transaction_view_limit_days?: IntNullableFilter<"UserOrganization"> | number | null
     created_at?: DateTimeFilter<"UserOrganization"> | Date | string
     updated_at?: DateTimeFilter<"UserOrganization"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
@@ -6280,7 +6217,6 @@ export namespace Prisma {
     role?: SortOrder
     permissions?: SortOrder
     approved?: SortOrder
-    transaction_view_limit_days?: SortOrderInput | SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     organization?: OrganizationOrderByWithRelationInput
@@ -6298,7 +6234,6 @@ export namespace Prisma {
     role?: EnumRoleFilter<"UserOrganization"> | $Enums.Role
     permissions?: EnumPermissionNullableListFilter<"UserOrganization">
     approved?: BoolFilter<"UserOrganization"> | boolean
-    transaction_view_limit_days?: IntNullableFilter<"UserOrganization"> | number | null
     created_at?: DateTimeFilter<"UserOrganization"> | Date | string
     updated_at?: DateTimeFilter<"UserOrganization"> | Date | string
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
@@ -6312,14 +6247,11 @@ export namespace Prisma {
     role?: SortOrder
     permissions?: SortOrder
     approved?: SortOrder
-    transaction_view_limit_days?: SortOrderInput | SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
     _count?: UserOrganizationCountOrderByAggregateInput
-    _avg?: UserOrganizationAvgOrderByAggregateInput
     _max?: UserOrganizationMaxOrderByAggregateInput
     _min?: UserOrganizationMinOrderByAggregateInput
-    _sum?: UserOrganizationSumOrderByAggregateInput
   }
 
   export type UserOrganizationScalarWhereWithAggregatesInput = {
@@ -6333,7 +6265,6 @@ export namespace Prisma {
     role?: EnumRoleWithAggregatesFilter<"UserOrganization"> | $Enums.Role
     permissions?: EnumPermissionNullableListFilter<"UserOrganization">
     approved?: BoolWithAggregatesFilter<"UserOrganization"> | boolean
-    transaction_view_limit_days?: IntNullableWithAggregatesFilter<"UserOrganization"> | number | null
     created_at?: DateTimeWithAggregatesFilter<"UserOrganization"> | Date | string
     updated_at?: DateTimeWithAggregatesFilter<"UserOrganization"> | Date | string
   }
@@ -6614,7 +6545,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
     organization: OrganizationCreateNestedOneWithoutMembersInput
@@ -6628,7 +6558,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -6640,7 +6569,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     organization?: OrganizationUpdateOneRequiredWithoutMembersNestedInput
@@ -6654,7 +6582,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6667,7 +6594,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -6679,7 +6605,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -6692,7 +6617,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7004,17 +6928,6 @@ export namespace Prisma {
     isEmpty?: boolean
   }
 
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
   export type OrganizationScalarRelationFilter = {
     is?: OrganizationWhereInput
     isNot?: OrganizationWhereInput
@@ -7034,13 +6947,8 @@ export namespace Prisma {
     role?: SortOrder
     permissions?: SortOrder
     approved?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
-  }
-
-  export type UserOrganizationAvgOrderByAggregateInput = {
-    transaction_view_limit_days?: SortOrder
   }
 
   export type UserOrganizationMaxOrderByAggregateInput = {
@@ -7050,7 +6958,6 @@ export namespace Prisma {
     store_id?: SortOrder
     role?: SortOrder
     approved?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
   }
@@ -7062,13 +6969,8 @@ export namespace Prisma {
     store_id?: SortOrder
     role?: SortOrder
     approved?: SortOrder
-    transaction_view_limit_days?: SortOrder
     created_at?: SortOrder
     updated_at?: SortOrder
-  }
-
-  export type UserOrganizationSumOrderByAggregateInput = {
-    transaction_view_limit_days?: SortOrder
   }
 
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -7079,22 +6981,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRoleFilter<$PrismaModel>
     _max?: NestedEnumRoleFilter<$PrismaModel>
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type UserCreateNestedOneWithoutOwned_organizationInput = {
@@ -7282,14 +7168,6 @@ export namespace Prisma {
   export type UserOrganizationUpdatepermissionsInput = {
     set?: $Enums.Permission[]
     push?: $Enums.Permission | $Enums.Permission[]
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type OrganizationUpdateOneRequiredWithoutMembersNestedInput = {
@@ -7481,33 +7359,6 @@ export namespace Prisma {
     _max?: NestedEnumRoleFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
   export type UserCreateWithoutOwned_organizationInput = {
     id?: string
     name?: string | null
@@ -7542,7 +7393,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -7554,7 +7404,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -7629,7 +7478,6 @@ export namespace Prisma {
     role?: EnumRoleFilter<"UserOrganization"> | $Enums.Role
     permissions?: EnumPermissionNullableListFilter<"UserOrganization">
     approved?: BoolFilter<"UserOrganization"> | boolean
-    transaction_view_limit_days?: IntNullableFilter<"UserOrganization"> | number | null
     created_at?: DateTimeFilter<"UserOrganization"> | Date | string
     updated_at?: DateTimeFilter<"UserOrganization"> | Date | string
   }
@@ -7931,7 +7779,6 @@ export namespace Prisma {
     role?: $Enums.Role
     permissions?: UserOrganizationCreatepermissionsInput | $Enums.Permission[]
     approved?: boolean
-    transaction_view_limit_days?: number | null
     created_at?: Date | string
     updated_at?: Date | string
   }
@@ -7943,7 +7790,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7955,7 +7801,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7967,7 +7812,6 @@ export namespace Prisma {
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     permissions?: UserOrganizationUpdatepermissionsInput | $Enums.Permission[]
     approved?: BoolFieldUpdateOperationsInput | boolean
-    transaction_view_limit_days?: NullableIntFieldUpdateOperationsInput | number | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }

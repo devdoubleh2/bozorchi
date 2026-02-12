@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal, Settings } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -42,7 +40,6 @@ interface StaffAssignment {
   };
   role: string;
   approved: boolean;
-  transaction_view_limit_days: number | null;
   permissions: PermissionType[];
   created_at: string;
 }
@@ -62,7 +59,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
   const queryClient = useQueryClient();
 
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StaffAssignment | null>(null);
 
@@ -120,12 +116,11 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { assignmentId: string; limit: number | null; permissions?: PermissionType[] }) =>
+    mutationFn: (data: { assignmentId: string; permissions: PermissionType[] }) =>
       api.put<{ message: string }>(
         `/api/staff/assignments/${data.assignmentId}`,
         {
-          transaction_view_limit_days: data.limit,
-          permissions: data.permissions
+          permissions: data.permissions,
         }
       ),
     onSuccess: () => {
@@ -192,7 +187,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
         </TableCell>
         <TableCell>
           <div className="flex flex-wrap gap-1">
-            {assignment.permissions && assignment.permissions.length > 0 ? (
+            {assignment.permissions.length > 0 ? (
               assignment.permissions.map((perm) => (
                 <Badge key={perm} variant="outline" className="text-xs">
                   {PERMISSION_LABELS[perm]}
@@ -202,13 +197,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
               <span className="text-sm text-muted-foreground">{t("staff.noPermissions", { defaultValue: "No permissions" })}</span>
             )}
           </div>
-        </TableCell>
-        <TableCell>
-          {assignment.transaction_view_limit_days ? (
-            <span className="text-sm">{assignment.transaction_view_limit_days} {t("common.days")}</span>
-          ) : (
-            <span className="text-sm text-muted-foreground">{t("staff.unlimited")}</span>
-          )}
         </TableCell>
         <TableCell className="text-right">
           <DropdownMenu>
@@ -239,16 +227,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSelectedAssignment(assignment);
-                      setSettingsDialogOpen(true);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Settings className="h-4 w-4" />
-                    {t("staff.settings")}
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
                       setSelectedAssignment(assignment);
@@ -339,7 +317,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
                         <TableHead>{t("common.status")}</TableHead>
                         <TableHead>{t("common.date")}</TableHead>
                         <TableHead>{t("staff.permissions.title", { defaultValue: "Permissions" })}</TableHead>
-                        <TableHead>{t("staff.limitDays", { defaultValue: "Limit (days)" })}</TableHead>
                         <TableHead className="text-right">{t("common.actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -376,7 +353,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
                         <TableHead>{t("common.status")}</TableHead>
                         <TableHead>{t("common.date")}</TableHead>
                         <TableHead>{t("staff.permissions.title", { defaultValue: "Permissions" })}</TableHead>
-                        <TableHead>{t("staff.limitDays", { defaultValue: "Limit (days)" })}</TableHead>
                         <TableHead className="text-right">{t("common.actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -391,28 +367,15 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
             </CardContent>
           </Card>
 
-          {/* Settings Dialog */}
-          {selectedAssignment && (
-            <StaffSettingsDialog
-              open={settingsDialogOpen}
-              onOpenChange={setSettingsDialogOpen}
-              assignment={selectedAssignment}
-              onUpdate={(limit, permissions) => {
-                updateMutation.mutate({ assignmentId: selectedAssignment.id, limit, permissions });
-                setSettingsDialogOpen(false);
-              }}
-              isUpdating={updateMutation.isPending}
-            />
-          )}
-
           {/* Role Assignment Dialog */}
           {selectedAssignment && (
             <RoleAssignmentDialog
+              key={selectedAssignment.id}
               open={roleDialogOpen}
               onOpenChange={setRoleDialogOpen}
               assignment={selectedAssignment}
               onUpdate={(permissions) => {
-                updateMutation.mutate({ assignmentId: selectedAssignment.id, limit: selectedAssignment.transaction_view_limit_days, permissions });
+                updateMutation.mutate({ assignmentId: selectedAssignment.id, permissions });
                 setRoleDialogOpen(false);
               }}
               isUpdating={updateMutation.isPending}
@@ -421,66 +384,6 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
         </>
       )}
     </Wrapper>
-  );
-}
-
-function StaffSettingsDialog({
-  open,
-  onOpenChange,
-  assignment,
-  onUpdate,
-  isUpdating,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  assignment: StaffAssignment;
-  onUpdate: (limit: number | null, permissions: PermissionType[]) => void;
-  isUpdating: boolean;
-}) {
-  const { t } = useTranslation();
-  const [limit, setLimit] = useState<string>(
-    assignment.transaction_view_limit_days?.toString() ?? "7"
-  );
-
-  const handleSave = () => {
-    const val = limit === "" ? null : parseInt(limit);
-    onUpdate(val, assignment.permissions);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("staff.settings")}</DialogTitle>
-          <DialogDescription>
-            {t("staff.updateTransactionViewLimit", { defaultValue: "Update transaction view limit for this staff member" })}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="limit">{t("staff.limitDays")}</Label>
-            <Input
-              id="limit"
-              type="number"
-              value={limit}
-              onChange={(e) => setLimit(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t("staff.transactionLimitDescription", { defaultValue: "Number of days to view transaction history" })}
-            </p>
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={handleSave} disabled={isUpdating}>
-              {isUpdating && <RefreshCcw className="mr-2 size-4 animate-spin" />}
-              {t("common.save")}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -498,7 +401,11 @@ function RoleAssignmentDialog({
   isUpdating: boolean;
 }) {
   const { t } = useTranslation();
-  const [permissions, setPermissions] = useState<PermissionType[]>(assignment.permissions || []);
+  const [permissions, setPermissions] = useState<PermissionType[]>(assignment.permissions ?? []);
+
+  useEffect(() => {
+    setPermissions(assignment.permissions ?? []);
+  }, [assignment]);
 
   const PERMISSION_LIST: { value: PermissionType; label: string; description: string }[] = [
     { value: "POS_ACCESS", label: t("staff.permissions.posAccess", { defaultValue: "POS Access" }), description: t("staff.permissions.posAccessDesc", { defaultValue: "Access to point of sale system" }) },

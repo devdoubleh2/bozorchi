@@ -42,7 +42,6 @@ model Store {
   loyalty_cashback_percentage Float      @default(0)
   address                     String?
   phone                       String?
-  transaction_view_limit_days Int        @default(7)
   created_at                  DateTime   @default(now())
   updated_at                  DateTime   @updatedAt
   currencies                  Currency[]

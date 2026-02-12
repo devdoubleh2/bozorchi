@@ -132,6 +132,7 @@ export const useAuthStore = create<AuthState>()(
               store_id: storeRes.data.id,
               role,
               approved: isOwner ? true : membership?.approved ?? false,
+              permissions: isOwner ? [] : membership?.permissions ?? [],
               store: storeRes.data,
             };
 
@@ -312,6 +313,7 @@ export const useAuthStore = create<AuthState>()(
               store_id: result.store.id,
               role,
               approved: isOwner ? true : user.membership?.approved ?? false,
+              permissions: isOwner ? [] : user.membership?.permissions ?? [],
               store: result.store,
             };
 

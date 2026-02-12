@@ -51,7 +51,6 @@ export interface Store {
     loyalty_cashback_percentage: number;
     address: string | null;
     phone: string | null;
-    transaction_view_limit_days: number;
     created_at: Date | string;
     updated_at: Date | string;
 }

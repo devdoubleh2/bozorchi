@@ -49,7 +49,6 @@ export interface UserOrganization {
   role: Role;
   permissions: Permission[];
   approved: boolean;
-  transaction_view_limit_days?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -70,7 +69,6 @@ export interface Store {
   loyalty_cashback_percentage?: number;
   address?: string | null;
   phone?: string | null;
-  transaction_view_limit_days?: number;
   created_at?: string;
   updated_at?: string;
 }

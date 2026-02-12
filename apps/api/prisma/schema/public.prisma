@@ -70,7 +70,6 @@ model UserOrganization {
   role                        Role         @default(user)
   permissions                 Permission[]
   approved                    Boolean      @default(false)
-  transaction_view_limit_days Int?
   created_at                  DateTime     @default(now())
   updated_at                  DateTime     @updatedAt
   organization                Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
