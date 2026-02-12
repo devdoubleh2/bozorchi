@@ -22,6 +22,9 @@ export default defineConfig({
       "@": "/src",
     },
   },
+  preview: {
+    allowedHosts: ["pos.bozorchi.store"],
+  },
   build: {
     outDir: "dist",
     target: "es2022",
