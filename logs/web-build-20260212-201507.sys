@@ -1,0 +1,59 @@
+timestamp=20260212-201507
+root_dir=/Users/ismoiljonabdukakhkhorov/Desktop/freelance/bozorchi
+web_dir=/Users/ismoiljonabdukakhkhorov/Desktop/freelance/bozorchi/apps/web
+uname=Darwin MacBook-Air-2.local 25.2.0 Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:34 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T8112 arm64
+bun=/Users/ismoiljonabdukakhkhorov/.bun/bin/bun
+node=/Users/ismoiljonabdukakhkhorov/.nvm/versions/node/v24.11.1/bin/node
+pnpm=/usr/local/bin/pnpm
+yarn=/usr/local/bin/yarn
+npm=/Users/ismoiljonabdukakhkhorov/.nvm/versions/node/v24.11.1/bin/npm
+pwd=/Users/ismoiljonabdukakhkhorov/Desktop/freelance/bozorchi/scripts
+== Disk usage before ==
+Filesystem                              Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s3s1                         228Gi    11Gi   8.4Gi    58%    453k   88M    1%   /
+devfs                                  227Ki   227Ki     0Bi   100%     784     0  100%   /dev
+/dev/disk3s6                           228Gi   6.0Gi   8.4Gi    42%       6   88M    0%   /System/Volumes/VM
+/dev/disk3s4                           228Gi   7.6Gi   8.4Gi    48%    1.3k   88M    0%   /System/Volumes/Preboot
+/dev/disk3s2                           228Gi    42Mi   8.4Gi     1%      66   88M    0%   /System/Volumes/Update
+/dev/disk1s2                           500Mi   6.0Mi   482Mi     2%       1  4.9M    0%   /System/Volumes/xarts
+/dev/disk1s1                           500Mi   5.8Mi   482Mi     2%      30  4.9M    0%   /System/Volumes/iSCPreboot
+/dev/disk1s3                           500Mi   1.9Mi   482Mi     1%      65  4.9M    0%   /System/Volumes/Hardware
+/dev/disk3s1                           228Gi   194Gi   8.4Gi    96%    2.8M   88M    3%   /System/Volumes/Data
+map auto_home                            0Bi     0Bi     0Bi   100%       0     0     -   /System/Volumes/Data/home
+/Applications/Visual Studio Code.app   228Gi   175Gi    30Gi    86%    2.6M  311M    1%   /private/var/folders/nt/qt_9573d03d39_g82g2gtgtr0000gn/T/AppTranslocation/3586FEAD-64F6-49E9-A549-33C823A1C9A8
+/dev/disk5s1                            16Gi    16Gi   467Mi    98%    507k  4.8M   10%   /Library/Developer/CoreSimulator/Volumes/iOS_21C62
+/dev/disk7s1                            16Gi    16Gi   436Mi    98%    607k  4.5M   12%   /Library/Developer/CoreSimulator/Volumes/iOS_23C54
+/dev/disk9s1                           8.2Gi   8.0Gi   245Mi    98%      13  2.5M    0%   /Library/Developer/CoreSimulator/Cryptex/Images/bundle/SimRuntimeBundle-8A918165-CF1D-410F-A0E2-3F5FE0B4B764
+/dev/disk11s1                           18Gi    18Gi   467Mi    98%    452k  4.8M    9%   /Library/Developer/CoreSimulator/Volumes/iOS_22B81
+
+== Memory before ==
+Mach Virtual Memory Statistics: (page size of 16384 bytes)
+Pages free:                                7964.
+Pages active:                            101098.
+Pages inactive:                           99730.
+Pages speculative:                          488.
+Pages throttled:                              0.
+Pages wired down:                        121705.
+Pages purgeable:                           2502.
+"Translation faults":                1190523203.
+Pages copy-on-write:                   42359519.
+Pages zero filled:                    327266322.
+Pages reactivated:                    361082851.
+Pages purged:                          30225190.
+File-backed pages:                        65533.
+Anonymous pages:                         135783.
+Pages stored in compressor:             1612106.
+Pages occupied by compressor:            156367.
+Decompressions:                       411878272.
+Compressions:                         472893009.
+Pageins:                               95674224.
+Pageouts:                               2082505.
+Swapins:                               14182904.
+Swapouts:                              18004902.
+
+== Process list (top 5 by memory) ==
+ismoiljonabdukakhkhorov 15808   1.3  5.1 1910943952 424432   ??  S     5:00PM   4:25.97 /private/var/folders/nt/qt_9573d03d39_g82g2gtgtr0000gn/T/AppTranslocation/3586FEAD-64F6-49E9-A549-33C823A1C9A8/d/Visual Studio Code.app/Contents/Frameworks/Code Helper (Renderer).app/Contents/MacOS/Code Helper (Renderer) --type=renderer --user-data-dir=/Users/ismoiljonabdukakhkhorov/Library/Application Support/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/private/var/folders/nt/qt_9573d03d39_g82g2gtgtr0000gn/T/AppTranslocation/3586FEAD-64F6-49E9-A549-33C823A1C9A8/d/Visual Studio Code.app/Contents/Resources/app --enable-sandbox --enable-blink-features=HighlightAPI --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=22 --time-ticks-at-unix-epoch=-1770800269051757 --launch-time-ticks=84225305431 --shared-files --field-trial-handle=1718379636,r,2916278078844486999,10176508919039252799,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,MacWebContentsOcclusion,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190709006926792172 --vscode-window-config=vscode:5d3db29f-9f82-4033-9fa8-7bb311e1562d --seatbelt-client=55
+ismoiljonabdukakhkhorov 15900   0.1  3.7 1899076880 309840   ??  S     5:01PM   1:50.39 /private/var/folders/nt/qt_9573d03d39_g82g2gtgtr0000gn/T/AppTranslocation/3586FEAD-64F6-49E9-A549-33C823A1C9A8/d/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin) --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --dns-result-order=ipv4first --experimental-network-inspection --inspect-port=0 --user-data-dir=/Users/ismoiljonabdukakhkhorov/Library/Application Support/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files --field-trial-handle=1718379636,r,2916278078844486999,10176508919039252799,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,MacWebContentsOcclusion,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190709010674959568
+ismoiljonabdukakhkhorov 96500   0.6  3.2 464444112 267984   ??  S    10:28AM  22:53.47 /Applications/Zen.app/Contents/MacOS/zen
+ismoiljonabdukakhkhorov  4946   0.2  2.8 437526048 231936   ??  Ss   Tue12PM  21:34.61 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ismoiljonabdukakhkhorov 44354   2.4  2.0 438940944 165632   ??  S     8:10PM   0:12.48 /Applications/Zen.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container -isForBrowser -prefsHandle 0:42831 -prefMapHandle 1:286050 -jsInitHandle 2:223968 -sbStartup -sbAppPath /Applications/Zen.app -sbLevel 3 -parentBuildID 20260206011206 -ipcHandle 0 -initialChannelId {21d2e741-ead4-4390-9165-88d8b5cf5592} -parentPid 96500 -greomni /Applications/Zen.app/Contents/Resources/omni.ja -appomni /Applications/Zen.app/Contents/Resources/browser/omni.ja -appDir /Applications/Zen.app/Contents/Resources/browser -profile /Users/ismoiljonabdukakhkhorov/Library/Application Support/zen/Profiles/6qdp9bk3.Default (release) org.mozilla.machname.736159134 265 tab

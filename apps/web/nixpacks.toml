@@ -6,12 +6,13 @@ nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
-  ":"
+  "bun i --no-save --ignore-scripts"
 ]
 
 [phases.build]
 cmds = [
-  ":"
+  "bun run --filter @bozorchi/web generate:types",
+  "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=2048' bun run build"
 ]
 
 [start]
