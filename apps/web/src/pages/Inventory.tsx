@@ -954,10 +954,10 @@ const InventoryTable = () => {
                     <TableHead className="text-right">
                       <Button
                         variant="ghost"
-                        onClick={() => handleSort("supplierPrice")}
+                        onClick={() => handleSort("deliveryCost")}
                       >
-                        {t("inventory.table.supplierPrice")}
-                        <SortIcon columnKey="supplierPrice" />
+                        {t("inventory.table.deliveryCost")}
+                        <SortIcon columnKey="deliveryCost" />
                       </Button>
                     </TableHead>
                     <TableHead className="text-right">
@@ -1056,7 +1056,7 @@ const InventoryTable = () => {
                             {formatPrice(item.sellingPrice, storeCurrency)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {formatPrice(item.supplierPrice, storeCurrency)}
+                            {formatPrice(item.deliveryCost, storeCurrency)}
                           </TableCell>
                           <TableCell className="text-right">
                             {formatPrice(item.deliveryCost, storeCurrency)}

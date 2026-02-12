@@ -321,7 +321,8 @@
     "variationName": "Название вариации",
     "enterVariationName": "Например: Большой размер",
     "sellingPrice": "Цена продажи",
-    "supplierPrice": "Стоимость доставки",
+    "deliveryCost": "Стоимость доставки",
+
     "wholesalePrice": "Оптовая цена",
     "productColor": "Цвет продукта",
     "supplierCost": "Стоимость доставки",
@@ -345,7 +346,8 @@
     "generateSku": "Сгенерировать SKU",
     "barcodeFormatHelp": "Используйте стандарт GS1: EAN-8, EAN-13, GTIN-14 или UPC-A",
     "sellingPriceRequired": "Цена продажи должна быть больше 0",
-    "supplierPriceRequired": "Стоимость доставки должна быть больше 0",
+    "deliveryCostRequired": "Стоимость доставки должна быть больше 0",
+
     "unitRequired": "Выберите единицу измерения",
     "unitValueRequired": "Укажите значение единицы",
     "supplier": "Поставщик",
@@ -397,7 +399,8 @@
     "addNewProductDescription": "Добавьте информацию о вашем новом продукте",
     "enterBasicProductInformation": "Введите основную информацию о продукте",
     "costPriceInvalid": "Себестоимость должна быть больше 0",
-    "supplierPriceInvalid": "Стоимость доставки должна быть больше 0",
+    "deliveryCostInvalid": "Стоимость доставки должна быть больше 0",
+
     "manageProductVariations": "Управление вариациями продуктов",
     "costPrice": "Себестоимость",
     "categoryDeletedSuccessfully": "Категория успешно удалена.",
@@ -410,8 +413,7 @@
       "simpleDescription": "Продукт с единой ценой и характеристиками",
       "variableDescription": "Продукт с несколькими вариантами (цвет, размер)",
       "serviceDescription": "Нематериальный продукт, услуга"
-    },
-    "deliveryCost": "Стоимость доставки"
+    }
   },
   "colors": {
     "white": "Белый",
@@ -476,7 +478,8 @@
     "outOfStock": "Нет в наличии",
     "quantityInStock": "Количество на складе",
     "costPrice": "Себестоимость",
-    "supplierPrice": "Стоимость доставки",
+    "deliveryCost": "Стоимость доставки",
+
     "searchPlaceholder": "Поиск...",
     "filters": {
       "title": "Фильтры",
@@ -554,7 +557,8 @@
       "inStock": "В наличии",
       "variations": "Вариации",
       "sellingPrice": "Цена продажи",
-      "supplierPrice": "Стоимость доставки",
+      "deliveryCost": "Стоимость доставки",
+
       "barcode": "Штрих-код",
       "sku": "Артикул"
     },
@@ -701,7 +705,8 @@
       "viewDetails": "Подробнее",
       "currentStock": "Текущий остаток",
       "sellingPrice": "Цена продажи",
-      "supplierPrice": "Стоимость доставки",
+      "deliveryCost": "Стоимость доставки",
+
       "unitCost": "Себестоимость",
       "unit": "Единица измерения",
       "supplier": "Поставщик",
@@ -846,6 +851,7 @@
     "in": "Поставки",
     "out": "Продажа",
     "profit": "Прибыль",
+    "deliveryCost": "Стоимость доставки",
     "supplierCost": "Стоимость доставки",
     "profitAnalysis": "Анализ прибыли",
     "topProducts": "Топ продукты",
@@ -1295,7 +1301,8 @@
       "noCustomerFound": "Клиент не найден."
     },
     "detailsDescription": "Полная информация об этой транзакции.",
-    "supplierPrice": "Стоимость доставки",
+    "deliveryCost": "Стоимость доставки",
+
     "remarks": "Примечания",
     "returnTitle": "Обработка возврата",
     "returnDescription": "Введите количество для возврата. Это обновит ваш инвентарь.",

@@ -332,7 +332,8 @@
     "variationName": "Variatsiya nomi",
     "enterVariationName": "Masalan: Katta o'lcham",
     "sellingPrice": "Sotish narxi",
-    "supplierPrice": "Yetkazib berish narxi",
+    "deliveryCost": "Yetkazib berish narxi",
+
     "wholesalePrice": "Ulgurji narxi",
     "productColor": "Mahsulot rangi",
     "supplierCost": "Yetkazib berish narxi",
@@ -356,7 +357,8 @@
     "generateSku": "SKU yaratish",
     "barcodeFormatHelp": "GS1 standartidan foydalaning: EAN-8, EAN-13, GTIN-14 yoki UPC-A",
     "sellingPriceRequired": "Sotish narxi 0 dan katta bo'lishi kerak",
-    "supplierPriceRequired": "Yetkazib berish narxi 0 dan katta bo'lishi kerak",
+    "deliveryCostRequired": "Yetkazib berish narxi 0 dan katta bo'lishi kerak",
+
     "unitRequired": "O'lchov birligini tanlang",
     "unitValueRequired": "Birlik qiymatini ko'rsating",
     "supplier": "Ta'minotchi",
@@ -409,7 +411,7 @@
     "addNewProductDescription": "Yangi mahsulotingiz haqida ma'lumot qo'shing",
     "enterBasicProductInformation": "Mahsulot haqida asosiy ma'lumotlarni kiriting",
     "costPriceInvalid": "Tan narxi 0 dan katta bo'lishi kerak",
-    "supplierPriceInvalid": "Ta'minotchi narxi 0 dan katta bo'lishi kerak",
+    "deliveryCostInvalid": "Yetkazib berish narxi 0 dan katta bo'lishi kerak",
     "manageProductVariations": "Mahsulot variatsiyalarini boshqarish",
     "inventory": "Inventar",
     "costPrice": "Tan narxi",
@@ -423,8 +425,7 @@
       "simpleDescription": "Yagona narx va xususiyatlarga ega mahsulot",
       "variableDescription": "Rang, o'lcham kabi bir nechta variantlarga ega mahsulot",
       "serviceDescription": "Jismoniy bo'lmagan, xizmat ko'rsatish turi"
-    },
-    "deliveryCost": "Yetkazib berish narxi"
+    }
   },
   "colors": {
     "white": "Oq",
@@ -484,7 +485,8 @@
     "outOfStock": "Mavjud emas",
     "quantityInStock": "Ombordagi miqdor",
     "costPrice": "Tan narxi",
-    "supplierPrice": "Yetkazib berish narxi",
+    "deliveryCost": "Yetkazib berish narxi",
+
     "searchPlaceholder": "Qidirish...",
     "filters": {
       "title": "Filtrlar",
@@ -562,7 +564,8 @@
       "inStock": "Mavjud",
       "variations": "Variatsiyalar",
       "sellingPrice": "Sotish narxi",
-      "supplierPrice": "Yetkazib berish narxi",
+      "deliveryCost": "Yetkazib berish narxi",
+
       "barcode": "Shtrix-kod",
       "sku": "Artikul"
     },
@@ -709,7 +712,8 @@
       "viewDetails": "Batafsil",
       "currentStock": "Joriy qoldiq",
       "sellingPrice": "Sotish narxi",
-      "supplierPrice": "Yetkazib berish narxi",
+      "deliveryCost": "Yetkazib berish narxi",
+
       "unitCost": "Tan narxi",
       "unit": "O'lchov birligi",
       "supplier": "Ta'minotchi",
@@ -855,6 +859,7 @@
     "in": "Kirim",
     "out": "Sotuv",
     "profit": "Foyda",
+    "deliveryCost": "Yetkazib berish narxi",
     "supplierCost": "Yetkazib berish narxi",
     "profitAnalysis": "Foyda tahlili",
     "topProducts": "Top mahsulotlar",
@@ -1263,6 +1268,7 @@
     "transaction": "Tranzaksiya",
     "sellingPrice": "Sotish narxi",
     "actualPrice": "Tan narxi",
+    "deliveryCost": "Yetkazib berish narxi",
     "unit": "Birlik",
     "sku": "Artikul",
     "barcode": "Shtrix-kod",
@@ -1324,7 +1330,7 @@
       "to": "Gacha"
     },
     "detailsDescription": "Tranzaksiya haqida to'liq ma'lumot.",
-    "supplierPrice": "Yetkazib berish narxi",
+
     "remarks": "Izohlar",
     "returnTitle": "Qaytarishni qayta ishlash",
     "returnDescription": "Qaytarish uchun miqdorni kiriting. Bu sizning inventaringizni yangilaydi."

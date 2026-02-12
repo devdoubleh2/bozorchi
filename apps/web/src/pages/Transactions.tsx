@@ -2219,7 +2219,7 @@ export default function TransactionsPage() {
                 </div>
                 <div className="space-y-1">
                   <span className="text-muted-foreground">
-                    {t("transactions.supplierPrice")}
+                    {t("transactions.deliveryCost")}
                   </span>
                   <div className="font-medium">
                     {formatCurrency(

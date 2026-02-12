@@ -40,7 +40,7 @@ type BulkEditRowData = {
   supplierId: string | null;
   supplierName: string | null;
   sellingPrice: number;
-  supplierPrice: number;
+  deliveryCost: number;
   unitCost: number;
   imageUrl: string | null;
   newImageUrl: string | null; // For uploaded images (URL after upload)
@@ -58,7 +58,7 @@ type BulkEditRowData = {
   _originalCategoryId: string | null;
   _originalSupplierId: string | null;
   _originalSellingPrice: number;
-  _originalSupplierPrice: number;
+  _originalDeliveryCost: number;
   _originalImageUrl: string | null;
   _originalUnitId?: string | null;
 };
@@ -360,7 +360,7 @@ const BulkEditPage = () => {
           supplierId: item.supplierId,
           supplierName: item.supplierName,
           sellingPrice: item.sellingPrice,
-          supplierPrice: item.supplierPrice,
+          deliveryCost: item.deliveryCost,
           unitCost: item.unitCost,
           imageUrl: item.displayImageUrl,
           newImageUrl: null,
@@ -376,7 +376,7 @@ const BulkEditPage = () => {
           _originalCategoryId: categoryId,
           _originalSupplierId: item.supplierId,
           _originalSellingPrice: item.sellingPrice,
-          _originalSupplierPrice: item.supplierPrice,
+          _originalDeliveryCost: item.deliveryCost,
           _originalImageUrl: item.displayImageUrl,
           _originalUnitId: item.unitId,
         };
@@ -392,7 +392,7 @@ const BulkEditPage = () => {
         row.categoryId !== row._originalCategoryId ||
         row.supplierId !== row._originalSupplierId ||
         row.sellingPrice !== row._originalSellingPrice ||
-        row.supplierPrice !== row._originalSupplierPrice ||
+        row.deliveryCost !== row._originalDeliveryCost ||
         row.unitId !== row._originalUnitId ||
         !!row._pendingImageFile
       );
@@ -419,7 +419,7 @@ const BulkEditPage = () => {
           if (row.id === data.id) {
             const updatedRow = { ...row };
 
-            if (field === "sellingPrice" || field === "supplierPrice") {
+            if (field === "sellingPrice" || field === "deliveryCost") {
               let parsedValue: number = 0;
               if (typeof newValue === "string") {
                 const cleaned = newValue.replace(/[^\d.]/g, "");
@@ -638,15 +638,15 @@ const BulkEditPage = () => {
         },
       },
       {
-        headerName: t("inventory.table.supplierPrice", { defaultValue: "Delivery Cost" }),
-        field: "supplierPrice",
+        headerName: t("inventory.table.deliveryCost", { defaultValue: "Delivery Cost" }),
+        field: "deliveryCost",
         width: 150,
         minWidth: 120,
         editable: true,
         type: "numericColumn",
         valueFormatter: currencyFormatter,
         cellStyle: (params) => {
-          if (params.data && params.data.supplierPrice !== params.data._originalSupplierPrice) {
+          if (params.data && params.data.deliveryCost !== params.data._originalDeliveryCost) {
             return { backgroundColor: "rgba(34, 197, 94, 0.15)" };
           }
           return null;
@@ -681,7 +681,7 @@ const BulkEditPage = () => {
         row.categoryId !== row._originalCategoryId ||
         row.supplierId !== row._originalSupplierId ||
         row.sellingPrice !== row._originalSellingPrice ||
-        row.supplierPrice !== row._originalSupplierPrice ||
+        row.deliveryCost !== row._originalDeliveryCost ||
         row.unitId !== row._originalUnitId ||
         !!row._pendingImageFile // Include pending images in changed rows
       );
@@ -744,8 +744,9 @@ const BulkEditPage = () => {
         if (row.sellingPrice !== row._originalSellingPrice) {
           update.sellingPrice = row.sellingPrice;
         }
-        if (row.supplierPrice !== row._originalSupplierPrice) {
-          update.price = row.supplierPrice;
+
+        if (row.deliveryCost !== row._originalDeliveryCost) {
+          update.deliveryCost = row.deliveryCost;
         }
         if (row.unitId !== row._originalUnitId) {
           update.unitId = row.unitId;
@@ -797,7 +798,7 @@ const BulkEditPage = () => {
       if (row.categoryId !== row._originalCategoryId) changes++;
       if (row.supplierId !== row._originalSupplierId) changes++;
       if (row.sellingPrice !== row._originalSellingPrice) changes++;
-      if (row.supplierPrice !== row._originalSupplierPrice) changes++;
+      if (row.deliveryCost !== row._originalDeliveryCost) changes++;
       if (row.unitId !== row._originalUnitId) changes++;
       if (!!row._pendingImageFile) changes++;
       return acc + changes;

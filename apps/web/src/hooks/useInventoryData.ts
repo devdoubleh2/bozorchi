@@ -420,9 +420,8 @@ export interface FlattenedInventoryItem {
   inStock: number;
   stockStatus: StockStatus;
   sellingPrice: number;
-  supplierPrice: number;
   deliveryCost: number; // delivery cost per unit
-  unitCost: number; // cost per unit (supplier price)
+  unitCost: number; // cost per unit
   unitId: string;
   unitName: string;
   supplierId: string | null;
@@ -557,7 +556,6 @@ export function useFlattenedInventoryData(): UseFlattenedInventoryDataResult {
             sellingPrice: Number(
               variation.selling_price ?? variation.price ?? 0
             ),
-            supplierPrice: Number(variation.price ?? 0),
             deliveryCost: Number(variation.delivery_cost ?? 0),
             unitCost: Number(variation.price ?? 0),
             unitId: variation.unit_id,

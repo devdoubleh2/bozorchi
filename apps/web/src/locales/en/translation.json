@@ -333,7 +333,8 @@
         "variationName": "Variation name",
         "enterVariationName": "e.g. Large size",
         "sellingPrice": "Selling price",
-        "supplierPrice": "Delivery cost",
+        "deliveryCost": "Delivery cost",
+
         "wholesalePrice": "Wholesale price",
         "productColor": "Product color",
         "supplierCost": "Delivery cost",
@@ -357,7 +358,8 @@
         "generateSku": "Generate SKU",
         "barcodeFormatHelp": "Use GS1 standard: EAN-8, EAN-13, GTIN-14 or UPC-A",
         "sellingPriceRequired": "Selling price must be greater than 0",
-        "supplierPriceRequired": "Delivery cost must be greater than 0",
+        "deliveryCostRequired": "Delivery cost must be greater than 0",
+
         "unitRequired": "Please select a unit of measurement",
         "unitValueRequired": "Please specify unit value",
         "supplier": "Supplier",
@@ -409,7 +411,7 @@
         "addNewProductDescription": "Add information about your new product",
         "enterBasicProductInformation": "Enter basic product information",
         "costPriceInvalid": "Cost price must be greater than 0",
-        "supplierPriceInvalid": "Delivery cost must be greater than 0",
+        "deliveryCostInvalid": "Delivery cost must be greater than 0",
         "manageProductVariations": "Manage product variations",
         "costPrice": "Cost price",
         "categoryDeletedSuccessfully": "Category deleted successfully.",
@@ -422,8 +424,7 @@
             "simpleDescription": "Product with a single price and specifications",
             "variableDescription": "Product with multiple variations (color, size)",
             "serviceDescription": "Non-physical product, service"
-        }, 
-        "deliveryCost": "Delivery cost"
+        }
     },
     "colors": {
         "white": "White",
@@ -489,7 +490,8 @@
         "service": "Service",
         "quantityInStock": "Quantity in stock",
         "costPrice": "Cost price",
-        "supplierPrice": "Delivery cost",
+        "deliveryCost": "Delivery cost",
+
         "searchPlaceholder": "Search...",
         "filters": {
             "title": "Filters",
@@ -564,7 +566,8 @@
             "inStock": "In stock",
             "variations": "Variations",
             "sellingPrice": "Selling price",
-            "supplierPrice": "Delivery cost",
+            "deliveryCost": "Delivery cost",
+
             "barcode": "Barcode",
             "sku": "SKU"
         },
@@ -711,7 +714,8 @@
             "viewDetails": "View details",
             "currentStock": "Current stock",
             "sellingPrice": "Selling price",
-            "supplierPrice": "Delivery cost",
+            "deliveryCost": "Delivery cost",
+
             "unitCost": "Unit cost",
             "unit": "Unit",
             "supplier": "Supplier",
@@ -856,6 +860,7 @@
         "in": "In",
         "out": "Out",
         "profit": "Profit",
+        "deliveryCost": "Delivery Cost",
         "supplierCost": "Delivery Cost",
         "profitAnalysis": "Profit analysis",
         "topProducts": "Top products",
@@ -1003,6 +1008,7 @@
         "quantity": "Quantity",
         "unitPrice": "Unit price",
         "totalPrice": "Total price",
+        "deliveryCost": "Delivery cost",
         "noItems": "No items",
         "completed": "Completed",
         "pending": "Pending",

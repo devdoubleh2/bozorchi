@@ -48,7 +48,7 @@ export function QuickAddButton() {
     barcode: "",
     sku: "",
     price: "",
-    supplierPrice: "",
+    deliveryCost: "",
     unitId: "",
     initialStock: "",
   });
@@ -121,7 +121,7 @@ export function QuickAddButton() {
       }
 
       const priceValue = Number.parseFloat(productForm.price);
-      const supplierPriceValue = Number.parseFloat(productForm.supplierPrice);
+      const deliveryCostValue = Number.parseFloat(productForm.deliveryCost);
       const stockValue = Number.parseFloat(productForm.initialStock);
 
       if (Number.isNaN(priceValue) || priceValue <= 0) {
@@ -138,9 +138,9 @@ export function QuickAddButton() {
             description: "",
             barcode: productForm.barcode.trim(),
             sku: productForm.sku.trim(),
-            price: Number.isFinite(supplierPriceValue)
-              ? supplierPriceValue
-              : priceValue,
+            delivery_cost: Number.isFinite(deliveryCostValue)
+              ? deliveryCostValue
+              : 0,
             selling_price: priceValue,
             unit_id: productForm.unitId,
             color: "",
@@ -166,7 +166,7 @@ export function QuickAddButton() {
         barcode: "",
         sku: "",
         price: "",
-        supplierPrice: "",
+        deliveryCost: "",
         unitId: "",
         initialStock: "",
       });
@@ -365,14 +365,14 @@ export function QuickAddButton() {
                   min="0"
                 />
                 <Input
-                  value={productForm.supplierPrice}
+                  value={productForm.deliveryCost}
                   onChange={(event) =>
                     setProductForm((prev) => ({
                       ...prev,
-                      supplierPrice: event.target.value,
+                      deliveryCost: event.target.value,
                     }))
                   }
-                  placeholder={t("products.supplierPrice")}
+                  placeholder={t("products.deliveryCost")}
                   type="number"
                   min="0"
                 />

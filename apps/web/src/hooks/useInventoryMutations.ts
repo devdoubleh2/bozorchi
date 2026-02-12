@@ -9,6 +9,7 @@ export interface BulkUpdateItem {
     productCategoryId?: string | null;
     sellingPrice?: number;
     price?: number;
+    deliveryCost?: number;
     supplierId?: string | null;
     unitId?: string | null;
 }

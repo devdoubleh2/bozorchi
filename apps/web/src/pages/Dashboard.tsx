@@ -126,7 +126,7 @@ interface DashboardStats {
   totalIn: number;
   totalOut: number;
   profit: number;
-  supplierCost: number;
+  deliveryCost: number;
   totalReturn: number;
 
   // Detailed stats
@@ -152,7 +152,7 @@ const emptyStats: DashboardStats = {
   totalIn: 0,
   totalOut: 0,
   profit: 0,
-  supplierCost: 0,
+  deliveryCost: 0,
   totalReturn: 0,
   transactionCount: 0,
   totalItemsSold: 0,
@@ -355,8 +355,8 @@ export default function Dashboard() {
           loading={loadingState}
         />
         <StatCard
-          title={t("home.supplierCost")}
-          value={stats.supplierCost}
+          title={t("home.deliveryCost")}
+          value={stats.deliveryCost}
           currency={storeCurrency}
           icon="supplier"
           loading={loadingState}
