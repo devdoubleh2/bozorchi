@@ -188,6 +188,7 @@ class AuthService {
               store_id: store.id,
               approved: true,
             },
+            select: { id: true },
           });
 
           const userWithRelations = await tx.user.findUnique({
@@ -225,6 +226,7 @@ class AuthService {
             role: "user",
             approved: true,
           },
+          select: { id: true },
         });
 
         const userWithRelations = await tx.user.findUnique({
@@ -262,7 +264,16 @@ class AuthService {
     // Fetch membership to include role information
     const membership = await prisma.userOrganization.findUnique({
       where: { user_id: user.id },
-      include: { organization: true },
+      select: {
+        id: true,
+        user_id: true,
+        organization_id: true,
+        store_id: true,
+        role: true,
+        permissions: true,
+        approved: true,
+        organization: true,
+      },
     });
 
     const { password_hash: _, ...authUser } = user;

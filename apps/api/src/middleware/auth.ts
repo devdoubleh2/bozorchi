@@ -138,7 +138,16 @@ export const createAuthMiddleware =
         // Fetch membership
         const membership = await prisma.userOrganization.findUnique({
           where: { user_id: user.id },
-          include: { organization: true },
+          select: {
+            id: true,
+            user_id: true,
+            organization_id: true,
+            store_id: true,
+            role: true,
+            permissions: true,
+            approved: true,
+            organization: true,
+          },
         });
 
         if (!membership) {

@@ -330,6 +330,7 @@ export class AuthController {
       const updatedMembership = await req.prisma.userOrganization.update({
         where: { user_id: req.userId },
         data: { store_id: storeId },
+        select: { approved: true },
       });
 
       logger.info("Store assigned successfully", "authController", {

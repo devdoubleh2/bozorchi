@@ -24,6 +24,14 @@ export class StaffController {
       const assignments = await prisma.userOrganization.findMany({
         where: { store_id: req.store.id },
         orderBy: { created_at: "asc" },
+        select: {
+          id: true,
+          user_id: true,
+          role: true,
+          approved: true,
+          permissions: true,
+          created_at: true,
+        },
       });
 
       const userIds = assignments.map((a) => a.user_id);
@@ -100,6 +108,7 @@ export class StaffController {
 
       const assignment = await prisma.userOrganization.findUnique({
         where: { id: assignmentId },
+        select: { id: true, store_id: true },
       });
 
       if (!assignment || assignment.store_id !== req.store.id) {
@@ -113,6 +122,7 @@ export class StaffController {
         data: {
           permissions: normalizedPermissions as Permission[],
         },
+        select: { id: true },
       });
 
       return res.json({
@@ -144,6 +154,7 @@ export class StaffController {
 
       const assignment = await prisma.userOrganization.findUnique({
         where: { id: assignmentId },
+        select: { id: true, store_id: true, approved: true },
       });
 
       if (!assignment || assignment.store_id !== req.store.id) {
@@ -161,6 +172,7 @@ export class StaffController {
       await prisma.userOrganization.update({
         where: { id: assignmentId },
         data: { approved: true },
+        select: { id: true },
       });
 
       return res.json({
@@ -192,6 +204,7 @@ export class StaffController {
 
       const assignment = await prisma.userOrganization.findUnique({
         where: { id: assignmentId },
+        select: { id: true, store_id: true },
       });
 
       if (!assignment || assignment.store_id !== req.store.id) {
@@ -202,6 +215,7 @@ export class StaffController {
 
       await prisma.userOrganization.delete({
         where: { id: assignmentId },
+        select: { id: true },
       });
 
 
