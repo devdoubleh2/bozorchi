@@ -50,7 +50,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": "/src",
-      "@generated": "/src/types/generated",
     },
   },
   build: {

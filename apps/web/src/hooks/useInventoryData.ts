@@ -7,7 +7,7 @@ import type {
   Prisma,
   ProductCategory,
   Unit,
-} from "@generated";
+} from "@/types/generated";
 
 const LOW_STOCK_THRESHOLD = 10;
 const DEFAULT_CATEGORY = "Uncategorized";
