@@ -6,13 +6,12 @@ nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
-  "bun i --no-save --ignore-scripts"
+  ":"
 ]
 
 [phases.build]
 cmds = [
-  "bun run --filter @bozorchi/web generate:types",
-  "bun run build"
+  ":"
 ]
 
 [start]

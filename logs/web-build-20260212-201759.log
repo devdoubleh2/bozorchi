@@ -1,0 +1,125 @@
+Running web build from repo root...
+@bozorchi/web build: vite v7.3.1 building client environment for production...
+@bozorchi/web build: transforming...
+@bozorchi/web build: ✓ 10504 modules transformed.
+@bozorchi/web build: rendering chunks...
+@bozorchi/web build: computing gzip size...
+@bozorchi/web build: dist/registerSW.js                                   0.13 kB
+@bozorchi/web build: dist/manifest.webmanifest                            0.33 kB
+@bozorchi/web build: dist/index.html                                      0.91 kB │ gzip:   0.43 kB
+@bozorchi/web build: dist/assets/index-ClYtj0IL.css                     149.32 kB │ gzip:  23.59 kB
+@bozorchi/web build: dist/assets/minus-CTclDXUT.js                        0.12 kB │ gzip:   0.13 kB
+@bozorchi/web build: dist/assets/chevron-up-DR6dCNVv.js                   0.13 kB │ gzip:   0.14 kB
+@bozorchi/web build: dist/assets/chevron-down-CJCBI0mv.js                 0.13 kB │ gzip:   0.14 kB
+@bozorchi/web build: dist/assets/chevron-left-BFDarrTv.js                 0.13 kB │ gzip:   0.15 kB
+@bozorchi/web build: dist/assets/arrow-left-DY-hooS3.js                   0.17 kB │ gzip:   0.16 kB
+@bozorchi/web build: dist/assets/clock-DJcDkde8.js                        0.17 kB │ gzip:   0.17 kB
+@bozorchi/web build: dist/assets/trending-up-C4oyONE1.js                  0.18 kB │ gzip:   0.17 kB
+@bozorchi/web build: dist/assets/user-DiNYOry0.js                         0.20 kB │ gzip:   0.18 kB
+@bozorchi/web build: dist/assets/rotate-ccw-xLPi5GBa.js                   0.20 kB │ gzip:   0.18 kB
+@bozorchi/web build: dist/assets/upload-IhZdty3P.js                       0.23 kB │ gzip:   0.19 kB
+@bozorchi/web build: dist/assets/arrow-right-left-BD7dj8Yh.js             0.25 kB │ gzip:   0.20 kB
+@bozorchi/web build: dist/assets/eye-BmpTE2kp.js                          0.26 kB │ gzip:   0.20 kB
+@bozorchi/web build: dist/assets/calendar-DV61jprB.js                     0.26 kB │ gzip:   0.21 kB
+@bozorchi/web build: dist/assets/zap-C7pKb5KP.js                          0.26 kB │ gzip:   0.21 kB
+@bozorchi/web build: dist/assets/triangle-alert-CXp6scL0.js               0.27 kB │ gzip:   0.22 kB
+@bozorchi/web build: dist/assets/image-Ck7UI-5U.js                        0.27 kB │ gzip:   0.22 kB
+@bozorchi/web build: dist/assets/wallet-BNfwpOkO.js                       0.29 kB │ gzip:   0.21 kB
+@bozorchi/web build: dist/assets/chevrons-right-C109B1Jf.js               0.30 kB │ gzip:   0.20 kB
+@bozorchi/web build: dist/assets/endOfMonth-7oef6pU1.js                   0.31 kB │ gzip:   0.22 kB
+@bozorchi/web build: dist/assets/box-DSFbSBNO.js                          0.31 kB │ gzip:   0.23 kB
+@bozorchi/web build: dist/assets/save-B87pOk7i.js                         0.33 kB │ gzip:   0.23 kB
+@bozorchi/web build: dist/assets/package-2-DZUMDCvK.js                    0.34 kB │ gzip:   0.25 kB
+@bozorchi/web build: dist/assets/format-VE2AtGP0.js                       0.34 kB │ gzip:   0.19 kB
+@bozorchi/web build: dist/assets/gift-CG27J57d.js                         0.36 kB │ gzip:   0.26 kB
+@bozorchi/web build: dist/assets/package-Di13MIIx.js                      0.37 kB │ gzip:   0.26 kB
+@bozorchi/web build: dist/assets/clipboard-list-TouOJJ_0.js               0.41 kB │ gzip:   0.26 kB
+@bozorchi/web build: dist/assets/skeleton-3tskdsFC.js                     0.42 kB │ gzip:   0.31 kB
+@bozorchi/web build: dist/assets/package-minus-BF9TBjvk.js                0.42 kB │ gzip:   0.29 kB
+@bozorchi/web build: dist/assets/layers-BkXPubdv.js                       0.42 kB │ gzip:   0.24 kB
+@bozorchi/web build: dist/assets/undo-2-Bgq_RslM.js                       0.45 kB │ gzip:   0.28 kB
+@bozorchi/web build: dist/assets/arrow-up-OFLqTeHW.js                     0.48 kB │ gzip:   0.28 kB
+@bozorchi/web build: dist/assets/phone-W4RI-wqU.js                        0.49 kB │ gzip:   0.33 kB
+@bozorchi/web build: dist/assets/settings-Bnfd461B.js                     0.49 kB │ gzip:   0.26 kB
+@bozorchi/web build: dist/assets/textarea-DviQgXXP.js                     0.74 kB │ gzip:   0.47 kB
+@bozorchi/web build: dist/assets/ConfirmationDialog-CgFXz1cU.js           1.01 kB │ gzip:   0.58 kB
+@bozorchi/web build: dist/assets/separator-C42IvP74.js                    1.07 kB │ gzip:   0.59 kB
+@bozorchi/web build: dist/assets/MobilePaywall-dKuFwIqf.js                1.15 kB │ gzip:   0.65 kB
+@bozorchi/web build: dist/assets/useInventoryMutations-BvQLE7hn.js        1.93 kB │ gzip:   0.67 kB
+@bozorchi/web build: dist/assets/tabs-f3_0qT-w.js                         2.09 kB │ gzip:   0.73 kB
+@bozorchi/web build: dist/assets/badge-C3vCgvW0.js                        2.24 kB │ gzip:   0.95 kB
+@bozorchi/web build: dist/assets/table-C-0HxCbT.js                        2.29 kB │ gzip:   0.62 kB
+@bozorchi/web build: dist/assets/useTransactionMutations-Dvh9vJCu.js      2.92 kB │ gzip:   0.97 kB
+@bozorchi/web build: dist/assets/ForgotPassword-DLKB6SPV.js               3.09 kB │ gzip:   1.28 kB
+@bozorchi/web build: dist/assets/pagination-Do_lOXNK.js                   3.16 kB │ gzip:   1.01 kB
+@bozorchi/web build: dist/assets/LowStock-yqgfVlYl.js                     3.36 kB │ gzip:   1.43 kB
+@bozorchi/web build: dist/assets/RepayDebt-Vc0-JI4R.js                    3.46 kB │ gzip:   1.49 kB
+@bozorchi/web build: dist/assets/toggle-group-Jr7NsI3q.js                 3.74 kB │ gzip:   1.44 kB
+@bozorchi/web build: dist/assets/embed-Dns82rmf.js                        3.91 kB │ gzip:   1.46 kB
+@bozorchi/web build: dist/assets/Login-wEq-2OqG.js                        5.61 kB │ gzip:   2.58 kB
+@bozorchi/web build: dist/assets/select-na5HBVhl.js                       5.71 kB │ gzip:   1.97 kB
+@bozorchi/web build: dist/assets/ResetPassword-B1fmpMkN.js                5.74 kB │ gzip:   2.22 kB
+@bozorchi/web build: dist/assets/Subscription-B-0JAt9i.js                 6.71 kB │ gzip:   2.18 kB
+@bozorchi/web build: dist/assets/Restock-C0RNuBnx.js                      7.19 kB │ gzip:   2.45 kB
+@bozorchi/web build: dist/assets/Register-B92BN3kU.js                     7.47 kB │ gzip:   2.26 kB
+@bozorchi/web build: dist/assets/en-US-C75tnRsn.js                        7.67 kB │ gzip:   2.74 kB
+@bozorchi/web build: dist/assets/Account-DB7mGgYk.js                      8.45 kB │ gzip:   2.39 kB
+@bozorchi/web build: dist/assets/StoreCreate-BibtwBdK.js                 10.14 kB │ gzip:   4.23 kB
+@bozorchi/web build: dist/assets/AuditDetail-1AdLv7r0.js                 10.45 kB │ gzip:   3.02 kB
+@bozorchi/web build: dist/assets/Exchange-CliV_Mzg.js                    10.73 kB │ gzip:   3.26 kB
+@bozorchi/web build: dist/assets/WriteOff-C4Wqeu1r.js                    11.40 kB │ gzip:   3.62 kB
+@bozorchi/web build: dist/assets/Audits-BSDqLN_0.js                      11.64 kB │ gzip:   3.66 kB
+@bozorchi/web build: dist/assets/format-Bg79zJut.js                      12.19 kB │ gzip:   3.28 kB
+@bozorchi/web build: dist/assets/EcommerceCatalog-BiAmVaCy.js            12.41 kB │ gzip:   4.22 kB
+@bozorchi/web build: dist/assets/WriteOffs-ByuUwD8A.js                   12.75 kB │ gzip:   4.31 kB
+@bozorchi/web build: dist/assets/scroll-area-CLfdQdGf.js                 13.32 kB │ gzip:   4.30 kB
+@bozorchi/web build: dist/assets/AccountEdit-BsjbLXnI.js                 13.86 kB │ gzip:   3.72 kB
+@bozorchi/web build: dist/assets/SupplierCreate-BhqSM8lO.js              14.40 kB │ gzip:   5.65 kB
+@bozorchi/web build: dist/assets/CustomerCreate-BlxtXuAi.js              14.54 kB │ gzip:   5.74 kB
+@bozorchi/web build: dist/assets/BulkEdit-Cai32xnv.js                    14.71 kB │ gzip:   4.85 kB
+@bozorchi/web build: dist/assets/SupplierEdit-jVQU9TBE.js                15.39 kB │ gzip:   5.99 kB
+@bozorchi/web build: dist/assets/NewAudit-DqrPKMeH.js                    15.69 kB │ gzip:   4.26 kB
+@bozorchi/web build: dist/assets/Staff-DKef3qun.js                       16.07 kB │ gzip:   5.42 kB
+@bozorchi/web build: dist/assets/CustomerEdit-Cb1IpJIl.js                16.41 kB │ gzip:   6.41 kB
+@bozorchi/web build: dist/assets/Suppliers-CQ8-VhzV.js                   18.34 kB │ gzip:   5.35 kB
+@bozorchi/web build: dist/assets/ReportDetail-sIemBEn8.js                23.37 kB │ gzip:   6.65 kB
+@bozorchi/web build: dist/assets/Customers-CeLnuwGB.js                   25.38 kB │ gzip:   6.98 kB
+@bozorchi/web build: dist/assets/ProductEdit-CQOEwBf4.js                 29.89 kB │ gzip:  10.11 kB
+@bozorchi/web build: dist/assets/image-upload-DajZXw3M.js                32.58 kB │ gzip:  10.87 kB
+@bozorchi/web build: dist/assets/ProductCreate-B-QIWM2L.js               35.46 kB │ gzip:   9.55 kB
+@bozorchi/web build: dist/assets/vendor-react-BHqyAhv1.js                40.00 kB │ gzip:  14.32 kB
+@bozorchi/web build: dist/assets/vendor-query-B4PuAmfz.js                45.22 kB │ gzip:  13.86 kB
+@bozorchi/web build: dist/assets/CustomerDetails-BxdwvAfC.js             50.07 kB │ gzip:  15.39 kB
+@bozorchi/web build: dist/assets/Transactions-BBvdwjfu.js                51.66 kB │ gzip:  11.60 kB
+@bozorchi/web build: dist/assets/popover-DAOA0oky.js                     54.45 kB │ gzip:  16.88 kB
+@bozorchi/web build: dist/assets/Landing-DPvqp6g-.js                     57.27 kB │ gzip:  17.22 kB
+@bozorchi/web build: dist/assets/schemas-BwAhhScJ.js                     60.79 kB │ gzip:  16.43 kB
+@bozorchi/web build: dist/assets/POS-FnvrnVln.js                         72.62 kB │ gzip:  21.56 kB
+@bozorchi/web build: dist/assets/Inventory-mdqoKTO5.js                   76.07 kB │ gzip:  23.57 kB
+@bozorchi/web build: dist/assets/vendor-ui-NmXawM7A.js                  106.09 kB │ gzip:  34.34 kB
+@bozorchi/web build: dist/assets/proxy-Qv1JKDcS.js                      118.68 kB │ gzip:  38.97 kB
+@bozorchi/web build: dist/assets/ReceiptDesign-3x9oRW1E.js              355.21 kB │ gzip: 110.73 kB
+@bozorchi/web build: dist/assets/ProductBulkCreate-D9UbNxEP.js          355.26 kB │ gzip: 120.16 kB
+@bozorchi/web build: dist/assets/vendor-charts-B1dtuMh3.js              381.55 kB │ gzip: 105.41 kB
+@bozorchi/web build: dist/assets/index-BOtymnRH.js                      682.56 kB │ gzip: 207.85 kB
+@bozorchi/web build: dist/assets/index.esm-Cu30gb_9.js                1,098.31 kB │ gzip: 309.40 kB
+@bozorchi/web build: dist/assets/Dashboard-Cqif8pHy.js                1,139.00 kB │ gzip: 339.48 kB
+@bozorchi/web build: ✓ built in 13.71s
+@bozorchi/web build: 
+@bozorchi/web build: PWA v1.2.0
+@bozorchi/web build: Building src/sw.ts service worker ("es" format)...
+@bozorchi/web build: vite v7.3.1 building client environment for production...
+@bozorchi/web build: transforming...
+@bozorchi/web build: ✓ 58 modules transformed.
+@bozorchi/web build: rendering chunks...
+@bozorchi/web build: computing gzip size...
+@bozorchi/web build: dist/sw.mjs  17.14 kB │ gzip: 5.79 kB
+@bozorchi/web build: ✓ built in 93ms
+@bozorchi/web build: 
+@bozorchi/web build: PWA v1.2.0
+@bozorchi/web build: mode      injectManifest
+@bozorchi/web build: format:   es
+@bozorchi/web build: precache  101 entries (5260.42 KiB)
+@bozorchi/web build: files generated
+@bozorchi/web build:   dist/sw.js
+@bozorchi/web build: Exited with code 0
