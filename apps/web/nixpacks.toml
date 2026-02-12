@@ -12,8 +12,8 @@ cmds = [
 [phases.build]
 cmds = [
   "bun run --filter @bozorchi/web generate:types",
-  "bun run --filter @bozorchi/web build"
+  "bun run build"
 ]
 
 [start]
-cmd = "bun run --filter @bozorchi/web preview -- --host 0.0.0.0 --port 3000"
+cmd = "bun run preview -- --host 0.0.0.0 --port 3000"
