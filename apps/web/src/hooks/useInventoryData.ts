@@ -7,7 +7,7 @@ import type {
   Prisma,
   ProductCategory,
   Unit,
-} from "@bozorchi/shared";
+} from "@generated";
 
 const LOW_STOCK_THRESHOLD = 10;
 const DEFAULT_CATEGORY = "Uncategorized";
@@ -421,7 +421,8 @@ export interface FlattenedInventoryItem {
   stockStatus: StockStatus;
   sellingPrice: number;
   supplierPrice: number;
-  unitCost: number; // cost per unit (product price fallback)
+  deliveryCost: number; // delivery cost per unit
+  unitCost: number; // cost per unit (supplier price)
   unitId: string;
   unitName: string;
   supplierId: string | null;
@@ -557,6 +558,7 @@ export function useFlattenedInventoryData(): UseFlattenedInventoryDataResult {
               variation.selling_price ?? variation.price ?? 0
             ),
             supplierPrice: Number(variation.price ?? 0),
+            deliveryCost: Number(variation.delivery_cost ?? 0),
             unitCost: Number(variation.price ?? 0),
             unitId: variation.unit_id,
             unitName: variation.unit?.name ?? "",

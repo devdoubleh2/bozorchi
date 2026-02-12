@@ -19,6 +19,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@generated/*": [
+        "./src/types/generated/*"
       ]
     },
     "resolveJsonModule": true,

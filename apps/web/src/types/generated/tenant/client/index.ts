@@ -1,2 +1,2 @@
-// Re-export all Prisma types from shared package
-export * from "@bozorchi/shared";
+// Re-export all Prisma types from locally generated types
+export * from "@generated";
