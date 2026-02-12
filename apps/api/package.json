@@ -44,6 +44,7 @@
     "@polar-sh/sdk": "^0.41.5",
     "@prisma/adapter-pg": "^6.19.0",
     "@prisma/client": "^7.3.0",
+    "@prisma/client-runtime-utils": "^7.3.0",
     "@prisma/instrumentation": "^7.2.0",
     "@types/bwip-js": "^3.2.3",
     "@types/cookie-parser": "^1.4.10",
