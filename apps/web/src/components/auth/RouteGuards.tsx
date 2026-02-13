@@ -25,11 +25,38 @@ interface RequirePermissionProps {
   showForbidden?: boolean;
 }
 
+interface ForbiddenPageProps {
+  permissions?: Permission[];
+  requireAllPermissions?: boolean;
+  roles?: Role[];
+}
+
+const PERMISSION_LABEL_KEYS: Record<Permission, string> = {
+  POS_ACCESS: "staff.permissions.posAccess",
+  MANAGE_PRODUCTS: "staff.permissions.manageProducts",
+  MANAGE_INVENTORY: "staff.permissions.manageInventory",
+  VIEW_COST_PRICE: "staff.permissions.viewCostPrice",
+  VIEW_ANALYTICS: "staff.permissions.viewAnalytics",
+};
+
 /**
  * Forbidden access UI component
  */
-const ForbiddenPage = () => {
+const ForbiddenPage = ({
+  permissions = [],
+  requireAllPermissions = false,
+  roles = [],
+}: ForbiddenPageProps) => {
   const { t } = useTranslation();
+  const permissionLabels = permissions.map((permission) =>
+    t(PERMISSION_LABEL_KEYS[permission], { defaultValue: permission })
+  );
+  const roleLabels = roles.map((role) =>
+    role === "admin"
+      ? t("auth.roleAdmin", { defaultValue: "Admin" })
+      : t("auth.roleUser", { defaultValue: "Staff" })
+  );
+
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 p-8">
       <div className="rounded-full bg-destructive/10 p-4">
@@ -56,6 +83,27 @@ const ForbiddenPage = () => {
           "You don't have permission to access this page. Please contact your administrator if you believe this is a mistake."
         )}
       </p>
+      {permissionLabels.length > 0 && (
+        <p className="text-center text-sm text-muted-foreground max-w-xl">
+          {requireAllPermissions
+            ? t("auth.requiredAllPermissions", {
+              defaultValue: "Required permissions (all): {{permissions}}",
+              permissions: permissionLabels.join(", "),
+            })
+            : t("auth.requiredAnyPermission", {
+              defaultValue: "Required permission (any): {{permissions}}",
+              permissions: permissionLabels.join(", "),
+            })}
+        </p>
+      )}
+      {roleLabels.length > 0 && (
+        <p className="text-center text-sm text-muted-foreground max-w-xl">
+          {t("auth.requiredRole", {
+            defaultValue: "Required role: {{roles}}",
+            roles: roleLabels.join(", "),
+          })}
+        </p>
+      )}
     </div>
   );
 };
@@ -96,7 +144,7 @@ export function RequireRole({
 
   if (!hasRequiredRole) {
     if (showForbidden) {
-      return <ForbiddenPage />;
+      return <ForbiddenPage roles={allowedRoles} />;
     }
     return (
       <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
@@ -161,7 +209,12 @@ export function RequirePermission({
 
   if (!hasPermission) {
     if (showForbidden) {
-      return <ForbiddenPage />;
+      return (
+        <ForbiddenPage
+          permissions={permissions}
+          requireAllPermissions={requireAll}
+        />
+      );
     }
     return (
       <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
@@ -212,7 +265,7 @@ export function RequireAccess({
   // Check role if specified
   if (roles && roles.length > 0) {
     if (!roles.includes(userStore.role)) {
-      if (showForbidden) return <ForbiddenPage />;
+      if (showForbidden) return <ForbiddenPage roles={roles} />;
       return (
         <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
       );
@@ -228,7 +281,15 @@ export function RequireAccess({
       : permissions.some((p) => userPermissions.includes(p));
 
     if (!hasPermission) {
-      if (showForbidden) return <ForbiddenPage />;
+      if (showForbidden) {
+        return (
+          <ForbiddenPage
+            permissions={permissions}
+            requireAllPermissions={requireAllPermissions}
+            roles={roles}
+          />
+        );
+      }
       return (
         <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
       );

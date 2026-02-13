@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { UnitsController } from "../controllers/unitsController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import {
   validateRequest,
   validateParams,
   validateQuery,
 } from "../middleware/validation";
+import { Permission } from "../generated/public/client";
 import { z } from "zod";
 
 const router: Router = Router();
@@ -28,28 +30,38 @@ const unitQuerySchema = z.object({
 
 // All routes require authentication
 router.use(createAuthMiddleware());
+const requireUnitReadAccess = requirePermission([
+  Permission.POS_ACCESS,
+  Permission.MANAGE_PRODUCTS,
+  Permission.MANAGE_INVENTORY,
+]);
+const requireManageProducts = requirePermission([Permission.MANAGE_PRODUCTS]);
 
 // Routes
 router.get(
   "/",
+  requireUnitReadAccess,
   validateQuery(unitQuerySchema),
   createAuthHandler(unitsController.getAllUnits)
 );
 
 router.post(
   "/",
+  requireManageProducts,
   validateRequest(unitSchema),
   createAuthHandler(unitsController.createUnit)
 );
 
 router.get(
   "/:id",
+  requireUnitReadAccess,
   validateParams(unitIdParamSchema),
   createAuthHandler(unitsController.getUnit)
 );
 
 router.put(
   "/:id",
+  requireManageProducts,
   validateParams(unitIdParamSchema),
   validateRequest(unitSchema),
   createAuthHandler(unitsController.updateUnit)
@@ -57,6 +69,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requireManageProducts,
   validateParams(unitIdParamSchema),
   createAuthHandler(unitsController.deleteUnit)
 );

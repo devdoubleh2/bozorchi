@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { ProductCategoriesController } from "../controllers/productCategoriesController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import { validateParams, validateRequest } from "../middleware/validation";
+import { Permission } from "../generated/public/client";
 import { z } from "zod";
 
 const router: Router = Router();
@@ -43,26 +45,36 @@ const productCategoryIdParamSchema = z.object({
 
 // All routes require authentication
 router.use(createAuthMiddleware());
+const requireCategoryReadAccess = requirePermission([
+  Permission.POS_ACCESS,
+  Permission.MANAGE_PRODUCTS,
+  Permission.MANAGE_INVENTORY,
+]);
+const requireManageProducts = requirePermission([Permission.MANAGE_PRODUCTS]);
 
 // Routes
 router.get(
   "/names",
+  requireCategoryReadAccess,
   createAuthHandler(productCategoriesController.getCategoryNames)
 );
 
 router.get(
   "/",
+  requireCategoryReadAccess,
   createAuthHandler(productCategoriesController.getProductCategories)
 );
 
 router.post(
   "/",
+  requireManageProducts,
   validateRequest(createProductCategorySchema),
   createAuthHandler(productCategoriesController.createProductCategory)
 );
 
 router.put(
   "/:id",
+  requireManageProducts,
   validateParams(productCategoryIdParamSchema),
   validateRequest(updateProductCategorySchema),
   createAuthHandler(productCategoriesController.updateProductCategory)
@@ -70,6 +82,7 @@ router.put(
 
 router.delete(
   "/:id",
+  requireManageProducts,
   validateParams(productCategoryIdParamSchema),
   createAuthHandler(productCategoriesController.deleteProductCategory)
 );

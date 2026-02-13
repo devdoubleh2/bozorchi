@@ -4,6 +4,7 @@ import {
   createAuthMiddleware,
   AuthRequest,
 } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import { validateQuery } from "../middleware/validation";
 import { z } from "zod";
 import { Response } from "express";
@@ -14,6 +15,7 @@ import {
   ProductReportResponse,
 } from "../services/reports";
 import { prisma as publicPrisma } from "../lib/prisma";
+import { Permission } from "../generated/public/client";
 
 const router: Router = Router();
 
@@ -40,6 +42,7 @@ function parseDateRange(query: ReportQuery): {
 
 // All routes require authentication
 router.use(createAuthMiddleware());
+const requireViewAnalytics = requirePermission([Permission.VIEW_ANALYTICS]);
 
 /**
  * GET /api/reports/sellers
@@ -47,6 +50,7 @@ router.use(createAuthMiddleware());
  */
 router.get(
   "/sellers",
+  requireViewAnalytics,
   validateQuery(reportQuerySchema),
   createAuthHandler(async (req: AuthRequest, res: Response) => {
     if (!req.store?.id) {
@@ -102,6 +106,7 @@ router.get(
  */
 router.get(
   "/products",
+  requireViewAnalytics,
   validateQuery(reportQuerySchema),
   createAuthHandler(async (req: AuthRequest, res: Response) => {
     if (!req.store?.id) {

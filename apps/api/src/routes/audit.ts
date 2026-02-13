@@ -1,9 +1,12 @@
 import express from "express";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import { AuditController } from "../controllers/auditController";
+import { Permission } from "../generated/public/client";
 
 const router: express.Router = express.Router();
 const auditController = new AuditController();
+const requireManageInventory = requirePermission([Permission.MANAGE_INVENTORY]);
 
 // All routes require authentication
 
@@ -11,6 +14,7 @@ const auditController = new AuditController();
 router.get(
   "/history",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.getAudits)
 );
 
@@ -18,6 +22,7 @@ router.get(
 router.get(
   "/:id",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.getAudit)
 );
 
@@ -25,6 +30,7 @@ router.get(
 router.post(
   "/start",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.startAudit)
 );
 
@@ -32,6 +38,7 @@ router.post(
 router.post(
   "/:id/scan",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.scanItem)
 );
 
@@ -39,6 +46,7 @@ router.post(
 router.put(
   "/:id/item",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.updateAuditItem)
 );
 
@@ -46,6 +54,7 @@ router.put(
 router.post(
   "/:id/complete",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.completeAudit)
 );
 
@@ -53,6 +62,7 @@ router.post(
 router.put(
   "/:id/cancel",
   createAuthMiddleware(),
+  requireManageInventory,
   createAuthHandler(auditController.cancelAudit)
 );
 

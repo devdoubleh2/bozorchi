@@ -103,10 +103,24 @@ export const useAuthStore = create<AuthState>()(
         // Fetch user's store info
         fetchUserStore: async () => {
           try {
-            const { user } = get();
-            if (!user) {
+            const { user: existingUser } = get();
+            if (!existingUser) {
               set({ userStore: null, storeId: null });
               return null;
+            }
+
+            // Refresh profile first so role/permissions stay in sync with backend assignments.
+            let effectiveUser = existingUser;
+            try {
+              const refreshedUser = await api.get<AuthUser>("/api/auth/profile");
+              effectiveUser = refreshedUser;
+              set({
+                user: refreshedUser,
+                organization: extractOrganization(refreshedUser),
+                isAuthenticated: true,
+              });
+            } catch {
+              // Fallback to in-memory profile if refresh fails.
             }
 
             // Get store from backend
@@ -119,8 +133,8 @@ export const useAuthStore = create<AuthState>()(
             }
 
             // Extract role and approved from user's membership or ownership
-            const membership = user.membership;
-            const isOwner = !!user.owned_organization;
+            const membership = effectiveUser.membership;
+            const isOwner = !!effectiveUser.owned_organization;
 
             // Ensure role is properly typed
             const role: "admin" | "user" = isOwner
@@ -128,7 +142,7 @@ export const useAuthStore = create<AuthState>()(
               : ((membership?.role ?? "user") as "admin" | "user");
 
             const userStoreInfo: UserStoreInfo = {
-              user_id: user.id,
+              user_id: effectiveUser.id,
               store_id: storeRes.data.id,
               role,
               approved: isOwner ? true : membership?.approved ?? false,

@@ -55,6 +55,8 @@ import { usePOSStore } from "@/context/POSStore";
 import { Paywall } from "@/components/Paywall";
 import { CurrencyDropdown } from "@/components/CurrencyDropdown";
 import { NavMain, type NavItem } from "@/components/nav-main";
+import { RequireAccess } from "@/components/auth";
+import type { Permission, Role } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
 
@@ -65,7 +67,9 @@ import { FaroRoutes } from "@grafana/faro-react";
 type RouteConfig = {
   path: string;
   component: ComponentType;
-  protected?: boolean;
+  roles?: Role[];
+  permissions?: Permission[];
+  requireAllPermissions?: boolean;
 };
 
 type ReportDefinition = {
@@ -126,6 +130,14 @@ const BREADCRUMB_T_KEYS: Record<string, string> = {
   "/account/edit": "navigation.accountEdit",
   "/staff": "navigation.staff",
   "/stores/new": "storeSetup.create",
+};
+
+const PERMISSION_SETS = {
+  pos: ["POS_ACCESS"] as Permission[],
+  manageProducts: ["MANAGE_PRODUCTS"] as Permission[],
+  manageInventory: ["MANAGE_INVENTORY"] as Permission[],
+  viewAnalytics: ["VIEW_ANALYTICS"] as Permission[],
+  inventoryOrProducts: ["MANAGE_INVENTORY", "MANAGE_PRODUCTS"] as Permission[],
 };
 
 // =============================================================================
@@ -203,37 +215,137 @@ const ProductsRedirect = () => <Navigate to="/inventory" replace />;
 
 const PROTECTED_ROUTES: RouteConfig[] = [
   { path: "/stores/new", component: StoreCreatePage },
-  { path: "/inventory", component: InventoryPage },
-  { path: "/inventory/products", component: ProductsRedirect },
-  { path: "/inventory/products/new", component: ProductCreatePage },
-  { path: "/inventory/products/bulk", component: ProductBulkCreatePage },
-  { path: "/inventory/products/edit/:productId", component: ProductEditPage },
-  { path: "/inventory/write-offs", component: WriteOffsPage },
-  { path: "/inventory/write-off/:productId", component: WriteOffPage },
-  { path: "/inventory/audits", component: AuditsPage },
-  { path: "/inventory/audits/new", component: NewAuditPage },
-  { path: "/inventory/audits/:auditId", component: AuditDetailPage },
-  { path: "/inventory/low-stock", component: LowStockPage },
-  { path: "/inventory/restock", component: RestockPage },
-  { path: "/inventory/restock/:productId", component: RestockPage },
-  { path: "/inventory/bulk-edit", component: BulkEditPage },
-  { path: "/customers", component: CustomersPage },
-  { path: "/customers/new", component: CustomerCreatePage },
-  { path: "/customers/:customerId/edit", component: CustomerEditPage },
-  { path: "/customers/:customerId", component: CustomerDetailsPage },
-  { path: "/suppliers", component: SuppliersPage },
-  { path: "/suppliers/new", component: SupplierCreatePage },
-  { path: "/suppliers/:supplierId/edit", component: SupplierEditPage },
-  { path: "/pos", component: POSPage },
-  { path: "/transactions", component: TransactionsPage },
-  { path: "/repay-debt", component: RepayDebtPage },
-  { path: "/transactions/:id/exchange", component: ExchangePage },
+  {
+    path: "/inventory",
+    component: InventoryPage,
+    permissions: PERMISSION_SETS.inventoryOrProducts,
+  },
+  {
+    path: "/inventory/products",
+    component: ProductsRedirect,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/inventory/products/new",
+    component: ProductCreatePage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/inventory/products/bulk",
+    component: ProductBulkCreatePage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/inventory/products/edit/:productId",
+    component: ProductEditPage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/inventory/write-offs",
+    component: WriteOffsPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/write-off/:productId",
+    component: WriteOffPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/audits",
+    component: AuditsPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/audits/new",
+    component: NewAuditPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/audits/:auditId",
+    component: AuditDetailPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/low-stock",
+    component: LowStockPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/restock",
+    component: RestockPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/restock/:productId",
+    component: RestockPage,
+    permissions: PERMISSION_SETS.manageInventory,
+  },
+  {
+    path: "/inventory/bulk-edit",
+    component: BulkEditPage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/customers",
+    component: CustomersPage,
+    permissions: PERMISSION_SETS.pos,
+  },
+  {
+    path: "/customers/new",
+    component: CustomerCreatePage,
+    permissions: PERMISSION_SETS.pos,
+  },
+  {
+    path: "/customers/:customerId/edit",
+    component: CustomerEditPage,
+    permissions: PERMISSION_SETS.pos,
+  },
+  {
+    path: "/customers/:customerId",
+    component: CustomerDetailsPage,
+    permissions: PERMISSION_SETS.pos,
+  },
+  {
+    path: "/suppliers",
+    component: SuppliersPage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/suppliers/new",
+    component: SupplierCreatePage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  {
+    path: "/suppliers/:supplierId/edit",
+    component: SupplierEditPage,
+    permissions: PERMISSION_SETS.manageProducts,
+  },
+  { path: "/pos", component: POSPage, permissions: PERMISSION_SETS.pos },
+  {
+    path: "/transactions",
+    component: TransactionsPage,
+    permissions: PERMISSION_SETS.viewAnalytics,
+  },
+  {
+    path: "/repay-debt",
+    component: RepayDebtPage,
+    permissions: PERMISSION_SETS.pos,
+  },
+  {
+    path: "/transactions/:id/exchange",
+    component: ExchangePage,
+    permissions: PERMISSION_SETS.pos,
+  },
   // FISCALIZATION DISABLED - { path: "/fiscal-settings", component: FiscalSettingsPage },
-  { path: "/reports/:reportId", component: ReportDetailPage },
+  {
+    path: "/reports/:reportId",
+    component: ReportDetailPage,
+    permissions: PERMISSION_SETS.viewAnalytics,
+  },
   { path: "/account", component: AccountPage },
   { path: "/account/edit", component: AccountEditPage },
   { path: "/account/receipt-design", component: ReceiptDesignPage },
-  { path: "/staff", component: StaffPage },
+  { path: "/staff", component: StaffPage, roles: ["admin"] },
   { path: "/subscription", component: SubscriptionPage },
   { path: "/mobile-paywall", component: MobilePaywallPage },
   { path: "/dashboard", component: Dashboard },
@@ -335,9 +447,33 @@ const AppRoutes = () => {
     <FaroRoutes routesComponent={Routes}>
       {/* Protected routes with layout */}
       <Route element={<ProtectedLayout />}>
-        {PROTECTED_ROUTES.map(({ path, component: Component }) => (
-          <Route key={path} path={path} element={withSuspense(Component)} />
-        ))}
+        {PROTECTED_ROUTES.map(
+          ({
+            path,
+            component: Component,
+            roles,
+            permissions,
+            requireAllPermissions,
+          }) => {
+            const element = withSuspense(Component);
+            const guardedElement =
+              (roles && roles.length > 0) ||
+              (permissions && permissions.length > 0) ? (
+                <RequireAccess
+                  roles={roles}
+                  permissions={permissions}
+                  requireAllPermissions={requireAllPermissions}
+                  showForbidden
+                >
+                  {element}
+                </RequireAccess>
+              ) : (
+                element
+              );
+
+            return <Route key={path} path={path} element={guardedElement} />;
+          }
+        )}
         <Route path="/reports" element={<Navigate to="/" replace />} />
       </Route>
 
@@ -361,16 +497,62 @@ const useNavItems = (): NavItem[] => {
   const { userStore } = useAuth();
 
   return useMemo(() => {
+    const canAccess = (permissions: Permission[]) => {
+      if (userStore?.role === "admin") return true;
+      const userPermissions = userStore?.permissions ?? [];
+      return permissions.some((permission) => userPermissions.includes(permission));
+    };
+
+    const canPOS = canAccess(PERMISSION_SETS.pos);
+    const canManageProducts = canAccess(PERMISSION_SETS.manageProducts);
+    const canManageInventory = canAccess(PERMISSION_SETS.manageInventory);
+    const canViewAnalytics = canAccess(PERMISSION_SETS.viewAnalytics);
+
     const items: NavItem[] = [
       { title: t("navigation.home"), url: "/dashboard", icon: LayoutDashboard },
-      { title: t("navigation.inventory"), url: "/inventory", icon: Boxes },
-      { title: t("navigation.writeOffs", { defaultValue: "Write Offs" }), url: "/inventory/write-offs", icon: ClipboardX },
-      { title: t("inventory.audits", { defaultValue: "Audits" }), url: "/inventory/audits", icon: Boxes },
-      { title: t("navigation.pos", { defaultValue: "POS" }), url: "/pos", icon: ShoppingCart },
-      { title: t("navigation.customers"), url: "/customers", icon: Users },
-      { title: t("navigation.transactions", { defaultValue: "Transactions" }), url: "/transactions", icon: Receipt },
-      { title: t("navigation.suppliers", { defaultValue: "Suppliers" }), url: "/suppliers", icon: Truck },
-      {
+    ];
+
+    if (canManageProducts || canManageInventory) {
+      items.push({
+        title: t("navigation.inventory"),
+        url: "/inventory",
+        icon: Boxes,
+      });
+    }
+
+    if (canManageInventory) {
+      items.push({
+        title: t("navigation.writeOffs", { defaultValue: "Write Offs" }),
+        url: "/inventory/write-offs",
+        icon: ClipboardX,
+      });
+      items.push({
+        title: t("inventory.audits", { defaultValue: "Audits" }),
+        url: "/inventory/audits",
+        icon: Boxes,
+      });
+    }
+
+    if (canPOS) {
+      items.push({
+        title: t("navigation.pos", { defaultValue: "POS" }),
+        url: "/pos",
+        icon: ShoppingCart,
+      });
+      items.push({
+        title: t("navigation.customers"),
+        url: "/customers",
+        icon: Users,
+      });
+    }
+
+    if (canViewAnalytics) {
+      items.push({
+        title: t("navigation.transactions", { defaultValue: "Transactions" }),
+        url: "/transactions",
+        icon: Receipt,
+      });
+      items.push({
         title: t("navigation.reports", { defaultValue: "Reports" }),
         url: "/reports",
         icon: BarChart3,
@@ -378,8 +560,16 @@ const useNavItems = (): NavItem[] => {
           title: t(report.titleKey, { defaultValue: report.fallbackTitle }),
           url: `/reports/${report.id}`,
         })),
-      },
-    ];
+      });
+    }
+
+    if (canManageProducts) {
+      items.push({
+        title: t("navigation.suppliers", { defaultValue: "Suppliers" }),
+        url: "/suppliers",
+        icon: Truck,
+      });
+    }
 
     if (userStore?.role === "admin") {
       items.push({ title: t("navigation.staff", { defaultValue: "Staff" }), url: "/staff", icon: ShieldCheck });
@@ -387,7 +577,7 @@ const useNavItems = (): NavItem[] => {
     }
 
     return items;
-  }, [t, userStore?.role]);
+  }, [t, userStore?.permissions, userStore?.role]);
 };
 
 const useBreadcrumbs = (navItems: NavItem[]) => {

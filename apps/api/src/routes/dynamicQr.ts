@@ -8,13 +8,16 @@ import { Router } from "express";
 import { z } from "zod";
 import { DynamicQrController } from "../controllers/dynamicQrController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import { validate } from "../middleware/validation";
+import { Permission } from "../generated/public/client";
 
 const router: Router = Router();
 const dynamicQrController = new DynamicQrController();
 
 // All routes require authentication
 router.use(createAuthMiddleware());
+const requirePOSAccess = requirePermission([Permission.POS_ACCESS]);
 
 // ==================== Validation Schemas ====================
 
@@ -69,6 +72,7 @@ const generateQRSchema = z.object({
  */
 router.post(
     "/initiate",
+    requirePOSAccess,
     validate(initiatePaymentSchema),
     createAuthHandler(dynamicQrController.initiatePayment)
 );
@@ -79,6 +83,7 @@ router.post(
  */
 router.get(
     "/status/:paymentId",
+    requirePOSAccess,
     validate(checkStatusSchema),
     createAuthHandler(dynamicQrController.checkStatus)
 );
@@ -89,6 +94,7 @@ router.get(
  */
 router.post(
     "/cancel/:orderId",
+    requirePOSAccess,
     validate(cancelPaymentSchema),
     createAuthHandler(dynamicQrController.cancelPayment)
 );
@@ -99,6 +105,7 @@ router.post(
  */
 router.get(
     "/poll/:paymentId",
+    requirePOSAccess,
     validate(pollStatusSchema),
     createAuthHandler(dynamicQrController.pollPaymentStatus)
 );
@@ -109,6 +116,7 @@ router.get(
  */
 router.post(
     "/generate-qr",
+    requirePOSAccess,
     validate(generateQRSchema),
     createAuthHandler(dynamicQrController.generateQR)
 );

@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { InventoryController } from "../controllers/inventoryController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import {
   validateRequest,
   validateParams,
   validateQuery,
 } from "../middleware/validation";
+import { Permission } from "../generated/public/client";
 import { z } from "zod";
 
 const router: Router = Router();
@@ -39,34 +41,40 @@ const inventoryQuerySchema = z.object({
 
 // All routes require authentication
 router.use(createAuthMiddleware());
+const requireManageInventory = requirePermission([Permission.MANAGE_INVENTORY]);
 
 // Routes
 router.get(
   "/",
+  requireManageInventory,
   validateQuery(inventoryQuerySchema),
   createAuthHandler(inventoryController.getInventory)
 );
 
 router.get(
   "/stats",
+  requireManageInventory,
   validateQuery(inventoryQuerySchema),
   createAuthHandler(inventoryController.getStockReport)
 );
 
 router.get(
   "/low-stock",
+  requireManageInventory,
   validateQuery(inventoryQuerySchema),
   createAuthHandler(inventoryController.getLowStockItems)
 );
 
 router.get(
   "/:id",
+  requireManageInventory,
   validateParams(inventoryIdParamSchema),
   createAuthHandler(inventoryController.getInventory)
 );
 
 router.post(
   "/restock",
+  requireManageInventory,
   validateRequest(restockSchema),
   createAuthHandler(inventoryController.restock)
 );
@@ -83,6 +91,7 @@ const transferSchema = z.object({
 
 router.post(
   "/transfer",
+  requireManageInventory,
   validateRequest(transferSchema),
   createAuthHandler(inventoryController.transfer)
 );

@@ -1,14 +1,23 @@
 import { Router } from "express";
 import { ProductsController } from "../controllers/productsController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import { requirePermission } from "../middleware/rbac";
 import { validateRequest, validateParams } from "../middleware/validation";
 import fileUploadService from "../services/fileUpload";
+import { Permission } from "../generated/public/client";
 import { z } from "zod";
 
 const router: Router = Router();
 const productsController = new ProductsController();
 
 router.use(createAuthMiddleware());
+
+const requireProductReadAccess = requirePermission([
+  Permission.POS_ACCESS,
+  Permission.MANAGE_PRODUCTS,
+  Permission.MANAGE_INVENTORY,
+]);
+const requireManageProducts = requirePermission([Permission.MANAGE_PRODUCTS]);
 
 const createProductSchema = z.object({
   name: z
@@ -109,20 +118,34 @@ const bulkUpdateSchema = z.object({
   ).min(1, "At least one item is required"),
 });
 
-router.get("/list", createAuthHandler(productsController.getProducts));
+router.get(
+  "/list",
+  requireProductReadAccess,
+  createAuthHandler(productsController.getProducts)
+);
 
-router.get("/search", createAuthHandler(productsController.searchProducts));
+router.get(
+  "/search",
+  requireProductReadAccess,
+  createAuthHandler(productsController.searchProducts)
+);
 
 router.get(
   "/barcode/:barcode",
+  requireProductReadAccess,
   createAuthHandler(productsController.getProductByBarcode)
 );
 
-router.get("/:id", createAuthHandler(productsController.getProduct));
+router.get(
+  "/:id",
+  requireProductReadAccess,
+  createAuthHandler(productsController.getProduct)
+);
 
 router.post(
   "/",
   createAuthMiddleware(),
+  requireManageProducts,
   async (req, res, next) => {
     try {
       if (req.file) {
@@ -169,6 +192,7 @@ router.post(
 // Bulk update products/variations
 router.put(
   "/bulk-update",
+  requireManageProducts,
   validateRequest(bulkUpdateSchema),
   createAuthHandler(productsController.bulkUpdateProducts)
 );
@@ -176,6 +200,7 @@ router.put(
 router.put(
   "/:id",
   createAuthMiddleware(),
+  requireManageProducts,
   async (req, res, next) => {
     try {
       if (req.file) {
@@ -220,10 +245,16 @@ router.put(
 );
 
 // bulk delete - must be defined before /:id to avoid being matched as an ID
-router.delete("/bulk", validateRequest(bulkDeleteSchema), createAuthHandler(productsController.bulkDeleteProducts));
+router.delete(
+  "/bulk",
+  requireManageProducts,
+  validateRequest(bulkDeleteSchema),
+  createAuthHandler(productsController.bulkDeleteProducts)
+);
 
 router.delete(
   "/:id",
+  requireManageProducts,
   validateParams(productIdParamSchema),
   createAuthHandler(productsController.deleteProduct)
 );

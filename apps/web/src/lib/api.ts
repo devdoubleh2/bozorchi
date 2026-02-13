@@ -20,7 +20,17 @@ export interface ApiError {
   error?: string;
   code?: AuthErrorCode;
   message?: string;
+  requiredPermissions?: string[];
+  details?: string[] | string;
 }
+
+const PERMISSION_LABELS: Record<string, string> = {
+  POS_ACCESS: "POS Access",
+  MANAGE_PRODUCTS: "Manage Products",
+  MANAGE_INVENTORY: "Manage Inventory",
+  VIEW_COST_PRICE: "View Cost Price",
+  VIEW_ANALYTICS: "View Analytics",
+};
 
 export class ApiClient {
   private baseUrl: string;
@@ -97,6 +107,25 @@ export class ApiClient {
             await this.onAuthFailure();
           }
         }
+      }
+
+      // Normalize permission errors so UI can show a clear message everywhere.
+      const isPermissionError =
+        response.status === 403 &&
+        ((errorBody.message &&
+          errorBody.message.toLowerCase().includes("insufficient permissions")) ||
+          (errorBody.error &&
+            errorBody.error.toLowerCase().includes("access denied")));
+      if (isPermissionError) {
+        const requiredPermissions = Array.isArray(errorBody.requiredPermissions)
+          ? errorBody.requiredPermissions
+            .map((permission) => PERMISSION_LABELS[permission] ?? permission)
+            .join(", ")
+          : "";
+        const message = requiredPermissions
+          ? `You do not have permission for this action. Required: ${requiredPermissions}.`
+          : "You do not have permission for this action. Please contact your owner/admin.";
+        throw new Error(message);
       }
 
       throw new Error(
