@@ -1,5 +1,5 @@
-import IORedis from "ioredis";
 import {
+  ConnectionOptions,
   Job,
   JobProgress,
   Queue,
@@ -48,11 +48,11 @@ export class ImportQueueUnavailableError extends Error {
   }
 }
 
-let queueConnection: IORedis | null = null;
-let workerConnection: IORedis | null = null;
-let queueEventsConnection: IORedis | null = null;
+let queueConnection: ConnectionOptions | null = null;
+let workerConnection: ConnectionOptions | null = null;
+let queueEventsConnection: ConnectionOptions | null = null;
 
-let importQueue: Queue<ImportJobPayload, ImportJobResult> | null = null;
+let importQueue: Queue | null = null;
 let importWorker: Worker<ImportJobPayload, ImportJobResult> | null = null;
 let importQueueEvents: QueueEvents | null = null;
 
@@ -126,18 +126,6 @@ const normalizeProgress = (
   };
 };
 
-const closeRedisConnection = async (connection: IORedis | null): Promise<void> => {
-  if (!connection) {
-    return;
-  }
-
-  try {
-    await connection.quit();
-  } catch {
-    connection.disconnect();
-  }
-};
-
 export const isImportQueueAvailable = (): boolean => queueAvailable;
 
 export const getImportQueueUnavailableReason = (): string =>
@@ -169,20 +157,23 @@ export async function initializeImportQueue(): Promise<{
   await closeImportQueue();
 
   try {
-    queueConnection = new IORedis(redisUrl, {
+    queueConnection = {
+      url: redisUrl,
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
-    });
-    workerConnection = new IORedis(redisUrl, {
+    };
+    workerConnection = {
+      url: redisUrl,
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
-    });
-    queueEventsConnection = new IORedis(redisUrl, {
+    };
+    queueEventsConnection = {
+      url: redisUrl,
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
-    });
+    };
 
-    importQueue = new Queue<ImportJobPayload, ImportJobResult>(IMPORT_QUEUE_NAME, {
+    importQueue = new Queue(IMPORT_QUEUE_NAME, {
       connection: queueConnection,
       defaultJobOptions: {
         removeOnComplete: {
@@ -239,6 +230,10 @@ export async function initializeImportQueue(): Promise<{
       });
     });
 
+    if (!importQueue || !importQueueEvents || !importWorker) {
+      throw new Error("Import queue resources were not initialized");
+    }
+
     await Promise.all([
       importQueue.waitUntilReady(),
       importQueueEvents.waitUntilReady(),
@@ -276,12 +271,6 @@ export async function closeImportQueue(): Promise<void> {
     importQueue?.close() ?? Promise.resolve(),
   ]);
 
-  await Promise.allSettled([
-    closeRedisConnection(workerConnection),
-    closeRedisConnection(queueEventsConnection),
-    closeRedisConnection(queueConnection),
-  ]);
-
   importWorker = null;
   importQueueEvents = null;
   importQueue = null;
@@ -296,7 +285,7 @@ const ensureQueue = (): Queue<ImportJobPayload, ImportJobResult> => {
     throw new ImportQueueUnavailableError(getImportQueueUnavailableReason());
   }
 
-  return importQueue;
+  return importQueue as Queue<ImportJobPayload, ImportJobResult>;
 };
 
 export async function enqueueImportJob(
