@@ -44,10 +44,6 @@ type ProductRow = {
   deliveryCost: number;
 };
 
-type ImportableRow = ProductRow & {
-  rowNumber: number;
-};
-
 type ValidationError = {
   row: number;
   field: string;
@@ -137,23 +133,8 @@ export default function ProductBulkCreatePage() {
     [validation?.data]
   );
 
-  const invalidRowNumbers = useMemo(
-    () => new Set((validation?.errors ?? []).map((error) => error.row)),
-    [validation?.errors]
-  );
-
-  const importableRows = useMemo<ImportableRow[]>(
-    () =>
-      parsedData
-        .map((row, index) => ({
-          ...row,
-          rowNumber: index + 2,
-        }))
-        .filter((row) => !invalidRowNumbers.has(row.rowNumber)),
-    [parsedData, invalidRowNumbers]
-  );
-
-  const canExecute = importableRows.length > 0;
+  const canExecute =
+    Boolean(validation?.valid) && (validation?.summary.validRows ?? 0) > 0;
 
   const effectiveProgress = useMemo<ImportProgress | null>(() => {
     if (jobProgress) {
@@ -391,16 +372,13 @@ export default function ProductBulkCreatePage() {
   }, [parsedData, t]);
 
   const handleExecute = useCallback(async () => {
-    if (!importableRows.length) return;
-    const importPayload = parsedData.filter(
-      (_row, index) => !invalidRowNumbers.has(index + 2)
-    );
+    if (!validation?.data.length) return;
     setExecuting(true);
     setGlobalError(null);
     setExecuteResult(null);
     setJobStatus("queued");
     setJobProgress({
-      inputCount: importPayload.length,
+      inputCount: validation.data.length,
       processedCount: 0,
       successCount: 0,
       failCount: 0,
@@ -409,7 +387,7 @@ export default function ProductBulkCreatePage() {
 
     try {
       const enqueueResponse = await api.post<ExecuteEnqueueResponse>("/api/import/execute", {
-        products: importPayload,
+        products: validation.data,
       });
 
       const pollStartTime = Date.now();
@@ -484,7 +462,7 @@ export default function ProductBulkCreatePage() {
     } finally {
       setExecuting(false);
     }
-  }, [importableRows.length, invalidRowNumbers, parsedData, t, queryClient]);
+  }, [validation?.data, t, queryClient]);
 
   return (
     <div className="mx-auto w-full max-w-[1000px] p-6">
@@ -776,15 +754,10 @@ export default function ProductBulkCreatePage() {
             </div>
             {!validation.valid && (
               <p className="mt-4 text-sm text-muted-foreground">
-                {importableRows.length > 0
-                  ? t("bulk.partialImportHint", {
-                    defaultValue:
-                      "Rows with errors will be skipped. You can import valid rows now.",
-                  })
-                  : t("bulk.fixErrorsHint", {
-                    defaultValue:
-                      "Fix the issues listed below, update the spreadsheet, and upload again.",
-                  })}
+                {t("bulk.fixErrorsHint", {
+                  defaultValue:
+                    "Fix the issues listed below, update the spreadsheet, and upload again.",
+                })}
               </p>
             )}
           </div>
@@ -827,92 +800,6 @@ export default function ProductBulkCreatePage() {
                     ))}
                   </TableBody>
                 </Table>
-              </ScrollArea>
-            )}
-          </div>
-
-          <div className="rounded-md border">
-            <div className="border-b px-4 py-3">
-              <p className="text-sm font-semibold">
-                {t("bulk.importableProducts", {
-                  defaultValue: "Importable products",
-                })}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("bulk.importableCount", {
-                  defaultValue: "{{count}} rows ready to import",
-                  count: importableRows.length,
-                })}
-              </p>
-            </div>
-            {importableRows.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                {t("bulk.noImportable", {
-                  defaultValue: "No importable rows.",
-                })}
-              </div>
-            ) : (
-              <ScrollArea className="h-[300px] w-full">
-                <div className="w-max min-w-full">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="whitespace-nowrap">
-                          {t("bulk.row", { defaultValue: "Row" })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.productName", { defaultValue: "Product" })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.variationName", {
-                            defaultValue: "Variation",
-                          })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.barcode", { defaultValue: "Barcode" })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.productCategory", {
-                            defaultValue: "Category",
-                          })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.unit", { defaultValue: "Unit" })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("products.sellingPrice", {
-                            defaultValue: "Selling price",
-                          })}
-                        </TableHead>
-                        <TableHead className="whitespace-nowrap">
-                          {t("bulk.initialStock", {
-                            defaultValue: "Stock",
-                          })}
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {importableRows.map((row, idx) => (
-                        <TableRow key={`${row.rowNumber}-${row.barcode}-${idx}`}>
-                          <TableCell className="whitespace-nowrap">{row.rowNumber}</TableCell>
-                          <TableCell className="whitespace-nowrap">{row.productName}</TableCell>
-                          <TableCell className="whitespace-nowrap">{row.variationName}</TableCell>
-                          <TableCell className="whitespace-nowrap">{row.barcode}</TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {row.productCategoryName ||
-                              t("bulk.notProvided", {
-                                defaultValue: "—",
-                              })}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">{row.unitName}</TableCell>
-                          <TableCell className="whitespace-nowrap">{formatPrice(row.sellingPrice)}</TableCell>
-                          <TableCell className="whitespace-nowrap">{row.initialStock}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <ScrollBar orientation="horizontal" />
               </ScrollArea>
             )}
           </div>
