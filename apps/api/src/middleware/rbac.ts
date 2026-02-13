@@ -27,6 +27,14 @@ export const requireAdmin = async (
       return;
     }
 
+    if (!req.userApproved) {
+      res.status(403).json({
+        error: "Access denied",
+        message: "Membership approval required",
+      });
+      return;
+    }
+
     if (req.userRole !== Role.admin) {
       res.status(403).json({
         error: "Access denied",
@@ -52,7 +60,7 @@ const userHasPermission = (
   req: AuthRequest,
   permission: Permission
 ): boolean => {
-  if (!req.userId || !req.userRole) {
+  if (!req.userId || !req.userRole || !req.userApproved) {
     return false;
   }
 

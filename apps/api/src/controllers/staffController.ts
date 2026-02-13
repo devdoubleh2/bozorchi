@@ -10,6 +10,7 @@ const ALLOWED_PERMISSIONS = new Set<Permission>([
   Permission.MANAGE_INVENTORY,
   Permission.VIEW_COST_PRICE,
   Permission.VIEW_ANALYTICS,
+  Permission.VIEW_DASHBOARD,
 ]);
 
 export class StaffController {

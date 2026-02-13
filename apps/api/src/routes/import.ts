@@ -62,4 +62,11 @@ router.post(
   createAuthHandler(importController.executeImport)
 );
 
+// GET /api/import/jobs/:jobId - Get async import job status
+router.get(
+  "/jobs/:jobId",
+  requireManageProducts,
+  createAuthHandler(importController.getImportJobStatus)
+);
+
 export default router;

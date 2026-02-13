@@ -30,7 +30,13 @@ import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal } from "lucide-r
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 
-type PermissionType = "POS_ACCESS" | "MANAGE_PRODUCTS" | "MANAGE_INVENTORY" | "VIEW_COST_PRICE" | "VIEW_ANALYTICS";
+type PermissionType =
+  | "POS_ACCESS"
+  | "MANAGE_PRODUCTS"
+  | "MANAGE_INVENTORY"
+  | "VIEW_COST_PRICE"
+  | "VIEW_ANALYTICS"
+  | "VIEW_DASHBOARD";
 
 interface StaffAssignment {
   id: string;
@@ -159,6 +165,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
       MANAGE_INVENTORY: t("staff.permissions.manageInventory", { defaultValue: "Inventory" }),
       VIEW_COST_PRICE: t("staff.permissions.viewCostPrice", { defaultValue: "Cost Price" }),
       VIEW_ANALYTICS: t("staff.permissions.viewAnalytics", { defaultValue: "Analytics" }),
+      VIEW_DASHBOARD: t("staff.permissions.viewDashboard", { defaultValue: "Dashboard" }),
     };
 
     return (
@@ -413,6 +420,7 @@ function RoleAssignmentDialog({
     { value: "MANAGE_INVENTORY", label: t("staff.permissions.manageInventory", { defaultValue: "Manage Inventory" }), description: t("staff.permissions.manageInventoryDesc", { defaultValue: "Manage inventory levels and restocking" }) },
     { value: "VIEW_COST_PRICE", label: t("staff.permissions.viewCostPrice", { defaultValue: "View Cost Price" }), description: t("staff.permissions.viewCostPriceDesc", { defaultValue: "View product cost prices" }) },
     { value: "VIEW_ANALYTICS", label: t("staff.permissions.viewAnalytics", { defaultValue: "View Analytics" }), description: t("staff.permissions.viewAnalyticsDesc", { defaultValue: "View sales analytics and reports" }) },
+    { value: "VIEW_DASHBOARD", label: t("staff.permissions.viewDashboard", { defaultValue: "View Dashboard" }), description: t("staff.permissions.viewDashboardDesc", { defaultValue: "View dashboard revenue and KPI cards" }) },
   ];
 
   const togglePermission = (permission: PermissionType) => {

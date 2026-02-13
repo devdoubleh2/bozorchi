@@ -37,6 +37,7 @@ const PERMISSION_LABEL_KEYS: Record<Permission, string> = {
   MANAGE_INVENTORY: "staff.permissions.manageInventory",
   VIEW_COST_PRICE: "staff.permissions.viewCostPrice",
   VIEW_ANALYTICS: "staff.permissions.viewAnalytics",
+  VIEW_DASHBOARD: "staff.permissions.viewDashboard",
 };
 
 /**

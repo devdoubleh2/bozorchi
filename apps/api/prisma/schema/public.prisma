@@ -87,6 +87,7 @@ enum Permission {
   MANAGE_INVENTORY
   VIEW_COST_PRICE
   VIEW_ANALYTICS
+  VIEW_DASHBOARD
 }
 
 enum SubscriptionStatus {

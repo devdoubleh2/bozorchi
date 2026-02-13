@@ -350,41 +350,47 @@ class AuthService {
 
     const tenant = req.tenantPrisma;
     const orgId = req.organization.id;
+    const isOrganizationOwner = req.user?.owned_organization?.id === orgId;
 
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const stores = await tenant.store.findMany({
-        where: { organization_id: orgId },
-      });
+      if (isOrganizationOwner) {
+        const stores = await tenant.store.findMany({
+          where: { organization_id: orgId },
+        });
 
-      for (const store of stores) {
-        await tenant.transaction.deleteMany({ where: { store_id: store.id } });
-        await tenant.inventory.deleteMany({ where: { store_id: store.id } });
+        for (const store of stores) {
+          await tenant.transaction.deleteMany({ where: { store_id: store.id } });
+          await tenant.inventory.deleteMany({ where: { store_id: store.id } });
 
-        const customers = await tenant.customer.findMany({
-          where: { store_id: store.id },
-          select: { id: true },
-        });
-        await tenant.loyaltyCard.deleteMany({
-          where: { customer_id: { in: customers.map((c) => c.id) } },
-        });
-        await tenant.customer.deleteMany({ where: { store_id: store.id } });
-        await tenant.productVariation.deleteMany({
-          where: { store_id: store.id },
-        });
-        await tenant.product.deleteMany({ where: { store_id: store.id } });
-        await tenant.unit.deleteMany({ where: { store_id: store.id } });
-        await tenant.productCategory.deleteMany({
-          where: { store_id: store.id },
-        });
-        await tx.userOrganization.deleteMany({ where: { store_id: store.id } });
-        await tenant.store.delete({ where: { id: store.id } });
+          const customers = await tenant.customer.findMany({
+            where: { store_id: store.id },
+            select: { id: true },
+          });
+          await tenant.loyaltyCard.deleteMany({
+            where: { customer_id: { in: customers.map((c) => c.id) } },
+          });
+          await tenant.customer.deleteMany({ where: { store_id: store.id } });
+          await tenant.productVariation.deleteMany({
+            where: { store_id: store.id },
+          });
+          await tenant.product.deleteMany({ where: { store_id: store.id } });
+          await tenant.unit.deleteMany({ where: { store_id: store.id } });
+          await tenant.productCategory.deleteMany({
+            where: { store_id: store.id },
+          });
+          await tx.userOrganization.deleteMany({ where: { store_id: store.id } });
+          await tenant.store.delete({ where: { id: store.id } });
+        }
       }
 
       await tx.userOrganization.deleteMany({ where: { user_id: req.userId } });
       await tx.user.delete({ where: { id: req.userId } });
     });
 
-    logger.info("User deleted", "authService", { userId: req.userId });
+    logger.info("User deleted", "authService", {
+      userId: req.userId,
+      organizationWiped: isOrganizationOwner,
+    });
   }
 
   async requestPasswordReset(email: string): Promise<{ token: string } | null> {

@@ -45,6 +45,10 @@ const requirePosOrAnalytics = requirePermission([
   Permission.POS_ACCESS,
   Permission.VIEW_ANALYTICS,
 ]);
+const requireDashboardOrAnalytics = requirePermission([
+  Permission.VIEW_DASHBOARD,
+  Permission.VIEW_ANALYTICS,
+]);
 const requireManageInventory = requirePermission([Permission.MANAGE_INVENTORY]);
 
 // Routes
@@ -57,7 +61,7 @@ router.get(
 
 router.get(
   "/stats",
-  requirePosOrAnalytics,
+  requireDashboardOrAnalytics,
   validate(getTransactionsValidation),
   createAuthHandler(transactionsController.getDashboardStats)
 );

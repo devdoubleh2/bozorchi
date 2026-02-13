@@ -187,6 +187,14 @@ export const createAuthMiddleware =
         authReq.organization = organization;
         authReq.organizationId = organization.id;
         authReq.userApproved = membership?.approved ?? false;
+
+        if (requireOrg && !authReq.userApproved && !isOwner(normalizedUser)) {
+          return res.status(403).json({
+            error: "Your organization membership is pending approval",
+            code: AuthErrorCode.NO_ORG_ACCESS,
+          });
+        }
+
         authReq.prisma = prisma;
 
         // Initialize tenant Prisma client

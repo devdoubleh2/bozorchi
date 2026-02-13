@@ -274,7 +274,23 @@
     "howItWorks": "Qanday ishlaydi",
     "groupingHint1": "Bir xil Mahsulot nomi bo'lgan qatorlar bitta mahsulotning variatsiyalariga aylanadi",
     "groupingHint2": "Oddiy mahsulotlar uchun Mahsulot nomi va Variatsiya nomi ustunlarida bir xil nomdan foydalaning",
-    "groupingHint3": "Kategoriyalar va o'lchov birliklari mavjud bo'lmasa avtomatik yaratiladi"
+    "groupingHint3": "Kategoriyalar va o'lchov birliklari mavjud bo'lmasa avtomatik yaratiladi",
+    "queueStatus": {
+      "queued": "Navbatda",
+      "running": "Bajarilmoqda",
+      "completed": "Yakunlandi",
+      "failed": "Xatolik"
+    },
+    "progressLabel": "{{input}} qatordan {{processed}} tasi qayta ishlandi",
+    "inputCount": "Kirish qatorlari",
+    "processedCount": "Qayta ishlangan qatorlar",
+    "queuePolling": "Import fonda bajarilmoqda. Progress bir necha soniyada yangilanadi.",
+    "jobMissingResult": "Import vazifasi yakunlandi, lekin natija qaytmadi.",
+    "jobFailed": "Import vazifasi xato bilan yakunlandi. Qayta urinib ko'ring.",
+    "jobTimeout": "Import juda uzoq davom etmoqda. Iltimos, holatni keyinroq tekshiring.",
+    "queueUnavailable": "REDIS_URL/BullMQ mavjud emas. Redis ni sozlab, API ni qayta ishga tushiring.",
+    "dedupeDuplicateInFile": "Faylda dublikat: mahsulot/variatsiya/o'lchov birligi/rang kombinatsiyasi yagona bo'lishi kerak.",
+    "dedupeDuplicateInDb": "Mahsulot/variatsiya/o'lchov birligi/rang kombinatsiyasi bazada allaqachon mavjud."
   },
   "quickAdd": {
     "buttonLabel": "Qo'shish",

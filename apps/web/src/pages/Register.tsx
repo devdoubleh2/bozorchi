@@ -22,9 +22,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import type { UserStoreInfo } from "@/types/auth";
 
 const MIN_PASSWORD_LENGTH = 6;
 const PHONE_REGEX = /^(\+?998|8|)\s?-?\(?\d{2}\)?\s?-?\d{3}\s?-?\d{2}\s?-?\d{2}$/;
+
+const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
+  if (!userStore || userStore.role === "admin") return "/dashboard";
+
+  const permissions = userStore.permissions ?? [];
+  if (permissions.includes("VIEW_DASHBOARD")) return "/dashboard";
+  if (permissions.includes("POS_ACCESS")) return "/pos";
+  if (
+    permissions.includes("MANAGE_PRODUCTS") ||
+    permissions.includes("MANAGE_INVENTORY")
+  ) {
+    return "/inventory";
+  }
+  if (permissions.includes("VIEW_ANALYTICS")) return "/transactions";
+  return "/account";
+};
 
 export default function Register() {
   const navigate = useNavigate();
@@ -134,8 +151,8 @@ export default function Register() {
       }
 
       // Refresh user store data
-      await getStore();
-      navigate("/dashboard", { replace: true });
+      const store = await getStore();
+      navigate(resolveDefaultRoute(store), { replace: true });
 
     } catch (err: any) {
       console.error("Registration error:", err);

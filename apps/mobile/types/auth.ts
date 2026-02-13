@@ -34,7 +34,8 @@ export type Permission =
     | 'MANAGE_PRODUCTS'
     | 'MANAGE_INVENTORY'
     | 'VIEW_COST_PRICE'
-    | 'VIEW_ANALYTICS';
+    | 'VIEW_ANALYTICS'
+    | 'VIEW_DASHBOARD';
 
 export interface UserOrganization {
     id: string;
@@ -115,5 +116,6 @@ export interface UserStoreInfo {
     store_id: string;
     role: Role;
     approved: boolean;
+    permissions?: Permission[];
     store: Store;
 }

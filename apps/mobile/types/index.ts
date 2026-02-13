@@ -21,6 +21,7 @@ export interface UserStoreInfo {
     storeId: string;
     role: "admin" | "user";
     approved: boolean;
+    permissions?: string[];
     store: Store;
 }
 

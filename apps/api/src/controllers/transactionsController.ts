@@ -12,11 +12,13 @@ const Decimal = Prisma.Decimal;
 
 const getTransactionsSchema = z.object({
   store_id: z.string().optional(),
+  storeId: z.string().optional(),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
   transaction_type: z.string().optional(),
   category_id: z.string().optional(),
   customer_id: z.string().optional(),
+  customerId: z.string().optional(),
   search: z.string().optional(),
   limit: z
     .string()
@@ -45,7 +47,26 @@ const createTransactionSchema = z.object({
   total_amount: z.number().optional(),
   payment_method: z.nativeEnum(PaymentMethod).optional(),
   customer_id: z.string().optional(),
+  remarks: z.string().optional(),
   notes: z.string().optional(),
+  group_id: z.string().optional(),
+  original_transaction_id: z.string().nullable().optional(),
+  redeem_points: z.number().int().nonnegative().optional(),
+  loyalty_discount_amount: z.number().nonnegative().optional(),
+  payments: z
+    .array(
+      z.object({
+        amount: z.number().positive(),
+        payment_method: z.nativeEnum(PaymentMethod),
+        currency: z.string().optional(),
+        reference: z.string().optional(),
+        note: z.string().optional(),
+        received_at: z.string().optional(),
+        payer_id: z.string().optional(),
+        exchange_rate: z.number().positive().optional(),
+      })
+    )
+    .optional(),
 });
 
 const returnTransactionSchema = z.object({
@@ -89,7 +110,8 @@ export class TransactionsController {
       end_date,
       transaction_type,
       category_id,
-      customer_id: _customer_id,
+      customer_id,
+      customerId,
       search: _search,
       limit,
       offset
@@ -114,6 +136,7 @@ export class TransactionsController {
           endDate: end_date,
           transactionType: transaction_type as TransactionType | undefined,
           categoryId: category_id,
+          customerId: customer_id || customerId,
           limit: limit || 50,
           page: offset !== undefined ? Math.floor(offset / (limit || 50)) + 1 : 1,
         },
@@ -195,12 +218,33 @@ export class TransactionsController {
     // unit_price: new Decimal(cost_price), total_amount: ...
     // So we should convert to Decimal here.
 
-    const { unit_price, total_amount, ...rest } = validation.data;
+    const {
+      unit_price,
+      total_amount,
+      loyalty_discount_amount,
+      payments,
+      notes,
+      remarks,
+      ...rest
+    } = validation.data;
 
     const transactionData = {
       ...rest,
+      remarks: remarks || notes,
       unit_price: new Decimal(unit_price ?? 0),
       total_amount: new Decimal(total_amount ?? 0),
+      loyalty_discount_amount:
+        loyalty_discount_amount !== undefined
+          ? new Decimal(loyalty_discount_amount)
+          : undefined,
+      payments: payments?.map((payment) => ({
+        ...payment,
+        amount: new Decimal(payment.amount),
+        exchange_rate:
+          payment.exchange_rate !== undefined
+            ? new Decimal(payment.exchange_rate)
+            : undefined,
+      })),
       userId,
     };
 

@@ -36,6 +36,7 @@ const GetTransactionsOptionsSchema = z.object({
   endDate: z.string().optional(),
   transactionType: z.nativeEnum(TransactionType).optional(),
   categoryId: z.string().optional(),
+  customerId: z.string().optional(),
   groupId: z.string().optional(), // Filter by specific group_id for fetching one POS session
   limit: z.number().optional(),
   page: z.number().optional(),
@@ -298,11 +299,13 @@ function buildTransactionWhereClause(
     endDate,
     transactionType,
     categoryId,
+    customerId,
     groupId,
   } = options;
 
   return {
     store_id: storeId,
+    ...(customerId && { customer_id: customerId }),
     ...(transactionType && { transaction_type: transactionType }),
     ...(groupId && { group_id: groupId }),
     ...(startDate &&

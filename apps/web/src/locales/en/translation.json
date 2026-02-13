@@ -275,7 +275,23 @@
         "howItWorks": "How it works",
         "groupingHint1": "Rows with the same Product Name become variations of one product",
         "groupingHint2": "For simple products, use the same name in both Product Name and Variation Name columns",
-        "groupingHint3": "Categories and units are created automatically if they don't exist"
+        "groupingHint3": "Categories and units are created automatically if they don't exist",
+        "queueStatus": {
+            "queued": "Queued",
+            "running": "Running",
+            "completed": "Completed",
+            "failed": "Failed"
+        },
+        "progressLabel": "Processed {{processed}} / {{input}} rows",
+        "inputCount": "Input rows",
+        "processedCount": "Processed rows",
+        "queuePolling": "Import is running in background. Progress updates every few seconds.",
+        "jobMissingResult": "Import job completed without result payload.",
+        "jobFailed": "Import job failed. Please try again.",
+        "jobTimeout": "Import is taking too long. Please check job status again.",
+        "queueUnavailable": "REDIS_URL/BullMQ unavailable. Configure Redis and restart API.",
+        "dedupeDuplicateInFile": "Duplicate in file: product/variation/unit/color combination must be unique.",
+        "dedupeDuplicateInDb": "Product/variation/unit/color combination already exists in database."
     },
     "quickAdd": {
         "buttonLabel": "Add",

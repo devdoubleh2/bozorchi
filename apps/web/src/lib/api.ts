@@ -30,6 +30,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   MANAGE_INVENTORY: "Manage Inventory",
   VIEW_COST_PRICE: "View Cost Price",
   VIEW_ANALYTICS: "View Analytics",
+  VIEW_DASHBOARD: "View Dashboard",
 };
 
 export class ApiClient {

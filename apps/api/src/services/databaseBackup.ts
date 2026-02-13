@@ -9,7 +9,7 @@ import TelegramBot from "node-telegram-bot-api";
  */
 export class DatabaseBackupService {
   private bot: TelegramBot | null = null;
-  private readonly YOUR_TELEGRAM_ID = 559366407;
+  private readonly defaultChatId: number | null = null;
   private readonly backupDir: string;
   private readonly timezone = "Asia/Tashkent";
 
@@ -17,6 +17,18 @@ export class DatabaseBackupService {
     const token = process.env["TELEGRAM_BOT_TOKEN"];
     if (token) {
       this.bot = new TelegramBot(token);
+    }
+
+    const configuredChatId = process.env["ADMIN_TELEGRAM_ID"];
+    if (configuredChatId) {
+      const parsed = Number(configuredChatId);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        this.defaultChatId = parsed;
+      } else {
+        logger.warn("databaseBackup", "Invalid ADMIN_TELEGRAM_ID configuration", {
+          value: configuredChatId,
+        });
+      }
     }
 
     // Create backup directory if it doesn't exist
@@ -29,9 +41,18 @@ export class DatabaseBackupService {
   /**
    * Creates a database backup and sends it to your Telegram
    */
-  async createAndSendBackup(): Promise<void> {
+  async createAndSendBackup(targetChatId?: number): Promise<void> {
     if (!this.bot) {
       logger.error("databaseBackup", "Telegram bot not configured");
+      return;
+    }
+
+    const recipientChatId = targetChatId ?? this.defaultChatId;
+    if (!recipientChatId) {
+      logger.warn(
+        "databaseBackup",
+        "Backup recipient not configured (missing target chat ID and ADMIN_TELEGRAM_ID)"
+      );
       return;
     }
 
@@ -74,7 +95,7 @@ export class DatabaseBackupService {
       });
 
       // Send backup to Telegram
-      await this.sendBackupToTelegram(filepath, filename);
+      await this.sendBackupToTelegram(filepath, filename, recipientChatId);
 
       // Clean up old backups (keep only last 7 days)
       await this.cleanupOldBackups();
@@ -86,7 +107,7 @@ export class DatabaseBackupService {
       });
 
       // Notify about error
-      await this.notifyBackupError(error as Error);
+      await this.notifyBackupError(error as Error, recipientChatId);
     }
   }
 
@@ -95,7 +116,8 @@ export class DatabaseBackupService {
    */
   private async sendBackupToTelegram(
     filepath: string,
-    filename: string
+    filename: string,
+    chatId: number
   ): Promise<void> {
     if (!this.bot) return;
 
@@ -106,7 +128,7 @@ export class DatabaseBackupService {
 
       // Send a message first
       await this.bot.sendMessage(
-        this.YOUR_TELEGRAM_ID,
+        chatId,
         `📦 <b>Database Backup</b>\n\n` +
           `🗓 Date: ${this.escapeHtml(this.getCurrentDate())}\n` +
           `📁 File: <code>${this.escapeHtml(filename)}</code>\n` +
@@ -116,12 +138,12 @@ export class DatabaseBackupService {
       );
 
       // Send the backup file
-      await this.bot.sendDocument(this.YOUR_TELEGRAM_ID, filepath, {
+      await this.bot.sendDocument(chatId, filepath, {
         caption: `Database backup for ${new Date().toLocaleDateString()}`,
       });
 
       logger.info("databaseBackup", "Backup file sent to Telegram", {
-        chatId: this.YOUR_TELEGRAM_ID,
+        chatId,
         filename,
       });
     } catch (error) {
@@ -135,12 +157,14 @@ export class DatabaseBackupService {
   /**
    * Sends error notification to Telegram
    */
-  private async notifyBackupError(error: Error): Promise<void> {
+  private async notifyBackupError(error: Error, targetChatId?: number): Promise<void> {
     if (!this.bot) return;
+    const chatId = targetChatId ?? this.defaultChatId;
+    if (!chatId) return;
 
     try {
       await this.bot.sendMessage(
-        this.YOUR_TELEGRAM_ID,
+        chatId,
         `❌ <b>Database Backup Failed</b>\n\n` +
           `🗓 Date: ${this.escapeHtml(this.getCurrentDate())}\n` +
           `⚠️ Error:\n<code>${this.escapeHtml(error.message)}</code>\n\n` +
@@ -184,9 +208,9 @@ export class DatabaseBackupService {
   /**
    * Tests the backup service (useful for initial setup)
    */
-  async testBackup(): Promise<void> {
+  async testBackup(targetChatId?: number): Promise<void> {
     logger.info("databaseBackup", "Running backup test...");
-    await this.createAndSendBackup();
+    await this.createAndSendBackup(targetChatId);
   }
 
   private runPgDump(params: {

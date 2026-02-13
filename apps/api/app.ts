@@ -1,4 +1,5 @@
 // Initialize OpenTelemetry FIRST before any other imports
+import type { Server } from "node:http";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -38,10 +39,13 @@ import currenciesRouter from "./src/routes/currencies";
 import { sanitizeInput } from "./src/middleware/sanitization";
 import { log } from "./logs/log";
 import { initializeBackupScheduler } from "./src/lib/backupScheduler";
+import { closeImportQueue, initializeImportQueue } from "./src/lib/importQueue";
 
 
 const app: express.Application = express();
 const PORT = Number(process.env["PORT"] ?? 4000);
+let server: Server | null = null;
+let shuttingDown = false;
 
 // Validate required environment variables in production
 if (process.env["NODE_ENV"] === "production") {
@@ -316,11 +320,51 @@ async function startServer() {
     initializeBackupScheduler();
     console.log("✅ Database backup scheduler initialized");
 
-    app.listen(PORT, "0.0.0.0", () => {
+    const queueStartup = await initializeImportQueue();
+    if (queueStartup.available) {
+      console.log("✅ BullMQ import queue initialized");
+    } else {
+      console.warn(`⚠️ ${queueStartup.message}`);
+    }
+
+    server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`API Documentation: http://0.0.0.0:${PORT}/api`);
       console.log(`Health Check: http://0.0.0.0:${PORT}/health`);
       console.log(`Environment: ${process.env["NODE_ENV"]}`);
+    });
+
+    const handleShutdown = async (signal: string) => {
+      if (shuttingDown) {
+        return;
+      }
+
+      shuttingDown = true;
+      console.log(`Received ${signal}, shutting down gracefully...`);
+
+      await closeImportQueue().catch((error: unknown) => {
+        console.error("Failed to close import queue:", error);
+      });
+
+      await prisma.$disconnect().catch((error: unknown) => {
+        console.error("Failed to disconnect Prisma:", error);
+      });
+
+      if (server) {
+        await new Promise<void>((resolve) => {
+          server?.close(() => resolve());
+        });
+      }
+
+      process.exit(0);
+    };
+
+    process.once("SIGINT", () => {
+      void handleShutdown("SIGINT");
+    });
+
+    process.once("SIGTERM", () => {
+      void handleShutdown("SIGTERM");
     });
   } catch (error) {
     console.error("❌ Failed to connect to database:", error);

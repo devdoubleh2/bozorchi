@@ -160,9 +160,10 @@ router.post(
         }
 
         // Compute prices server-side using authoritative product data with Decimal precision
-        const priceValue = typeof productVariation.price === 'number' 
-          ? productVariation.price 
-          : productVariation.price?.toNumber?.() || 0;
+        const priceValue =
+          typeof productVariation.selling_price === "number"
+            ? productVariation.selling_price
+            : productVariation.selling_price?.toNumber?.() || 0;
         const computedUnitPriceDecimal = new Decimal(priceValue);
         const computedTotalAmountDecimal = computedUnitPriceDecimal.mul(new Decimal(quantity));
         const computedCurrency = currency || "UZS";
