@@ -73,6 +73,7 @@ const tenantClients = new LRUCache<string, TenantClient>({
   },
   updateAgeOnGet: true, // Refresh TTL on access
 });
+const pendingTenantClients = new Map<string, Promise<TenantClient>>();
 
 /**
  * Custom tenant creation using Prisma's native migration system
@@ -189,97 +190,126 @@ export async function getTenantPrisma(
     return client;
   }
 
-  // Validate organization exists (unless skipped)
-  if (!skipOrgValidation) {
-    let org;
+  const pendingClient = pendingTenantClients.get(orgId);
+  if (pendingClient) {
+    logger.debug(`[PRISMA] Awaiting pending tenant client initialization`, "prisma", {
+      orgId,
+    });
+    return pendingClient;
+  }
+
+  const initializationPromise = (async (): Promise<TenantClient> => {
+    const cachedClient = tenantClients.get(orgId);
+    if (cachedClient) {
+      return cachedClient;
+    }
+
+    // Validate organization exists (unless skipped)
+    if (!skipOrgValidation) {
+      let org;
+      try {
+        org = await prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { id: true, name: true },
+        });
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        logger.error(`[PRISMA] Organization lookup failed`, "prisma", {
+          orgId,
+          error: errorMessage,
+        });
+        throw new PoolConnectionError(
+          `Database error while looking up organization ${orgId}: ${errorMessage}`,
+          err instanceof Error ? err : undefined
+        );
+      }
+
+      if (!org) {
+        const error = new TenantConnectionError(
+          `Organization ${orgId} not found`,
+          orgId
+        );
+        logger.warn(`[PRISMA] Organization not found during lookup`, "prisma", {
+          orgId,
+        });
+        throw error;
+      }
+    }
+
+    // Schema name follows the convention: org_{organizationId}
+    const schemaName = `org_${orgId}`;
+
     try {
-      org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { id: true, name: true },
+      // Build connection string with schema parameter
+      const dbUrl = new URL(DATABASE_URL);
+      dbUrl.searchParams.set("schema", schemaName);
+
+      // Create Prisma adapter with the tenant schema
+      const adapter = new PrismaPg(
+        {
+          connectionString: dbUrl.toString(),
+          options: `-c search_path="${schemaName}"`,
+        },
+        { schema: schemaName }
+      );
+
+      // Create new Prisma client with the adapter
+      const options: TenantPrisma.PrismaClientOptions = {
+        adapter,
+        log:
+          process.env["NODE_ENV"] === "development"
+            ? ["query", "error", "warn"]
+            : ["error"],
+      };
+      const initializedClient = new TenantClient(options);
+
+      // Cache the client
+      tenantClients.set(orgId, initializedClient);
+
+      logger.info(`[PRISMA] Created new tenant client`, "prisma", {
+        orgId,
+        schemaName,
       });
+      return initializedClient;
     } catch (err) {
+      logger.error(`[PRISMA] Error creating tenant client`, "prisma", {
+        orgId,
+        schemaName,
+        error: err,
+      });
+
+      // Re-throw known error types
+      if (
+        err instanceof TenantConnectionError ||
+        err instanceof PoolConnectionError
+      ) {
+        throw err;
+      }
+
+      // Wrap unknown errors
       const errorMessage = err instanceof Error ? err.message : String(err);
-      logger.error(`[PRISMA] Organization lookup failed`, "prisma", {
+      logger.error(`[PRISMA] Failed to create tenant client`, "prisma", {
         orgId,
         error: errorMessage,
       });
-      throw new PoolConnectionError(
-        `Database error while looking up organization ${orgId}: ${errorMessage}`,
+
+      throw new TenantConnectionError(
+        `Failed to establish connection for organization ${orgId}: ${errorMessage}`,
+        orgId,
         err instanceof Error ? err : undefined
       );
     }
+  })();
 
-    if (!org) {
-      const error = new TenantConnectionError(
-        `Organization ${orgId} not found`,
-        orgId
-      );
-      logger.warn(`[PRISMA] Organization not found during lookup`, "prisma", { orgId });
-      throw error;
-    }
-  }
-
-  // Schema name follows the convention: org_{organizationId}
-  const schemaName = `org_${orgId}`;
+  pendingTenantClients.set(orgId, initializationPromise);
 
   try {
-    // Build connection string with schema parameter
-    const dbUrl = new URL(DATABASE_URL);
-    dbUrl.searchParams.set("schema", schemaName);
-
-    // Create Prisma adapter with the tenant schema
-    const adapter = new PrismaPg(
-      {
-        connectionString: dbUrl.toString(),
-        options: `-c search_path="${schemaName}"`,
-      },
-      { schema: schemaName }
-    );
-
-    // Create new Prisma client with the adapter
-    const options: TenantPrisma.PrismaClientOptions = {
-      adapter,
-      log:
-        process.env["NODE_ENV"] === "development"
-          ? ["query", "error", "warn"]
-          : ["error"],
-    };
-    client = new TenantClient(options);
-
-    // Cache the client
-    tenantClients.set(orgId, client);
-
-    logger.info(`[PRISMA] Created new tenant client`, "prisma", { orgId, schemaName });
-  } catch (err) {
-    logger.error(`[PRISMA] Error creating tenant client`, "prisma", {
-      orgId,
-      schemaName,
-      error: err,
-    });
-
-    // Re-throw known error types
-    if (
-      err instanceof TenantConnectionError ||
-      err instanceof PoolConnectionError
-    ) {
-      throw err;
+    return await initializationPromise;
+  } finally {
+    if (pendingTenantClients.get(orgId) === initializationPromise) {
+      pendingTenantClients.delete(orgId);
     }
-
-    // Wrap unknown errors
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    logger.error(`[PRISMA] Failed to create tenant client`, "prisma", {
-      orgId,
-      error: errorMessage,
-    });
-
-    throw new TenantConnectionError(
-      `Failed to establish connection for organization ${orgId}: ${errorMessage}`,
-      orgId,
-      err instanceof Error ? err : undefined
-    );
   }
-
-  return client;
 }
 
 /**

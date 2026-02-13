@@ -14,12 +14,30 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import type { UserStoreInfo } from "@/types/auth";
+
+const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
+  if (!userStore || userStore.role === "admin") return "/dashboard";
+
+  const permissions = userStore.permissions ?? [];
+  if (permissions.includes("VIEW_DASHBOARD")) return "/dashboard";
+  if (permissions.includes("POS_ACCESS")) return "/pos";
+  if (
+    permissions.includes("MANAGE_PRODUCTS") ||
+    permissions.includes("MANAGE_INVENTORY")
+  ) {
+    return "/inventory";
+  }
+  if (permissions.includes("VIEW_ANALYTICS")) return "/transactions";
+  return "/account";
+};
 
 export default function Login() {
   const navigate = useNavigate();
 
   const {
     signIn,
+    getStore,
     isAuthenticated,
     userStore,
     isLoading: isAuthLoading,
@@ -74,7 +92,8 @@ export default function Login() {
     }
 
     if (result.user) {
-      navigate("/dashboard")
+      const store = await getStore();
+      navigate(resolveDefaultRoute(store), { replace: true });
     }
 
 

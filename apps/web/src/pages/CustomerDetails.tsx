@@ -116,7 +116,7 @@ export default function CustomerDetailsPage() {
         queryFn: async () => {
             if (!storeId || !customerId) return [];
             const res = await api.get<{ transactions: Transaction[] }>(
-                `/api/transactions?storeId=${encodeURIComponent(storeId)}&customerId=${customerId}`
+                `/api/transactions?store_id=${encodeURIComponent(storeId)}&customer_id=${customerId}`
             );
             return res.transactions || [];
         },
@@ -205,8 +205,22 @@ export default function CustomerDetailsPage() {
         );
     }
 
-    const totalSpent = transactions?.reduce((sum, t) => sum + (t.transaction_type === 'export' ? t.total_amount : 0), 0) || 0;
-    const averageOrderValue = transactions?.length ? totalSpent / transactions.length : 0;
+    const salesTransactions =
+        transactions?.filter(
+            (transaction) =>
+                transaction.transaction_type === "export" ||
+                transaction.transaction_type === "debt"
+        ) || [];
+    const returnTransactions =
+        transactions?.filter(
+            (transaction) => transaction.transaction_type === "return"
+        ) || [];
+
+    const totalSpent =
+        salesTransactions.reduce((sum, transaction) => sum + transaction.total_amount, 0) -
+        returnTransactions.reduce((sum, transaction) => sum + transaction.total_amount, 0);
+    const totalOrders = salesTransactions.length;
+    const averageOrderValue = totalOrders ? totalSpent / totalOrders : 0;
 
     return (
         <div className="flex flex-col gap-6 p-6">
@@ -263,7 +277,7 @@ export default function CustomerDetailsPage() {
                         <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{transactions?.length || 0}</div>
+                        <div className="text-2xl font-bold">{totalOrders}</div>
                     </CardContent>
                 </Card>
                 <Card>

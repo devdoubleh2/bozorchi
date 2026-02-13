@@ -43,7 +43,8 @@ export namespace $Enums {
   MANAGE_PRODUCTS: 'MANAGE_PRODUCTS',
   MANAGE_INVENTORY: 'MANAGE_INVENTORY',
   VIEW_COST_PRICE: 'VIEW_COST_PRICE',
-  VIEW_ANALYTICS: 'VIEW_ANALYTICS'
+  VIEW_ANALYTICS: 'VIEW_ANALYTICS',
+  VIEW_DASHBOARD: 'VIEW_DASHBOARD'
 };
 
 export type Permission = (typeof Permission)[keyof typeof Permission]

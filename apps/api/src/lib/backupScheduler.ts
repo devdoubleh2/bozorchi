@@ -40,8 +40,8 @@ export function initializeBackupScheduler(): void {
 /**
  * Runs a manual backup immediately (useful for testing)
  */
-export async function runManualBackup(): Promise<void> {
+export async function runManualBackup(targetChatId?: number): Promise<void> {
   const backupService = new DatabaseBackupService();
   logger.info("backupScheduler", "Running manual backup");
-  await backupService.testBackup();
+  await backupService.testBackup(targetChatId);
 }

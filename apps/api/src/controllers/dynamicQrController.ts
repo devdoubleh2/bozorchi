@@ -97,6 +97,8 @@ async function createPaymentRecord(
         amount: number;
         orderId: string;
         paymentMethod: PaymentMethod;
+        organizationId: string;
+        storeId: string;
         uzumPaymentId?: string | null;
         uzumOrderId?: string;
         uzumStatus?: string;
@@ -118,7 +120,14 @@ async function createPaymentRecord(
             uzum_order_id: data.uzumOrderId,
             uzum_status: data.uzumStatus,
             received_at: new Date(),
-            webhook_data: data.webhookData,
+            webhook_data: {
+                ...(typeof data.webhookData === "object" && data.webhookData
+                    ? data.webhookData
+                    : {}),
+                organization_id: data.organizationId,
+                store_id: data.storeId,
+                group_id: data.groupId ?? null,
+            },
         },
     });
 }
@@ -148,6 +157,90 @@ async function updatePaymentStatus(
     });
 }
 
+type ScopedPaymentRecord = Prisma.PaymentGetPayload<{
+    include: {
+        transaction: {
+            select: {
+                store_id: true;
+            };
+        };
+    };
+}>;
+
+const extractStoreIdFromWebhookData = (
+    webhookData: Prisma.JsonValue | null
+): string | null => {
+    if (!webhookData || typeof webhookData !== "object" || Array.isArray(webhookData)) {
+        return null;
+    }
+
+    const storeId = (webhookData as Record<string, unknown>)["store_id"];
+    return typeof storeId === "string" ? storeId : null;
+};
+
+const paymentBelongsToStore = (
+    payment: Pick<ScopedPaymentRecord, "transaction" | "webhook_data">,
+    storeId: string
+): boolean => {
+    if (payment.transaction?.store_id) {
+        return payment.transaction.store_id === storeId;
+    }
+
+    const storeIdFromMetadata = extractStoreIdFromWebhookData(payment.webhook_data);
+    return storeIdFromMetadata === storeId;
+};
+
+async function findScopedPaymentRecord(
+    tenantPrisma: AuthRequest["tenantPrisma"],
+    identifier: string,
+    storeId: string
+): Promise<ScopedPaymentRecord | null> {
+    if (!tenantPrisma) {
+        return null;
+    }
+
+    const paymentById = await tenantPrisma.payment.findUnique({
+        where: { id: identifier },
+        include: {
+            transaction: {
+                select: {
+                    store_id: true,
+                },
+            },
+        },
+    });
+
+    if (paymentById) {
+        return paymentBelongsToStore(paymentById, storeId) ? paymentById : null;
+    }
+
+    const candidates = await tenantPrisma.payment.findMany({
+        where: {
+            OR: [
+                { uzum_order_id: identifier },
+                { uzum_payment_id: identifier },
+                { order_id: identifier },
+            ],
+        },
+        include: {
+            transaction: {
+                select: {
+                    store_id: true,
+                },
+            },
+        },
+        orderBy: {
+            created_at: "desc",
+        },
+        take: 20,
+    });
+
+    return (
+        candidates.find((candidate) => paymentBelongsToStore(candidate, storeId)) ||
+        null
+    );
+}
+
 // ==================== Controller Functions ====================
 
 export class DynamicQrController {
@@ -171,6 +264,10 @@ export class DynamicQrController {
 
         if (!req.organization?.id) {
             return res.status(400).json({ error: "Organization ID is required" });
+        }
+
+        if (!req.store?.id) {
+            return res.status(400).json({ error: "Store ID is required" });
         }
 
         if (!req.tenantPrisma) {
@@ -223,6 +320,8 @@ export class DynamicQrController {
                 amount,
                 orderId,
                 paymentMethod: PaymentMethod.dynamic_qr,
+                organizationId: req.organization.id,
+                storeId: req.store.id,
                 uzumPaymentId: null, // We don't have it yet, will be populated on status check
                 uzumOrderId: orderId,
                 uzumStatus: "CREATED",
@@ -242,7 +341,7 @@ export class DynamicQrController {
                 success: true,
                 payment: {
                     id: paymentRecord.id,
-                    paymentId: orderId, // Return orderId as the handle for frontend polling
+                    paymentId: paymentRecord.id, // Return unique local payment ID for scoped polling
                     status: "CREATED",
                     amount,
                     orderId,
@@ -261,7 +360,7 @@ export class DynamicQrController {
     /**
      * Check payment status
      * GET /api/payments/dynamic-qr/status/:paymentId
-     * Note: paymentId param acts as the orderId handle we sent to frontend
+     * paymentId is the local payment record ID returned by initiatePayment.
      */
     async checkStatus(req: AuthRequest, res: Response) {
         const validation = checkStatusSchema.safeParse({
@@ -275,10 +374,18 @@ export class DynamicQrController {
             });
         }
 
-        const { paymentId } = validation.data.params; // This is likely the orderId
+        const { paymentId } = validation.data.params;
 
         if (!req.organization?.id) {
             return res.status(400).json({ error: "Organization ID is required" });
+        }
+
+        if (!req.store?.id) {
+            return res.status(400).json({ error: "Store ID is required" });
+        }
+
+        if (!req.tenantPrisma) {
+            return res.status(404).json({ error: "Tenant not found" });
         }
 
         try {
@@ -291,38 +398,43 @@ export class DynamicQrController {
                 });
             }
 
-            // Check status with Dynamic QR using orderId (passed as paymentId)
+            const payment = await findScopedPaymentRecord(
+                req.tenantPrisma,
+                paymentId,
+                req.store.id
+            );
+
+            if (!payment) {
+                return res.status(404).json({
+                    error: "Payment not found for this store",
+                });
+            }
+
+            const orderIdForStatus = payment.uzum_order_id || payment.order_id;
+            if (!orderIdForStatus) {
+                return res.status(400).json({
+                    error: "Payment is missing provider order reference",
+                });
+            }
+
+            // Check status with Dynamic QR using provider orderId
             const statusResult: StatusResponse = await dynamicQrService.getStatus({
-                orderId: paymentId,
+                orderId: orderIdForStatus,
             });
 
-            // Update payment record if we have a matching payment
-            if (req.tenantPrisma && statusResult.success) {
-                // Find by uzum_order_id or uzum_payment_id
-                const payment = await req.tenantPrisma.payment.findFirst({
-                    where: {
-                        OR: [
-                            { uzum_order_id: paymentId },
-                            { uzum_payment_id: paymentId }
-                        ]
-                    },
-                });
-
-                if (payment) {
-                    await updatePaymentStatus(
-                        req.tenantPrisma,
-                        payment.id,
-                        statusResult.paymentStatus || "UNKNOWN",
-                        {
-                            uzum_payment_id: statusResult.paymentId
-                        }
-                    );
+            await updatePaymentStatus(
+                req.tenantPrisma,
+                payment.id,
+                statusResult.paymentStatus || "UNKNOWN",
+                {
+                    uzum_payment_id: statusResult.paymentId
                 }
-            }
+            );
 
             return res.json({
                 success: statusResult.success,
-                paymentId: statusResult.paymentId || paymentId,
+                paymentId: payment.id,
+                providerPaymentId: statusResult.paymentId,
                 status: statusResult.paymentStatus,
                 errorCode: statusResult.errorCode,
                 errorMessage: statusResult.errorMessage,
@@ -354,10 +466,14 @@ export class DynamicQrController {
         }
 
         const { orderId } = validation.data.params;
-        let { paymentId } = validation.data.body;
+        const { paymentId } = validation.data.body;
 
         if (!req.organization?.id) {
             return res.status(400).json({ error: "Organization ID is required" });
+        }
+
+        if (!req.store?.id) {
+            return res.status(400).json({ error: "Store ID is required" });
         }
 
         if (!req.tenantPrisma) {
@@ -374,29 +490,50 @@ export class DynamicQrController {
                 });
             }
 
-            // If we don't have paymentId in body, helper try to find it in DB
-            if (!paymentId) {
-                const payment = await req.tenantPrisma.payment.findFirst({
-                    where: { uzum_order_id: orderId }
+            const paymentHandle = paymentId || orderId;
+            const paymentRecord = await findScopedPaymentRecord(
+                req.tenantPrisma,
+                paymentHandle,
+                req.store.id
+            );
+
+            if (!paymentRecord) {
+                return res.status(404).json({
+                    error: "Payment not found for this store",
                 });
-                if (payment?.uzum_payment_id) {
-                    paymentId = payment.uzum_payment_id;
+            }
+
+            let providerPaymentId = paymentRecord.uzum_payment_id || undefined;
+
+            if (!providerPaymentId) {
+                const orderIdForStatus = paymentRecord.uzum_order_id || paymentRecord.order_id;
+                if (!orderIdForStatus) {
+                    return res.status(400).json({
+                        error: "Cannot reverse payment: payment order reference missing",
+                    });
+                }
+
+                const status = await dynamicQrService.getStatus({ orderId: orderIdForStatus });
+                if (status.success && status.paymentId) {
+                    providerPaymentId = status.paymentId;
+                    await updatePaymentStatus(
+                        req.tenantPrisma,
+                        paymentRecord.id,
+                        status.paymentStatus || paymentRecord.uzum_status || "UNKNOWN",
+                        {
+                            uzum_payment_id: providerPaymentId,
+                        }
+                    );
                 } else {
-                    // Try to fetch status to get paymentId
-                    const status = await dynamicQrService.getStatus({ orderId });
-                    if (status.success && status.paymentId) {
-                        paymentId = status.paymentId;
-                    } else {
-                        return res.status(400).json({
-                            error: "Cannot reverse payment: payment_id not found",
-                        });
-                    }
+                    return res.status(400).json({
+                        error: "Cannot reverse payment: payment_id not found",
+                    });
                 }
             }
 
             // Reverse payment with Dynamic QR
             const reversalResult: ReversalResponse = await dynamicQrService.reversePayment({
-                paymentId,
+                paymentId: providerPaymentId,
             });
 
             if (!reversalResult.success) {
@@ -404,7 +541,7 @@ export class DynamicQrController {
                     errorCode: reversalResult.errorCode,
                     errorMessage: reversalResult.errorMessage,
                     orderId,
-                    paymentId,
+                    paymentId: providerPaymentId,
                 });
 
                 return res.status(400).json({
@@ -414,29 +551,24 @@ export class DynamicQrController {
                 });
             }
 
-            // Update payment record
-            if (req.tenantPrisma) {
-                const payment = await req.tenantPrisma.payment.findFirst({
-                    where: { uzum_payment_id: paymentId },
-                });
-
-                if (payment) {
-                    await updatePaymentStatus(
-                        req.tenantPrisma,
-                        payment.id,
-                        "REVERSED"
-                    );
+            await updatePaymentStatus(
+                req.tenantPrisma,
+                paymentRecord.id,
+                "REVERSED",
+                {
+                    uzum_payment_id: reversalResult.paymentId || providerPaymentId,
                 }
-            }
+            );
 
             logger.info("[DynamicQrController] Payment reversed successfully", {
                 orderId,
-                paymentId,
+                paymentId: providerPaymentId,
             });
 
             return res.json({
                 success: true,
-                paymentId: reversalResult.paymentId,
+                paymentId: paymentRecord.id,
+                providerPaymentId: reversalResult.paymentId,
                 status: reversalResult.paymentStatus,
             });
         } catch (error) {
@@ -464,12 +596,20 @@ export class DynamicQrController {
             });
         }
 
-        const { paymentId } = validation.data.params; // This is the orderID
+        const { paymentId } = validation.data.params;
         const maxAttempts = Math.min(parseInt(req.query['maxAttempts'] as string) || 30, 60);
         const intervalMs = Math.min(parseInt(req.query['intervalMs'] as string) || 2000, 5000);
 
         if (!req.organization?.id) {
             return res.status(400).json({ error: "Organization ID is required" });
+        }
+
+        if (!req.store?.id) {
+            return res.status(400).json({ error: "Store ID is required" });
+        }
+
+        if (!req.tenantPrisma) {
+            return res.status(404).json({ error: "Tenant not found" });
         }
 
         try {
@@ -481,35 +621,45 @@ export class DynamicQrController {
                 });
             }
 
-            // Poll for status using orderId (paymentId)
-            const statusResult = await dynamicQrService.pollForStatus(paymentId, maxAttempts, intervalMs);
+            const payment = await findScopedPaymentRecord(
+                req.tenantPrisma,
+                paymentId,
+                req.store.id
+            );
 
-            // Update payment record
-            if (req.tenantPrisma && statusResult.success) {
-                const payment = await req.tenantPrisma.payment.findFirst({
-                    where: {
-                        OR: [
-                            { uzum_order_id: paymentId },
-                            { uzum_payment_id: paymentId }
-                        ]
-                    },
+            if (!payment) {
+                return res.status(404).json({
+                    error: "Payment not found for this store",
                 });
-
-                if (payment) {
-                    await updatePaymentStatus(
-                        req.tenantPrisma,
-                        payment.id,
-                        statusResult.paymentStatus || "UNKNOWN",
-                        {
-                            uzum_payment_id: statusResult.paymentId
-                        }
-                    );
-                }
             }
+
+            const orderIdForStatus = payment.uzum_order_id || payment.order_id;
+            if (!orderIdForStatus) {
+                return res.status(400).json({
+                    error: "Payment is missing provider order reference",
+                });
+            }
+
+            // Poll for status using provider orderId
+            const statusResult = await dynamicQrService.pollForStatus(
+                orderIdForStatus,
+                maxAttempts,
+                intervalMs
+            );
+
+            await updatePaymentStatus(
+                req.tenantPrisma,
+                payment.id,
+                statusResult.paymentStatus || "UNKNOWN",
+                {
+                    uzum_payment_id: statusResult.paymentId
+                }
+            );
 
             return res.json({
                 success: statusResult.success,
-                paymentId: statusResult.paymentId,
+                paymentId: payment.id,
+                providerPaymentId: statusResult.paymentId,
                 status: statusResult.paymentStatus,
                 errorCode: statusResult.errorCode,
                 errorMessage: statusResult.errorMessage,
@@ -537,9 +687,9 @@ export class DynamicQrController {
     async generateQR(req: AuthRequest, res: Response) {
         const validation = z.object({
             body: z.object({
-                paymentId: z.string(), // This is the order ID passed from frontend
+                paymentId: z.string(),
                 amount: z.number().positive(),
-                orderId: z.string(),
+                orderId: z.string().optional(),
             }),
         }).safeParse({
             body: req.body,
@@ -554,28 +704,43 @@ export class DynamicQrController {
 
         const { paymentId, amount, orderId } = validation.data.body;
 
+        if (!req.store?.id) {
+            return res.status(400).json({ error: "Store ID is required" });
+        }
+
         if (!req.tenantPrisma) {
             return res.status(404).json({ error: "Tenant not found" });
         }
 
         try {
-            // Find the payment record to get the link
-            const payment = await req.tenantPrisma.payment.findFirst({
-                where: {
-                    uzum_order_id: orderId
-                }
-            });
+            const payment = await findScopedPaymentRecord(
+                req.tenantPrisma,
+                paymentId,
+                req.store.id
+            );
+
+            const fallbackPayment =
+                !payment && orderId
+                    ? await findScopedPaymentRecord(req.tenantPrisma, orderId, req.store.id)
+                    : null;
+
+            const scopedPayment = payment || fallbackPayment;
 
             let paymentLink: string | null = null;
-            if (payment && payment.webhook_data && typeof payment.webhook_data === 'object') {
-                paymentLink = (payment.webhook_data as any).paymentLink;
+            if (
+                scopedPayment?.webhook_data &&
+                typeof scopedPayment.webhook_data === "object" &&
+                !Array.isArray(scopedPayment.webhook_data)
+            ) {
+                const paymentLinkValue = (scopedPayment.webhook_data as Record<string, unknown>)[
+                    "paymentLink"
+                ];
+                paymentLink =
+                    typeof paymentLinkValue === "string" ? paymentLinkValue : null;
             }
 
             if (!paymentLink) {
-                // Fallback: If we couldn't find the link, we can't generate the QR.
-                // This shouldn't happen if initiatePayment succeeded.
-                // Unless the payment was created before this change.
-                return res.status(404).json({ error: "Payment link not found for this order" });
+                return res.status(404).json({ error: "Payment link not found for this payment" });
             }
 
             // Generate QR code as base64 data URL from the link
@@ -591,8 +756,8 @@ export class DynamicQrController {
             return res.json({
                 success: true,
                 qrCode: qrCodeDataUrl,
-                paymentId,
-                orderId,
+                paymentId: scopedPayment?.id || paymentId,
+                orderId: scopedPayment?.uzum_order_id || orderId || null,
                 amount,
             });
         } catch (error) {

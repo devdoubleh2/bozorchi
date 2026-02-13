@@ -603,7 +603,10 @@ export default function POSPage() {
           transaction_type: isDebtSale ? "debt" : "export",
           store_id: storeId!,
           customer_id: selectedCustomer?.id,
-          payments: !isDebtSale ? effectivePayments ?? undefined : undefined,
+          payments:
+            index === 0 && !isDebtSale
+              ? effectivePayments ?? undefined
+              : undefined,
           ...(index === 0 &&
             !isDebtSale &&
             loyaltyRedemption &&

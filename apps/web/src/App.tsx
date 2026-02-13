@@ -137,6 +137,7 @@ const PERMISSION_SETS = {
   manageProducts: ["MANAGE_PRODUCTS"] as Permission[],
   manageInventory: ["MANAGE_INVENTORY"] as Permission[],
   viewAnalytics: ["VIEW_ANALYTICS"] as Permission[],
+  viewDashboard: ["VIEW_DASHBOARD"] as Permission[],
   inventoryOrProducts: ["MANAGE_INVENTORY", "MANAGE_PRODUCTS"] as Permission[],
 };
 
@@ -348,7 +349,11 @@ const PROTECTED_ROUTES: RouteConfig[] = [
   { path: "/staff", component: StaffPage, roles: ["admin"] },
   { path: "/subscription", component: SubscriptionPage },
   { path: "/mobile-paywall", component: MobilePaywallPage },
-  { path: "/dashboard", component: Dashboard },
+  {
+    path: "/dashboard",
+    component: Dashboard,
+    permissions: PERMISSION_SETS.viewDashboard,
+  },
 ];
 
 const PUBLIC_ROUTES: RouteConfig[] = [
@@ -507,9 +512,19 @@ const useNavItems = (): NavItem[] => {
     const canManageProducts = canAccess(PERMISSION_SETS.manageProducts);
     const canManageInventory = canAccess(PERMISSION_SETS.manageInventory);
     const canViewAnalytics = canAccess(PERMISSION_SETS.viewAnalytics);
+    const canViewDashboard = canAccess(PERMISSION_SETS.viewDashboard);
+    const homeUrl = canViewDashboard
+      ? "/dashboard"
+      : canPOS
+        ? "/pos"
+        : canManageProducts || canManageInventory
+          ? "/inventory"
+          : canViewAnalytics
+            ? "/transactions"
+            : "/account";
 
     const items: NavItem[] = [
-      { title: t("navigation.home"), url: "/dashboard", icon: LayoutDashboard },
+      { title: t("navigation.home"), url: homeUrl, icon: LayoutDashboard },
     ];
 
     if (canManageProducts || canManageInventory) {
@@ -684,7 +699,7 @@ const useBreadcrumbs = (navItems: NavItem[]) => {
 
   return useMemo(() => {
     const segments = location.pathname.split("/").filter(Boolean);
-    const homeHref = "/dashboard";
+  const homeHref = navItems[0]?.url ?? "/dashboard";
     const crumbs: Array<{ href: string; label: string }> = [
       { href: homeHref, label: t("navigation.home") },
     ];
