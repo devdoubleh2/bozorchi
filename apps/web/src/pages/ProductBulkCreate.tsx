@@ -64,18 +64,38 @@ type ValidationResult = {
 };
 
 type ExecuteResult = {
-  message?: string;
+  inputCount: number;
+  processedCount: number;
   successCount: number;
   failCount: number;
-  skippedCount?: number;
   errors: {
+    row: number;
     product: string;
     error: string;
   }[];
-  skippedItems?: {
-    product: string;
-    reason: string;
-  }[];
+  durationMs: number;
+};
+
+type ImportJobStatus = "queued" | "running" | "completed" | "failed";
+
+type ImportProgress = {
+  inputCount: number;
+  processedCount: number;
+  successCount: number;
+  failCount: number;
+};
+
+type ExecuteEnqueueResponse = {
+  jobId: string;
+  status: "queued";
+};
+
+type ImportJobStatusResponse = {
+  jobId: string;
+  status: ImportJobStatus;
+  progress: ImportProgress;
+  result?: ExecuteResult;
+  failedReason?: string;
 };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -101,6 +121,8 @@ export default function ProductBulkCreatePage() {
   const [parsing, setParsing] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [executeResult, setExecuteResult] = useState<ExecuteResult | null>(null);
+  const [jobStatus, setJobStatus] = useState<ImportJobStatus | null>(null);
+  const [jobProgress, setJobProgress] = useState<ImportProgress | null>(null);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [validating, setValidating] = useState(false);
   const [executing, setExecuting] = useState(false);
@@ -114,12 +136,31 @@ export default function ProductBulkCreatePage() {
   const canExecute =
     Boolean(validation?.valid) && (validation?.summary.validRows ?? 0) > 0;
 
+  const effectiveProgress = useMemo<ImportProgress | null>(() => {
+    if (jobProgress) {
+      return jobProgress;
+    }
+
+    if (executeResult) {
+      return {
+        inputCount: executeResult.inputCount,
+        processedCount: executeResult.processedCount,
+        successCount: executeResult.successCount,
+        failCount: executeResult.failCount,
+      };
+    }
+
+    return null;
+  }, [jobProgress, executeResult]);
+
   const resetAll = useCallback(() => {
     setFile(null);
     setFileError(null);
     setParsedData([]);
     setValidation(null);
     setExecuteResult(null);
+    setJobStatus(null);
+    setJobProgress(null);
     setStep(Step.Upload);
     setGlobalError(null);
     if (fileInputRef.current) {
@@ -227,10 +268,11 @@ export default function ProductBulkCreatePage() {
   // Download errors as CSV
   const downloadErrors = useCallback(() => {
     if (!executeResult?.errors.length) return;
-    const csvContent = ["Product,Error"]
+    const csvContent = ["Row,Product,Error"]
       .concat(
         executeResult.errors.map(
-          (e) => `"${e.product.replace(/"/g, '""')}","${e.error.replace(/"/g, '""')}"`
+          (e) =>
+            `${e.row},"${e.product.replace(/"/g, '""')}","${e.error.replace(/"/g, '""')}"`
         )
       )
       .join("\n");
@@ -307,6 +349,8 @@ export default function ProductBulkCreatePage() {
     setValidating(true);
     setGlobalError(null);
     setExecuteResult(null);
+    setJobStatus(null);
+    setJobProgress(null);
     try {
       // Send the edited JSON data instead of re-uploading the file
       const result = await api.post<ValidationResult>("/api/import/validate-json", {
@@ -331,28 +375,82 @@ export default function ProductBulkCreatePage() {
     if (!validation?.data.length) return;
     setExecuting(true);
     setGlobalError(null);
+    setExecuteResult(null);
+    setJobStatus("queued");
+    setJobProgress({
+      inputCount: validation.data.length,
+      processedCount: 0,
+      successCount: 0,
+      failCount: 0,
+    });
+    setStep(Step.Commit);
+
     try {
-      const result = await api.post<ExecuteResult>("/api/import/execute", {
+      const enqueueResponse = await api.post<ExecuteEnqueueResponse>("/api/import/execute", {
         products: validation.data,
       });
-      setExecuteResult(result);
-      setStep(Step.Commit);
 
-      // Invalidate related caches so POS and other pages reflect new data
-      queryClient.invalidateQueries({ queryKey: ["pos-inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["pos-categories"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product-categories"] });
+      const pollStartTime = Date.now();
+      const pollTimeoutMs = 15 * 60 * 1000;
 
-      // Show toast notification
-      toast.success(
-        t("bulk.importComplete", {
-          defaultValue: "Import completed: {{success}} successful, {{failed}} failed",
-          success: result.successCount,
-          failed: result.failCount,
-        })
-      );
+      while (true) {
+        const statusResponse = await api.get<ImportJobStatusResponse>(
+          `/api/import/jobs/${encodeURIComponent(enqueueResponse.jobId)}`
+        );
+
+        setJobStatus(statusResponse.status);
+        setJobProgress(statusResponse.progress);
+
+        if (statusResponse.status === "completed") {
+          if (!statusResponse.result) {
+            throw new Error(
+              t("bulk.jobMissingResult", {
+                defaultValue: "Import job completed without result payload.",
+              })
+            );
+          }
+
+          setExecuteResult(statusResponse.result);
+
+          // Invalidate related caches so POS and other pages reflect new data
+          queryClient.invalidateQueries({ queryKey: ["pos-inventory"] });
+          queryClient.invalidateQueries({ queryKey: ["pos-categories"] });
+          queryClient.invalidateQueries({ queryKey: ["inventory"] });
+          queryClient.invalidateQueries({ queryKey: ["products"] });
+          queryClient.invalidateQueries({ queryKey: ["product-categories"] });
+
+          toast.success(
+            t("bulk.importComplete", {
+              defaultValue: "Import completed: {{success}} successful, {{failed}} failed",
+              success: statusResponse.result.successCount,
+              failed: statusResponse.result.failCount,
+            })
+          );
+          break;
+        }
+
+        if (statusResponse.status === "failed") {
+          throw new Error(
+            statusResponse.failedReason ||
+              t("bulk.jobFailed", {
+                defaultValue: "Import job failed. Please try again.",
+              })
+          );
+        }
+
+        if (Date.now() - pollStartTime > pollTimeoutMs) {
+          throw new Error(
+            t("bulk.jobTimeout", {
+              defaultValue:
+                "Import is taking too long. Please check job status again.",
+            })
+          );
+        }
+
+        await new Promise<void>((resolve) => {
+          window.setTimeout(() => resolve(), 1500);
+        });
+      }
     } catch (error) {
       setGlobalError(
         error instanceof Error
@@ -807,7 +905,7 @@ export default function ProductBulkCreatePage() {
         </section>
       )}
 
-      {step === Step.Commit && executeResult && (
+      {step === Step.Commit && (
         <section className="mt-6 space-y-4">
           <div className="rounded-md border p-4">
             <div className="flex items-center justify-between">
@@ -817,16 +915,45 @@ export default function ProductBulkCreatePage() {
                 })}
               </h2>
               <span className="text-sm text-muted-foreground">
-                {executeResult.message}
+                {t(`bulk.queueStatus.${jobStatus || "queued"}`, {
+                  defaultValue: jobStatus || "queued",
+                })}
               </span>
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+            {effectiveProgress && (
+              <div className="mt-4 rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">
+                {t("bulk.progressLabel", {
+                  defaultValue: "Processed {{processed}} / {{input}} rows",
+                  processed: effectiveProgress.processedCount,
+                  input: effectiveProgress.inputCount,
+                })}
+              </div>
+            )}
+
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t("bulk.inputCount", { defaultValue: "Input rows" })}
+                </p>
+                <p className="text-2xl font-semibold">
+                  {effectiveProgress?.inputCount ?? 0}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t("bulk.processedCount", { defaultValue: "Processed rows" })}
+                </p>
+                <p className="text-2xl font-semibold">
+                  {effectiveProgress?.processedCount ?? 0}
+                </p>
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">
                   {t("bulk.rows", { defaultValue: "Successful" })}
                 </p>
                 <p className="text-2xl font-semibold text-emerald-600">
-                  {executeResult.successCount}
+                  {effectiveProgress?.successCount ?? 0}
                 </p>
               </div>
               <div>
@@ -834,19 +961,20 @@ export default function ProductBulkCreatePage() {
                   {t("bulk.failed", { defaultValue: "Failed" })}
                 </p>
                 <p className="text-2xl font-semibold text-destructive">
-                  {executeResult.failCount}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("bulk.total", { defaultValue: "Total" })}
-                </p>
-                <p className="text-2xl font-semibold">
-                  {executeResult.successCount + executeResult.failCount}
+                  {effectiveProgress?.failCount ?? 0}
                 </p>
               </div>
             </div>
-            {executeResult.errors.length > 0 ? (
+
+            {executing && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                {t("bulk.queuePolling", {
+                  defaultValue: "Import is running in background. Progress updates every few seconds.",
+                })}
+              </p>
+            )}
+
+            {!executing && executeResult && (executeResult.errors.length > 0 ? (
               <div className="mt-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">
@@ -863,6 +991,9 @@ export default function ProductBulkCreatePage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>
+                          {t("bulk.row", { defaultValue: "Row" })}
+                        </TableHead>
+                        <TableHead>
                           {t("products.variationName", {
                             defaultValue: "Variation",
                           })}
@@ -875,6 +1006,7 @@ export default function ProductBulkCreatePage() {
                     <TableBody>
                       {executeResult.errors.map((error, idx) => (
                         <TableRow key={`${error.product}-${idx}`}>
+                          <TableCell>{error.row}</TableCell>
                           <TableCell>{error.product}</TableCell>
                           <TableCell className="text-destructive">
                             {error.error}
@@ -891,9 +1023,21 @@ export default function ProductBulkCreatePage() {
                   defaultValue: "All rows were imported successfully.",
                 })}
               </p>
+            ))}
+
+            {jobStatus === "failed" && !executeResult && (
+              <p className="mt-4 text-sm text-destructive">
+                {t("bulk.jobFailed", {
+                  defaultValue: "Import job failed. Please try again.",
+                })}
+              </p>
             )}
+
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button onClick={() => navigate("/inventory")}>
+              <Button
+                onClick={() => navigate("/inventory")}
+                disabled={!executeResult}
+              >
                 {t("bulk.viewInventory", { defaultValue: "Go to inventory" })}
               </Button>
               <Button variant="outline" onClick={resetAll}>
