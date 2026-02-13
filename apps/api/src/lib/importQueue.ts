@@ -4,8 +4,8 @@ import {
   Queue,
   QueueEvents,
   Worker,
+  type ConnectionOptions,
 } from "bullmq";
-import { redis } from "./redis";
 import logger from "../../logs/log";
 import { getTenantPrisma } from "./prisma";
 import {
@@ -48,9 +48,9 @@ export class ImportQueueUnavailableError extends Error {
   }
 }
 
-let queueConnection: typeof redis | null = null;
-let workerConnection: typeof redis | null = null;
-let queueEventsConnection: typeof redis | null = null;
+let queueConnection: ConnectionOptions | null = null;
+let workerConnection: ConnectionOptions | null = null;
+let queueEventsConnection: ConnectionOptions | null = null;
 
 let importQueue: Queue | null = null;
 let importWorker: Worker<ImportJobPayload, ImportJobResult> | null = null;
@@ -126,6 +126,10 @@ const normalizeProgress = (
   };
 };
 
+const buildConnectionOptions = (redisUrl: string): ConnectionOptions => ({
+  url: redisUrl,
+});
+
 export const isImportQueueAvailable = (): boolean => queueAvailable;
 
 export const getImportQueueUnavailableReason = (): string =>
@@ -157,13 +161,9 @@ export async function initializeImportQueue(): Promise<{
   await closeImportQueue();
 
   try {
-    if (!redis) {
-      throw new Error("Redis client is not available");
-    }
-
-    queueConnection = redis;
-    workerConnection = redis;
-    queueEventsConnection = redis;
+    queueConnection = buildConnectionOptions(redisUrl);
+    workerConnection = buildConnectionOptions(redisUrl);
+    queueEventsConnection = buildConnectionOptions(redisUrl);
 
     importQueue = new Queue(IMPORT_QUEUE_NAME, {
       connection: queueConnection,
