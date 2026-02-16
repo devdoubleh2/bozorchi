@@ -24,6 +24,18 @@ export interface ApiError {
   details?: string[] | string;
 }
 
+export class ApiRequestError extends Error {
+  readonly status: number;
+  readonly body: ApiError;
+
+  constructor(status: number, message: string, body: ApiError = {}) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 const PERMISSION_LABELS: Record<string, string> = {
   POS_ACCESS: "POS Access",
   MANAGE_PRODUCTS: "Manage Products",
@@ -126,13 +138,15 @@ export class ApiClient {
         const message = requiredPermissions
           ? `You do not have permission for this action. Required: ${requiredPermissions}.`
           : "You do not have permission for this action. Please contact your owner/admin.";
-        throw new Error(message);
+        throw new ApiRequestError(response.status, message, errorBody);
       }
 
-      throw new Error(
+      throw new ApiRequestError(
+        response.status,
         errorBody.message ||
         errorBody.error ||
-        `Request failed with status ${response.status}`
+          `Request failed with status ${response.status}`,
+        errorBody
       );
     }
 

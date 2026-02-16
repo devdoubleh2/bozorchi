@@ -7,8 +7,47 @@ import {
   PaymentMethod,
   TransactionType,
 } from "../generated/tenant/client";
+import logger from "../../logs/log";
 
 const Decimal = Prisma.Decimal;
+const CONTROLLER_SOURCE = "transactionsController";
+
+const baseRequestMeta = (req: AuthRequest): Record<string, unknown> => ({
+  userId: req.userId ?? null,
+  storeId: req.store?.id ?? null,
+  organizationId: req.organization?.id ?? null,
+});
+
+const normalizeError = (error: unknown): Record<string, unknown> => {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    };
+  }
+
+  return { error };
+};
+
+const logInfo = (message: string, data?: Record<string, unknown>): void => {
+  void logger.info(CONTROLLER_SOURCE, message, data);
+};
+
+const logWarn = (message: string, data?: Record<string, unknown>): void => {
+  void logger.warn(CONTROLLER_SOURCE, message, data);
+};
+
+const logError = (
+  message: string,
+  error: unknown,
+  data?: Record<string, unknown>
+): void => {
+  void logger.error(CONTROLLER_SOURCE, message, {
+    ...data,
+    ...normalizeError(error),
+  });
+};
 
 const getTransactionsSchema = z.object({
   store_id: z.string().optional(),
@@ -96,8 +135,21 @@ const repayDebtSchema = z.object({
 
 export class TransactionsController {
   async getTransactions(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getTransactions",
+      query: req.query,
+    };
+
+    logInfo("Get transactions started", requestMeta);
+
     const validation = getTransactionsSchema.safeParse(req.query);
     if (!validation.success) {
+      logWarn("Get transactions validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -120,10 +172,12 @@ export class TransactionsController {
     const userId = req.userId!;
 
     if (!req.store?.id) {
+      logWarn("Get transactions rejected: missing store context", requestMeta);
       return res.status(400).json({ error: "Store ID is required" });
     }
 
     if (!req.tenantPrisma) {
+      logWarn("Get transactions rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
@@ -143,9 +197,19 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      logInfo("Get transactions completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        count: result.transactions.length,
+        total: result.pagination.total,
+      });
+
       return res.json(result);
     } catch (error) {
-      console.error("Error in getTransactions:", error);
+      logError("Get transactions failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res
         .status(500)
         .json({ message: "Internal server error", error: String(error) });
@@ -153,8 +217,22 @@ export class TransactionsController {
   }
 
   async getTransactionsByGroup(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getTransactionsByGroup",
+      params: req.params,
+      query: req.query,
+    };
+
+    logInfo("Get transactions by group started", requestMeta);
+
     const paramsValidation = getTransactionsByGroupSchema.safeParse(req.params);
     if (!paramsValidation.success) {
+      logWarn("Get transactions by group params validation failed", {
+        ...requestMeta,
+        validationErrors: paramsValidation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -168,6 +246,10 @@ export class TransactionsController {
       req.query
     );
     if (!queryValidation.success) {
+      logWarn("Get transactions by group query validation failed", {
+        ...requestMeta,
+        validationErrors: queryValidation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -180,25 +262,63 @@ export class TransactionsController {
     // Ensure storeId is provided either via query or context if possible, but query is standard for this app
     const storeIdToUse = storeId || req.store?.id;
     if (!storeIdToUse) {
+      logWarn("Get transactions by group rejected: missing store id", requestMeta);
       return res.status(400).json({ message: "storeId is required" });
     }
 
     if (!req.tenantPrisma) {
+      logWarn(
+        "Get transactions by group rejected: tenant prisma missing",
+        requestMeta
+      );
       return res.status(404).json({ error: "Tenant not found" });
     }
 
-    const transactions = await transactionService.getTransactionsByGroupId(
-      storeIdToUse,
-      groupId,
-      req.tenantPrisma
-    );
+    try {
+      const transactions = await transactionService.getTransactionsByGroupId(
+        storeIdToUse,
+        groupId,
+        req.tenantPrisma
+      );
 
-    return res.json({ transactions });
+      logInfo("Get transactions by group completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        groupId,
+        count: transactions.length,
+      });
+
+      return res.json({ transactions });
+    } catch (error) {
+      logError("Get transactions by group failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        groupId,
+        storeId: storeIdToUse,
+      });
+      return res.status(500).json({
+        message: "Internal server error",
+        error: String(error),
+      });
+    }
   }
 
   async createTransaction(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "createTransaction",
+      body: req.body,
+    };
+
+    logInfo("Create transaction started", requestMeta);
+
     const validation = createTransactionSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn("Create transaction validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -254,6 +374,7 @@ export class TransactionsController {
     // Here we import `* as transactionService`.
 
     if (!req.tenantPrisma) {
+      logWarn("Create transaction rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
@@ -263,12 +384,23 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      logInfo("Create transaction completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: result.id,
+        transactionType: result.transaction_type,
+        amount: result.total_amount,
+      });
+
       return res.status(201).json({
         message: "Transaction created successfully",
         transaction: result,
       });
     } catch (error) {
-      console.error("Error in createTransaction:", error);
+      logError("Create transaction failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res
         .status(500)
         .json({ message: "Internal server error", error: String(error) });
@@ -276,8 +408,18 @@ export class TransactionsController {
   }
 
   async getTransaction(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getTransaction",
+      params: req.params,
+    };
+
+    logInfo("Get transaction started", requestMeta);
+
     const { id } = req.params;
     if (!id) {
+      logWarn("Get transaction rejected: missing transaction id", requestMeta);
       return res.status(400).json({ error: "Transaction ID is required" });
     }
 
@@ -289,26 +431,60 @@ export class TransactionsController {
     // Wait, the error `Expected 1-2 arguments, but got 3` implies it accepts at most 2.
 
     if (!req.tenantPrisma) {
+      logWarn("Get transaction rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
-    const transaction = await transactionService.getTransaction(
-      id,
-      req.store?.id,
-      req.tenantPrisma
-    );
+    try {
+      const transaction = await transactionService.getTransaction(
+        id,
+        req.store?.id,
+        req.tenantPrisma
+      );
 
-    return res.json({ transaction });
+      logInfo("Get transaction completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: transaction.id,
+      });
+
+      return res.json({ transaction });
+    } catch (error) {
+      logError("Get transaction failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: id,
+      });
+      return res.status(500).json({
+        message: "Internal server error",
+        error: String(error),
+      });
+    }
   }
 
   async returnTransaction(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "returnTransaction",
+      params: req.params,
+      body: req.body,
+    };
+
+    logInfo("Return transaction started", requestMeta);
+
     const { id } = req.params;
     if (!id) {
+      logWarn("Return transaction rejected: missing transaction id", requestMeta);
       return res.status(400).json({ error: "Transaction ID is required" });
     }
 
     const validation = returnTransactionSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn("Return transaction validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -320,27 +496,60 @@ export class TransactionsController {
     const userId = req.userId!;
 
     if (!req.tenantPrisma) {
+      logWarn("Return transaction rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
-    const result = await transactionService.returnTransaction(
-      id,
-      userId,
-      quantity,
-      req.tenantPrisma
-    );
+    try {
+      const result = await transactionService.returnTransaction(
+        id,
+        userId,
+        quantity,
+        req.tenantPrisma
+      );
 
-    return res.status(200).json({
-      message: "Transaction returned successfully",
-      transaction: result,
-    });
+      logInfo("Return transaction completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: result.id,
+        originalTransactionId: id,
+      });
+
+      return res.status(200).json({
+        message: "Transaction returned successfully",
+        transaction: result,
+      });
+    } catch (error) {
+      logError("Return transaction failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        originalTransactionId: id,
+      });
+      return res.status(500).json({
+        message: "Internal server error",
+        error: String(error),
+      });
+    }
   }
 
 
 
   async getDashboardStats(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getDashboardStats",
+      query: req.query,
+    };
+
+    logInfo("Get dashboard stats started", requestMeta);
+
     const validation = getTransactionSummarySchema.safeParse(req.query);
     if (!validation.success) {
+      logWarn("Get dashboard stats validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -352,6 +561,7 @@ export class TransactionsController {
 
     const storeId = req.store?.id;
     if (!storeId) {
+      logWarn("Get dashboard stats rejected: missing store context", requestMeta);
       return res.status(400).json({ error: "Store ID is required" });
     }
 
@@ -361,6 +571,7 @@ export class TransactionsController {
     const endDate = endDateParam || now.toISOString();
 
     if (!req.tenantPrisma) {
+      logWarn("Get dashboard stats rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
@@ -372,9 +583,19 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      logInfo("Get dashboard stats completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        totalOut: stats.totalOut,
+        profit: stats.profit,
+      });
+
       return res.json(stats);
     } catch (error) {
-      console.error("[DASHBOARD_STATS] Error:", error);
+      logError("Get dashboard stats failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to fetch dashboard stats",
         message: String(error)
@@ -383,27 +604,34 @@ export class TransactionsController {
   }
 
   async exchangeTransaction(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "exchangeTransaction",
+      params: req.params,
+      body: req.body,
+    };
+
+    logInfo("Exchange transaction started", requestMeta);
+
     const { id } = req.params;
     if (!id) {
+      logWarn("Exchange transaction rejected: missing transaction id", requestMeta);
       return res.status(400).json({ error: "Transaction ID is required" });
     }
     const userId = req.userId!;
 
     if (!req.tenantPrisma) {
+      logWarn("Exchange transaction rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
-    }
-
-    const transaction = await transactionService.getTransaction(
-      id,
-      req.store?.id,
-      req.tenantPrisma
-    );
-    if (!transaction) {
-      return res.status(404).json({ error: "Transaction not found" });
     }
 
     const validation = exchangeTransactionSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn("Exchange transaction validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -419,30 +647,75 @@ export class TransactionsController {
       paymentMethod,
     } = validation.data;
 
-    const result = await transactionService.exchangeTransaction(
-      id,
-      userId,
-      {
-        returnQuantity,
-        newProductVariationId,
-        newQuantity,
-        newUnitPrice: new Decimal(newUnitPrice),
-        paymentMethod,
-      },
-      req.tenantPrisma
-    );
+    try {
+      const transaction = await transactionService.getTransaction(
+        id,
+        req.store?.id,
+        req.tenantPrisma
+      );
+      if (!transaction) {
+        logWarn("Exchange transaction rejected: transaction not found", {
+          ...requestMeta,
+          transactionId: id,
+        });
+        return res.status(404).json({ error: "Transaction not found" });
+      }
 
-    return res.json({
-      message: "Exchange processed successfully",
-      result,
-    });
+      const result = await transactionService.exchangeTransaction(
+        id,
+        userId,
+        {
+          returnQuantity,
+          newProductVariationId,
+          newQuantity,
+          newUnitPrice: new Decimal(newUnitPrice),
+          paymentMethod,
+        },
+        req.tenantPrisma
+      );
+
+      logInfo("Exchange transaction completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        originalTransactionId: id,
+        newTransactionId: result.newTransaction.id,
+      });
+
+      return res.json({
+        message: "Exchange processed successfully",
+        result,
+      });
+    } catch (error) {
+      logError("Exchange transaction failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        originalTransactionId: id,
+      });
+      return res.status(500).json({
+        message: "Internal server error",
+        error: String(error),
+      });
+    }
   }
 
   async repayDebt(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "repayDebt",
+      body: req.body,
+    };
+
+    logInfo("Repay debt started", requestMeta);
+
     const userId = req.userId!;
 
     const validation = repayDebtSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn("Repay debt validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res
         .status(400)
         .json({
@@ -453,26 +726,61 @@ export class TransactionsController {
     const { customerId, amount, storeId } = validation.data;
 
     if (!req.tenantPrisma) {
+      logWarn("Repay debt rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
-    const result = await transactionService.repayDebt(
-      customerId,
-      new Decimal(amount),
-      storeId,
-      userId,
-      req.tenantPrisma
-    );
+    try {
+      const result = await transactionService.repayDebt(
+        customerId,
+        new Decimal(amount),
+        storeId,
+        userId,
+        req.tenantPrisma
+      );
 
-    return res.json({
-      message: "Debt repayment processed successfully",
-      transaction: result,
-    });
+      logInfo("Repay debt completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: result.id,
+        customerId,
+        amount,
+      });
+
+      return res.json({
+        message: "Debt repayment processed successfully",
+        transaction: result,
+      });
+    } catch (error) {
+      logError("Repay debt failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        customerId,
+        amount,
+      });
+      return res.status(500).json({
+        message: "Internal server error",
+        error: String(error),
+      });
+    }
   }
 
   async transferStock(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "transferStock",
+      body: req.body,
+    };
+
+    logInfo("Transfer stock started", requestMeta);
+
     const validation = transferStockSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn("Transfer stock validation failed", {
+        ...requestMeta,
+        validationErrors: validation.error.issues,
+      });
       return res.status(400).json({
         error: "Invalid input data",
         details: validation.error.issues,
@@ -484,10 +792,12 @@ export class TransactionsController {
     const sourceStoreId = req.store?.id;
 
     if (!sourceStoreId) {
+      logWarn("Transfer stock rejected: missing source store context", requestMeta);
       return res.status(400).json({ error: "Source store ID is required (from context)" });
     }
 
     if (!req.tenantPrisma) {
+      logWarn("Transfer stock rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
@@ -501,24 +811,52 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      logInfo("Transfer stock completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        sourceStoreId,
+        targetStoreId,
+        productVariationId,
+        quantity,
+        transferGroupId: result.groupId,
+      });
+
       return res.json({
         message: "Stock transfer processed successfully",
         transfer: result,
       });
     } catch (error) {
-      console.error("Error in transferStock:", error);
+      logError("Transfer stock failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        sourceStoreId,
+        targetStoreId,
+        productVariationId,
+        quantity,
+      });
       return res
         .status(500)
         .json({ message: "Internal server error", error: String(error) });
     }
   }
   async deleteTransaction(req: AuthRequest, res: Response) {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "deleteTransaction",
+      params: req.params,
+    };
+
+    logInfo("Delete transaction started", requestMeta);
+
     const { id } = req.params;
     if (!id) {
+      logWarn("Delete transaction rejected: missing transaction id", requestMeta);
       return res.status(400).json({ error: "Transaction ID is required" });
     }
 
     if (!req.tenantPrisma) {
+      logWarn("Delete transaction rejected: tenant prisma missing", requestMeta);
       return res.status(404).json({ error: "Tenant not found" });
     }
 
@@ -529,9 +867,19 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      logInfo("Delete transaction completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: id,
+      });
+
       return res.json({ message: "Transaction deleted successfully" });
     } catch (error) {
-      console.error("Error in deleteTransaction:", error);
+      logError("Delete transaction failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        transactionId: id,
+      });
       return res.status(500).json({
         message: "Failed to delete transaction",
         error: String(error)

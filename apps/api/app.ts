@@ -183,15 +183,41 @@ app.use(
 );
 
 // Global rate limiter
+const rateLimitWindowMs = parseInt(
+  process.env["RATE_LIMIT_WINDOW_MS"] || "60000",
+  10
+);
+const rateLimitMaxRequests = parseInt(
+  process.env["RATE_LIMIT_MAX_REQUESTS"] || "100",
+  10
+);
+const rateLimitSkipSuccessfulRequests =
+  process.env["RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS"] !== "false";
+
 const limiter = rateLimit({
-  windowMs: parseInt(process.env["RATE_LIMIT_WINDOW_MS"] || "60000"), // 1 minute
-  max: parseInt(process.env["RATE_LIMIT_MAX_REQUESTS"] || "100"),
+  windowMs: rateLimitWindowMs, // 1 minute by default
+  max: rateLimitMaxRequests,
   message: {
     error: "Too many requests from this IP, please try again later.",
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false,
+  skipSuccessfulRequests: rateLimitSkipSuccessfulRequests,
+  handler: (req, res, _next, options) => {
+    void log.warn("rateLimit", "Rate limit exceeded", {
+      method: req.method,
+      path: req.originalUrl,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"] || null,
+      forwardedFor: req.headers["x-forwarded-for"] || null,
+      windowMs: rateLimitWindowMs,
+      maxRequests: rateLimitMaxRequests,
+      skipSuccessfulRequests: rateLimitSkipSuccessfulRequests,
+      statusCode: options.statusCode,
+    });
+
+    return res.status(options.statusCode).json(options.message);
+  },
 });
 
 app.use(limiter);

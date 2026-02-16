@@ -594,7 +594,7 @@ export default function POSPage() {
 
     setIsProcessingTransaction(true);
     try {
-      // Process each cart item using the offline-capable mutation
+      // Process each cart item sequentially to avoid request bursts.
       const processCartItem = async (item: typeof cart[0], index: number) => {
         const transactionData = {
           product_variation_id: item.product_variation.id,
@@ -622,18 +622,16 @@ export default function POSPage() {
           remarks: `POS Sale - ${item.product_variation.name}${selectedCustomer ? ` - ${selectedCustomer.name}` : ""
             } - ${paymentRemarkLabel}`,
           group_id: groupId,
+          __skipInvalidation: true,
         };
 
-        // Create transaction via mutation (supports offline queuing)
-        // Use mutate() for fire-and-forget - allows offline queuing without blocking
-        createTransaction.mutate(transactionData);
+        await createTransaction.mutateAsync(transactionData);
       };
 
-      // Process all cart items (mutations are queued, may be paused if offline)
-      cart.forEach((item, index) => processCartItem(item, index));
+      for (const [index, item] of cart.entries()) {
+        await processCartItem(item, index);
+      }
 
-      // Optimistic: Clear cart and show receipt immediately
-      // Mutations will complete in background (or sync later when online)
       if (receiptSnapshot) {
         setLastReceipt(receiptSnapshot);
         addReceipt(receiptSnapshot);
@@ -656,6 +654,8 @@ export default function POSPage() {
         queryClient.invalidateQueries({ queryKey: ["pos-inventory", storeId] });
         queryClient.invalidateQueries({ queryKey: ["pos-categories", storeId] });
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        queryClient.invalidateQueries({ queryKey: ["transactions-summary"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory"] });
         queryClient.invalidateQueries({ queryKey: ["pos-customers", storeId] });
       }
     } catch (error) {

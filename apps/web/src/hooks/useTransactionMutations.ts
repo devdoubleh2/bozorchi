@@ -11,6 +11,7 @@ type CreateTransactionParams = {
     store_id?: string;
     remarks?: string;
     customer_id?: string;
+    __skipInvalidation?: boolean;
 };
 
 type ReturnTransactionParams = {
@@ -36,8 +37,10 @@ export const useTransactionMutations = () => {
 
     const createTransaction = useMutation({
         mutationKey: ["create-transaction"],
-        mutationFn: (data: CreateTransactionParams) =>
-            api.post("/api/transactions", data),
+        mutationFn: (data: CreateTransactionParams) => {
+            const { __skipInvalidation, ...payload } = data;
+            return api.post("/api/transactions", payload);
+        },
         onMutate: async () => {
             // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
             await queryClient.cancelQueries({ queryKey: ["transactions"] });
@@ -60,7 +63,11 @@ export const useTransactionMutations = () => {
                 queryClient.setQueryData(["transactions"], context.previousTransactions);
             }
         },
-        onSettled: () => {
+        onSettled: (_data, _error, variables) => {
+            if (variables?.__skipInvalidation) {
+                return;
+            }
+
             // Always refetch after error or success:
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
             queryClient.invalidateQueries({ queryKey: ["transactions-summary"] });

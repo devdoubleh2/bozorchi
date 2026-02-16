@@ -12,6 +12,38 @@ import {
 import { logger } from "../lib/logger";
 import { TelegramController } from "../controllers/telegramController";
 
+const SERVICE_SOURCE = "transactionsService";
+
+const serviceNormalizeError = (error: unknown): Record<string, unknown> => {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    };
+  }
+
+  return { error };
+};
+
+const serviceLogInfo = (
+  operation: string,
+  data?: Record<string, unknown>
+): void => {
+  logger.info(`[${SERVICE_SOURCE}] ${operation}`, data);
+};
+
+const serviceLogError = (
+  operation: string,
+  error: unknown,
+  data?: Record<string, unknown>
+): void => {
+  logger.error(`[${SERVICE_SOURCE}] ${operation}`, {
+    ...data,
+    ...serviceNormalizeError(error),
+  });
+};
+
 
 
 
@@ -181,14 +213,121 @@ export async function getTransactions(
   options: GetTransactionsOptions,
   prismaClient: PrismaClientOrTransaction
 ) {
-  const parsedOptions = GetTransactionsOptionsSchema.parse(options);
-  const where = buildTransactionWhereClause(parsedOptions);
-  const limit = parsedOptions.limit || 50;
-  const page = parsedOptions.page || 1;
+  const startedAt = Date.now();
 
-  const [transactions, total] = await Promise.all([
-    prismaClient.transaction.findMany({
-      where,
+  try {
+    const parsedOptions = GetTransactionsOptionsSchema.parse(options);
+    const where = buildTransactionWhereClause(parsedOptions);
+    const limit = parsedOptions.limit || 50;
+    const page = parsedOptions.page || 1;
+
+    serviceLogInfo("Get transactions started", {
+      storeId: parsedOptions.storeId,
+      userId: parsedOptions.userId,
+      page,
+      limit,
+    });
+
+    const [transactions, total] = await Promise.all([
+      prismaClient.transaction.findMany({
+        where,
+        include: {
+          product_variation: {
+            include: {
+              product: true,
+              unit: true,
+            },
+          },
+          customer: true,
+          supplier: true,
+          payments: true,
+          returns: {
+            include: {
+              product_variation: {
+                include: {
+                  product: true,
+                  unit: true,
+                },
+              },
+              customer: true,
+              supplier: true,
+              payments: true,
+            },
+          },
+        },
+        orderBy: { transaction_date: "desc" },
+        take: limit,
+        skip: (page - 1) * limit,
+      }),
+      prismaClient.transaction.count({ where }),
+    ]);
+
+
+    // FISCALIZATION DISABLED - Fiscal receipt fetching commented out
+    // const fiscalReceipts = groupIds.length > 0 ? await prismaClient.fiscalReceipt.findMany({
+    //   where: { group_id: { in: groupIds } },
+    //   select: { group_id: true, status: true, id: true, qr_code_url: true, receipt_number: true }
+    // }) : [];
+    // const fiscalMap = new Map(fiscalReceipts.map((f) => [f.group_id!, f]));
+    // const fiscalMap = new Map();
+
+    const result = {
+      transactions: transactions.map((t) => {
+        // FISCALIZATION DISABLED - fiscal data commented out
+        // const fiscal = t.group_id ? fiscalMap.get(t.group_id) : undefined;
+        return {
+          ...mapTransactionResponse(t),
+          // FISCALIZATION DISABLED
+          fiscal_status: null,
+          fiscal_receipt_id: null,
+          fiscal_qr_url: null,
+          fiscal_receipt_number: null,
+        };
+      }),
+      pagination: {
+        total,
+        limit,
+        page,
+        pages: Math.ceil(total / limit),
+      },
+    };
+
+    serviceLogInfo("Get transactions completed", {
+      storeId: parsedOptions.storeId,
+      userId: parsedOptions.userId,
+      page,
+      limit,
+      durationMs: Date.now() - startedAt,
+      count: result.transactions.length,
+      total,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Get transactions failed", error, {
+      storeId: options.storeId,
+      userId: options.userId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
+  }
+}
+
+export async function getTransactionsByGroupId(
+  storeId: string,
+  groupId: string,
+  prismaClient: PrismaClientOrTransaction
+) {
+  const startedAt = Date.now();
+
+  try {
+    serviceLogInfo("Get transactions by group started", {
+      storeId,
+      groupId,
+    });
+
+    const transactions = await prismaClient.transaction.findMany({
+      where: { store_id: storeId, group_id: groupId },
       include: {
         product_variation: {
           include: {
@@ -214,78 +353,26 @@ export async function getTransactions(
         },
       },
       orderBy: { transaction_date: "desc" },
-      take: limit,
-      skip: (page - 1) * limit,
-    }),
-    prismaClient.transaction.count({ where }),
-  ]);
+    });
 
+    const result = transactions.map(mapTransactionResponse);
 
-  // FISCALIZATION DISABLED - Fiscal receipt fetching commented out
-  // const fiscalReceipts = groupIds.length > 0 ? await prismaClient.fiscalReceipt.findMany({
-  //   where: { group_id: { in: groupIds } },
-  //   select: { group_id: true, status: true, id: true, qr_code_url: true, receipt_number: true }
-  // }) : [];
-  // const fiscalMap = new Map(fiscalReceipts.map((f) => [f.group_id!, f]));
-  // const fiscalMap = new Map();
+    serviceLogInfo("Get transactions by group completed", {
+      storeId,
+      groupId,
+      durationMs: Date.now() - startedAt,
+      count: result.length,
+    });
 
-  return {
-    transactions: transactions.map((t) => {
-      // FISCALIZATION DISABLED - fiscal data commented out
-      // const fiscal = t.group_id ? fiscalMap.get(t.group_id) : undefined;
-      return {
-        ...mapTransactionResponse(t),
-        // FISCALIZATION DISABLED
-        fiscal_status: null,
-        fiscal_receipt_id: null,
-        fiscal_qr_url: null,
-        fiscal_receipt_number: null,
-      };
-    }),
-    pagination: {
-      total,
-      limit,
-      page,
-      pages: Math.ceil(total / limit),
-    },
-  };
-}
-
-export async function getTransactionsByGroupId(
-  storeId: string,
-  groupId: string,
-  prismaClient: PrismaClientOrTransaction
-) {
-  const transactions = await prismaClient.transaction.findMany({
-    where: { store_id: storeId, group_id: groupId },
-    include: {
-      product_variation: {
-        include: {
-          product: true,
-          unit: true,
-        },
-      },
-      customer: true,
-      supplier: true,
-      payments: true,
-      returns: {
-        include: {
-          product_variation: {
-            include: {
-              product: true,
-              unit: true,
-            },
-          },
-          customer: true,
-          supplier: true,
-          payments: true,
-        },
-      },
-    },
-    orderBy: { transaction_date: "desc" },
-  });
-
-  return transactions.map(mapTransactionResponse);
+    return result;
+  } catch (error) {
+    serviceLogError("Get transactions by group failed", error, {
+      storeId,
+      groupId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
+  }
 }
 
 // --- Validation & Calculation Helpers ---
@@ -799,279 +886,176 @@ export async function createTransaction(
   data: CreateTransactionData,
   prismaClient: PrismaClientOrTransaction
 ) {
-  const parsedData = CreateTransactionDataSchema.parse(data);
-  const {
-    product_variation_id,
-    store_id,
-    transaction_type,
-    quantity,
-    unit_price,
-  } = parsedData;
+  const startedAt = Date.now();
+  const requestMeta = {
+    storeId: data.store_id,
+    transactionType: data.transaction_type,
+    productVariationId: data.product_variation_id,
+    quantity: data.quantity,
+    userId: data.userId,
+  };
 
+  try {
+    const parsedData = CreateTransactionDataSchema.parse(data);
+    const {
+      product_variation_id,
+      store_id,
+      transaction_type,
+      quantity,
+      unit_price,
+    } = parsedData;
 
+    serviceLogInfo("Create transaction started", requestMeta);
 
-  const execute = async (tx: Prisma.TransactionClient) => {
-    // 1. Validate Product Variation
-    const productVariation = await validateProductVariation(
-      tx,
-      product_variation_id
-    );
-
-    // 2. Get base currency for store
-    const baseCurrency = await getBaseCurrency(store_id, tx);
-
-    // 3. Determine cost price with currency conversion
-    let transactionCostPrice = new Prisma.Decimal(unit_price.toString());
-    let appliedExchangeRate = new Prisma.Decimal(1);
-    let transactionCurrency = parsedData.currency || baseCurrency.code;
-    let sourceCurrency = parsedData.source_currency;
-    let sourceAmount = parsedData.source_amount;
-
-    // For import transactions, handle currency conversion
-    if (
-      transaction_type === 'import' &&
-      sourceCurrency &&
-      sourceAmount &&
-      sourceCurrency !== baseCurrency.code
-    ) {
-      const conversion = await convertCurrency(
-        sourceAmount,
-        sourceCurrency,
-        baseCurrency.code,
-        store_id,
+    const execute = async (tx: Prisma.TransactionClient) => {
+      // 1. Validate Product Variation
+      const productVariation = await validateProductVariation(
         tx,
+        product_variation_id
+      );
+
+      // 2. Get base currency for store
+      const baseCurrency = await getBaseCurrency(store_id, tx);
+
+      // 3. Determine cost price with currency conversion
+      let transactionCostPrice = new Prisma.Decimal(unit_price.toString());
+      let appliedExchangeRate = new Prisma.Decimal(1);
+      let transactionCurrency = parsedData.currency || baseCurrency.code;
+      let sourceCurrency = parsedData.source_currency;
+      let sourceAmount = parsedData.source_amount;
+
+      // For import transactions, handle currency conversion
+      if (
+        transaction_type === "import" &&
+        sourceCurrency &&
+        sourceAmount &&
+        sourceCurrency !== baseCurrency.code
+      ) {
+        const conversion = await convertCurrency(
+          sourceAmount,
+          sourceCurrency,
+          baseCurrency.code,
+          store_id,
+          tx,
+          parsedData.exchange_rate
+        );
+
+        transactionCostPrice = conversion.convertedAmount;
+        appliedExchangeRate = conversion.exchangeRate;
+        transactionCurrency = baseCurrency.code;
+      }
+
+      let allocationsToCreate: { batch_id: string; quantity: number }[] = [];
+
+      // Check if this is a service product (no inventory tracking)
+      const isServiceProduct = productVariation.product.type === "service";
+
+      // 4. Handle Inventory Updates & FIFO Batching
+      // Services skip all inventory operations - they are sold directly without stock
+      if (isServiceProduct) {
+        // For services: use product price as cost (for profit calculation)
+        transactionCostPrice = productVariation.price;
+      } else if (
+        transaction_type === "export" ||
+        transaction_type === "transfer_out" ||
+        transaction_type === "supplier_return" ||
+        transaction_type === "internal_use"
+      ) {
+        // Use base currency cost from product variation
+        const result = await handleOutgoingStock(
+          tx,
+          store_id,
+          product_variation_id,
+          productVariation.product.name,
+          productVariation.name,
+          quantity,
+          productVariation.price
+        );
+        allocationsToCreate = result.allocationsToCreate;
+        if (quantity > 0) {
+          transactionCostPrice = result.totalCost.div(quantity);
+        }
+      } else if (
+        transaction_type === "import" ||
+        transaction_type === "return" ||
+        transaction_type === "transfer_in"
+      ) {
+        await handleIncomingStock(tx, store_id, product_variation_id, quantity);
+      } else if (transaction_type === "adjustment") {
+        const result = await handleInventoryAdjustment(
+          tx,
+          store_id,
+          product_variation_id,
+          quantity,
+          productVariation.price
+        );
+        allocationsToCreate = result.allocationsToCreate;
+        if (Math.abs(quantity) > 0) {
+          transactionCostPrice = result.totalCost.div(Math.abs(quantity));
+        }
+      }
+
+      // 5. Handle Loyalty Points (Redemption)
+      await redeemLoyaltyPoints(
+        tx,
+        parsedData.customer_id,
+        parsedData.redeem_points
+      );
+
+      // 6. Create Transaction Record
+      const transaction = await createTransactionRecord(
+        tx,
+        parsedData,
+        transactionCostPrice,
+        productVariation.selling_price,
+        parsedData.loyalty_discount_amount || new Prisma.Decimal(0),
+        transactionCurrency,
+        appliedExchangeRate
+      );
+
+      // 7. Store source currency info if provided
+      if (sourceCurrency && sourceAmount) {
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data: {
+            source_currency: sourceCurrency,
+            source_amount: sourceAmount,
+          },
+        });
+      }
+
+      // 8. Post-Transaction Batch Operations
+      await createPostTransactionRecords(
+        tx,
+        transaction.id,
+        parsedData,
+        allocationsToCreate,
+        transactionCostPrice,
+        null,
+        isServiceProduct
+      );
+
+      // 6. Handle Payments
+      await processPayments(
+        tx,
+        transaction.id,
+        parsedData.payments,
+        parsedData.payment_method,
+        parsedData.total_amount,
         parsedData.exchange_rate
       );
 
-      transactionCostPrice = conversion.convertedAmount;
-      appliedExchangeRate = conversion.exchangeRate;
-      transactionCurrency = baseCurrency.code;
-    }
-
-    let allocationsToCreate: { batch_id: string; quantity: number }[] = [];
-
-    // Check if this is a service product (no inventory tracking)
-    const isServiceProduct = productVariation.product.type === "service";
-
-    // 4. Handle Inventory Updates & FIFO Batching
-    // Services skip all inventory operations - they are sold directly without stock
-    if (isServiceProduct) {
-      // For services: use product price as cost (for profit calculation)
-      transactionCostPrice = productVariation.price;
-    } else if (
-      transaction_type === "export" ||
-      transaction_type === "transfer_out" ||
-      transaction_type === "supplier_return" ||
-      transaction_type === "internal_use"
-    ) {
-      // Use base currency cost from product variation
-      const result = await handleOutgoingStock(
+      // 7. Handle Loyalty Points (Accrual)
+      await accrueLoyaltyPoints(
         tx,
-        store_id,
-        product_variation_id,
-        productVariation.product.name,
-        productVariation.name,
-        quantity,
-        productVariation.price
+        parsedData.customer_id,
+        parsedData.transaction_type,
+        parsedData.total_amount
       );
-      allocationsToCreate = result.allocationsToCreate;
-      if (quantity > 0) {
-        transactionCostPrice = result.totalCost.div(quantity);
-      }
-    } else if (
-      transaction_type === "import" ||
-      transaction_type === "return" ||
-      transaction_type === "transfer_in"
-    ) {
-      await handleIncomingStock(tx, store_id, product_variation_id, quantity);
-    } else if (transaction_type === "adjustment") {
-      const result = await handleInventoryAdjustment(
-        tx,
-        store_id,
-        product_variation_id,
-        quantity,
-        productVariation.price
-      );
-      allocationsToCreate = result.allocationsToCreate;
-      if (Math.abs(quantity) > 0) {
-        transactionCostPrice = result.totalCost.div(Math.abs(quantity));
-      }
-    }
 
-    // 5. Handle Loyalty Points (Redemption)
-    await redeemLoyaltyPoints(
-      tx,
-      parsedData.customer_id,
-      parsedData.redeem_points
-    );
-
-    // 6. Create Transaction Record
-    const transaction = await createTransactionRecord(
-      tx,
-      parsedData,
-      transactionCostPrice,
-      productVariation.selling_price,
-      parsedData.loyalty_discount_amount || new Prisma.Decimal(0),
-      transactionCurrency,
-      appliedExchangeRate
-    );
-
-    // 7. Store source currency info if provided
-    if (sourceCurrency && sourceAmount) {
-      await tx.transaction.update({
+      // 8. Fetch and return the complete transaction
+      const fullTransaction = await tx.transaction.findUniqueOrThrow({
         where: { id: transaction.id },
-        data: {
-          source_currency: sourceCurrency,
-          source_amount: sourceAmount,
-        },
-      });
-    }
-
-    // 8. Post-Transaction Batch Operations
-    await createPostTransactionRecords(
-      tx,
-      transaction.id,
-      parsedData,
-      allocationsToCreate,
-      transactionCostPrice,
-      null,
-      isServiceProduct
-    );
-
-    // 6. Handle Payments
-    await processPayments(
-      tx,
-      transaction.id,
-      parsedData.payments,
-      parsedData.payment_method,
-      parsedData.total_amount,
-      parsedData.exchange_rate
-    );
-
-    // 7. Handle Loyalty Points (Accrual)
-    await accrueLoyaltyPoints(
-      tx,
-      parsedData.customer_id,
-      parsedData.transaction_type,
-      parsedData.total_amount
-    );
-
-    // 8. Fetch and return the complete transaction
-    const fullTransaction = await tx.transaction.findUniqueOrThrow({
-      where: { id: transaction.id },
-      include: {
-        product_variation: {
-          include: {
-            product: true,
-            unit: true,
-          },
-        },
-        customer: true,
-        supplier: true,
-        payments: true,
-        returns: {
-          include: {
-            product_variation: {
-              include: {
-                product: true,
-                unit: true,
-              },
-            },
-            customer: true,
-            supplier: true,
-            payments: true,
-          },
-        },
-      },
-    });
-
-    return mapTransactionResponse(fullTransaction);
-  };
-
-  // Execute transaction
-  const transactionResult = await ("$transaction" in prismaClient
-    ? (prismaClient as PrismaClient).$transaction(execute)
-    : execute(prismaClient as Prisma.TransactionClient));
-
-  // Send Telegram notification to organization owner
-  try {
-    // Get store details from tenant prisma
-    const store = await prismaClient.store.findUnique({
-      where: { id: parsedData.store_id },
-      select: { 
-        name: true,
-        organization_id: true 
-      }
-    });
-
-    if (store && store.organization_id) {
-      const telegramController = new TelegramController();
-      
-      // Map transaction types to notification types
-      const notificationTypeMap: Record<string, "sale" | "refund" | "import" | "transfer_in" | "transfer_out" | "adjustment" | "internal_use" | "supplier_return" | "debt"> = {
-        export: "sale",
-        debt: "debt",
-        return: "refund",
-        import: "import",
-        transfer_in: "transfer_in",
-        transfer_out: "transfer_out",
-        adjustment: "adjustment",
-        internal_use: "internal_use",
-        supplier_return: "supplier_return",
-      };
-
-      const notificationType = notificationTypeMap[transaction_type];
-
-      // Notify for all important transaction types
-      if (notificationType) {
-        // Get additional details for richer notifications
-        const productName = transactionResult.product_name || undefined;
-        const supplierName = transactionResult.supplier?.name || undefined;
-        
-        await telegramController.notifyTransactionToOwner({
-          organizationId: store.organization_id,
-          storeName: store.name,
-          transactionAmount: parsedData.total_amount.toNumber(),
-          transactionType: notificationType,
-          remarks: parsedData.remarks,
-          itemCount: quantity,
-          currency: parsedData.currency || "UZS",
-          transactionId: transactionResult.id,
-          productName,
-          supplierName,
-        });
-      }
-    }
-  } catch (error) {
-    // Log error but don't fail the transaction
-    logger.error("Failed to send Telegram notification", "transactions", {
-      error: (error as Error).message,
-      transactionId: transactionResult.id,
-    });
-  }
-
-  return transactionResult;
-}
-
-export async function getTransaction(
-  id: string,
-  storeId: string | undefined,
-  prismaClient: PrismaClientOrTransaction
-) {
-  const transaction = await prismaClient.transaction.findUnique({
-    where: { id },
-    include: {
-      product_variation: {
-        include: {
-          product: true,
-          unit: true,
-        },
-      },
-
-      customer: true,
-      supplier: true,
-      payments: true,
-      returns: {
         include: {
           product_variation: {
             include: {
@@ -1082,216 +1066,129 @@ export async function getTransaction(
           customer: true,
           supplier: true,
           payments: true,
+          returns: {
+            include: {
+              product_variation: {
+                include: {
+                  product: true,
+                  unit: true,
+                },
+              },
+              customer: true,
+              supplier: true,
+              payments: true,
+            },
+          },
         },
-      },
-    },
-  });
+      });
 
-  if (!transaction) {
-    throw new Error("Transaction not found");
-  }
+      return mapTransactionResponse(fullTransaction);
+    };
 
-  if (storeId && transaction.store_id !== storeId) {
-    throw new Error("Access denied");
-  }
+    // Execute transaction
+    const transactionResult = await ("$transaction" in prismaClient
+      ? (prismaClient as PrismaClient).$transaction(execute)
+      : execute(prismaClient as Prisma.TransactionClient));
 
-  return mapTransactionResponse(transaction);
-}
+    // Send Telegram notification to organization owner
+    try {
+      // Get store details from tenant prisma
+      const store = await prismaClient.store.findUnique({
+        where: { id: parsedData.store_id },
+        select: {
+          name: true,
+          organization_id: true,
+        },
+      });
 
-export async function returnTransaction(
-  id: string,
-  userId: string,
-  returnQuantity: number | undefined,
-  prismaClient: PrismaClientOrTransaction
-) {
-  const execute = async (tx: Prisma.TransactionClient) => {
-    const originalTransaction = await tx.transaction.findUnique({
-      where: { id },
-      include: {
-        product_variation: true,
-      },
-    });
+      if (store && store.organization_id) {
+        const telegramController = new TelegramController();
 
-    if (!originalTransaction) {
-      throw new Error("Transaction not found");
+        // Map transaction types to notification types
+        const notificationTypeMap: Record<
+          string,
+          | "sale"
+          | "refund"
+          | "import"
+          | "transfer_in"
+          | "transfer_out"
+          | "adjustment"
+          | "internal_use"
+          | "supplier_return"
+          | "debt"
+        > = {
+          export: "sale",
+          debt: "debt",
+          return: "refund",
+          import: "import",
+          transfer_in: "transfer_in",
+          transfer_out: "transfer_out",
+          adjustment: "adjustment",
+          internal_use: "internal_use",
+          supplier_return: "supplier_return",
+        };
+
+        const notificationType = notificationTypeMap[transaction_type];
+
+        // Notify for all important transaction types
+        if (notificationType) {
+          // Get additional details for richer notifications
+          const productName = transactionResult.product_name || undefined;
+          const supplierName = transactionResult.supplier?.name || undefined;
+
+          await telegramController.notifyTransactionToOwner({
+            organizationId: store.organization_id,
+            storeName: store.name,
+            transactionAmount: parsedData.total_amount.toNumber(),
+            transactionType: notificationType,
+            remarks: parsedData.remarks,
+            itemCount: quantity,
+            currency: parsedData.currency || "UZS",
+            transactionId: transactionResult.id,
+            productName,
+            supplierName,
+          });
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the transaction
+      logger.error("Failed to send Telegram notification", "transactions", {
+        error: (error as Error).message,
+        transactionId: transactionResult.id,
+      });
     }
 
-    const quantityToReturn = returnQuantity || originalTransaction.quantity;
+    serviceLogInfo("Create transaction completed", {
+      ...requestMeta,
+      durationMs: Date.now() - startedAt,
+      transactionId: transactionResult.id,
+    });
 
-    validateReturnEligibility(originalTransaction, quantityToReturn);
-
-    // Always refund the exact value of the returned quantity as a single payment.
-    const refundTotal = calculateRefundAmount(
-      originalTransaction.unit_price,
-      quantityToReturn
-    );
-
-    // Create return transaction
-    const returnTx = await createTransaction(
-      {
-        product_variation_id: originalTransaction.product_variation_id!,
-        quantity: quantityToReturn,
-        unit_price: originalTransaction.unit_price,
-        total_amount: refundTotal,
-        transaction_type: "return",
-        remarks: `Return for transaction ${id}`,
-        customer_id: originalTransaction.customer_id,
-        store_id: originalTransaction.store_id,
-        userId,
-        payment_method: PaymentMethod.cash,
-        group_id: originalTransaction.group_id || undefined,
-        original_transaction_id: originalTransaction.id,
-      },
-      tx
-    );
-
-    return returnTx;
-  };
-
-  if ("$transaction" in prismaClient) {
-    return (prismaClient as PrismaClient).$transaction(execute);
-  } else {
-    return execute(prismaClient as Prisma.TransactionClient);
+    return transactionResult;
+  } catch (error) {
+    serviceLogError("Create transaction failed", error, {
+      ...requestMeta,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
 }
 
-export async function exchangeTransaction(
-  originalTransactionId: string,
-  userId: string,
-  exchangeData: ExchangeTransactionData,
+export async function getTransaction(
+  id: string,
+  storeId: string | undefined,
   prismaClient: PrismaClientOrTransaction
 ) {
-  const parsedExchangeData = ExchangeTransactionDataSchema.parse(exchangeData);
+  const startedAt = Date.now();
 
-  const execute = async (tx: Prisma.TransactionClient) => {
-    // 1. Process Return
-    const originalTx = await tx.transaction.findUnique({
-      where: { id: originalTransactionId },
+  try {
+    serviceLogInfo("Get transaction started", {
+      transactionId: id,
+      storeId: storeId ?? null,
     });
 
-    if (!originalTx) throw new Error("Original transaction not found");
-
-    validateReturnEligibility(
-      originalTx,
-      parsedExchangeData.returnQuantity
-    );
-
-    const refundAmount = calculateRefundAmount(
-      originalTx.unit_price,
-      parsedExchangeData.returnQuantity
-    );
-
-    // Fetch new product for sale
-    const newProduct = await validateProductVariation(
-      tx,
-      parsedExchangeData.newProductVariationId
-    );
-
-    const unitPrice =
-      parsedExchangeData.newUnitPrice ?? newProduct.selling_price;
-
-    const { netAmount, saleAmount } = calculateExchangeFinancials(
-      refundAmount,
-      unitPrice,
-      parsedExchangeData.newQuantity
-    );
-
-    // Create Return Transaction
-    await createTransaction(
-      {
-        product_variation_id: originalTx.product_variation_id!,
-        quantity: parsedExchangeData.returnQuantity,
-        unit_price: originalTx.unit_price,
-        total_amount: refundAmount,
-        transaction_type: "return",
-        remarks: `Exchange Return for ${originalTransactionId}`,
-        customer_id: originalTx.customer_id,
-        store_id: originalTx.store_id,
-        userId,
-        payment_method: parsedExchangeData.paymentMethod || PaymentMethod.cash,
-        group_id: originalTx.group_id || undefined,
-      },
-      tx
-    );
-
-    // Create New Sale Transaction
-    const newSaleTx = await createTransaction(
-      {
-        product_variation_id: parsedExchangeData.newProductVariationId,
-        quantity: parsedExchangeData.newQuantity,
-        unit_price: unitPrice,
-        total_amount: saleAmount,
-        transaction_type: "export",
-        remarks: `Exchange Sale for ${originalTransactionId}`,
-        customer_id: originalTx.customer_id,
-        store_id: originalTx.store_id,
-        userId,
-        payment_method: parsedExchangeData.paymentMethod || PaymentMethod.cash,
-        group_id: originalTx.group_id || undefined,
-      },
-      tx
-    );
-
-    return {
-      netAmount: netAmount.toNumber(),
-      newTransaction: newSaleTx,
-    };
-  };
-
-  if ("$transaction" in prismaClient) {
-    return (prismaClient as PrismaClient).$transaction(execute);
-  } else {
-    return execute(prismaClient as Prisma.TransactionClient);
-  }
-}
-
-export async function repayDebt(
-  customerId: string,
-  amount: number | string | Prisma.Decimal,
-  storeId: string,
-  userId: string,
-  prismaClient: PrismaClientOrTransaction
-) {
-  const repaymentAmount = DecimalSchema.parse(amount);
-
-  validateRepaymentAmount(repaymentAmount);
-
-  const execute = async (tx: Prisma.TransactionClient) => {
-    // We need a transaction record for the repayment
-    // Usually debt repayment is a financial transaction, not inventory.
-    // product_variation_id is optional.
-
-    const transaction = await tx.transaction.create({
-      data: {
-        transaction_type: "repayment",
-        total_amount: repaymentAmount,
-        quantity: 1, // Dummy quantity
-        unit_price: repaymentAmount,
-        customer_id: customerId,
-        store_id: storeId,
-        user_id: userId,
-        selling_price: new Prisma.Decimal(0),
-        delivery_cost: new Prisma.Decimal(0),
-        remarks: "Debt repayment",
-        transaction_date: new Date(),
-        // product_variation_id is null
-        // group_id is null
-      },
-    });
-
-    // Create payment record
-    await processPayments(
-      tx,
-      transaction.id,
-      undefined, // no list of payments
-      PaymentMethod.cash, // Default to cash, or pass it in if we extend API
-      repaymentAmount
-    );
-
-    // Return complete transaction
-    // We need to fetch it to match the return type structure (with empty relations)
-    const fullTransaction = await tx.transaction.findUniqueOrThrow({
-      where: { id: transaction.id },
+    const transaction = await prismaClient.transaction.findUnique({
+      where: { id },
       include: {
         product_variation: {
           include: {
@@ -1299,6 +1196,7 @@ export async function repayDebt(
             unit: true,
           },
         },
+
         customer: true,
         supplier: true,
         payments: true,
@@ -1318,13 +1216,340 @@ export async function repayDebt(
       },
     });
 
-    return mapTransactionResponse(fullTransaction);
-  };
+    if (!transaction) {
+      throw new Error("Transaction not found");
+    }
 
-  if ("$transaction" in prismaClient) {
-    return (prismaClient as PrismaClient).$transaction(execute);
-  } else {
-    return execute(prismaClient as Prisma.TransactionClient);
+    if (storeId && transaction.store_id !== storeId) {
+      throw new Error("Access denied");
+    }
+
+    const result = mapTransactionResponse(transaction);
+
+    serviceLogInfo("Get transaction completed", {
+      transactionId: id,
+      storeId: storeId ?? null,
+      durationMs: Date.now() - startedAt,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Get transaction failed", error, {
+      transactionId: id,
+      storeId: storeId ?? null,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
+  }
+}
+
+export async function returnTransaction(
+  id: string,
+  userId: string,
+  returnQuantity: number | undefined,
+  prismaClient: PrismaClientOrTransaction
+) {
+  const startedAt = Date.now();
+
+  try {
+    serviceLogInfo("Return transaction started", {
+      transactionId: id,
+      userId,
+      returnQuantity: returnQuantity ?? null,
+    });
+
+    const execute = async (tx: Prisma.TransactionClient) => {
+      const originalTransaction = await tx.transaction.findUnique({
+        where: { id },
+        include: {
+          product_variation: true,
+        },
+      });
+
+      if (!originalTransaction) {
+        throw new Error("Transaction not found");
+      }
+
+      const quantityToReturn = returnQuantity || originalTransaction.quantity;
+
+      validateReturnEligibility(originalTransaction, quantityToReturn);
+
+      // Always refund the exact value of the returned quantity as a single payment.
+      const refundTotal = calculateRefundAmount(
+        originalTransaction.unit_price,
+        quantityToReturn
+      );
+
+      // Create return transaction
+      const returnTx = await createTransaction(
+        {
+          product_variation_id: originalTransaction.product_variation_id!,
+          quantity: quantityToReturn,
+          unit_price: originalTransaction.unit_price,
+          total_amount: refundTotal,
+          transaction_type: "return",
+          remarks: `Return for transaction ${id}`,
+          customer_id: originalTransaction.customer_id,
+          store_id: originalTransaction.store_id,
+          userId,
+          payment_method: PaymentMethod.cash,
+          group_id: originalTransaction.group_id || undefined,
+          original_transaction_id: originalTransaction.id,
+        },
+        tx
+      );
+
+      return returnTx;
+    };
+
+    const result = "$transaction" in prismaClient
+      ? await (prismaClient as PrismaClient).$transaction(execute)
+      : await execute(prismaClient as Prisma.TransactionClient);
+
+    serviceLogInfo("Return transaction completed", {
+      transactionId: id,
+      userId,
+      returnQuantity: returnQuantity ?? null,
+      durationMs: Date.now() - startedAt,
+      resultTransactionId: result.id,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Return transaction failed", error, {
+      transactionId: id,
+      userId,
+      returnQuantity: returnQuantity ?? null,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
+  }
+}
+
+export async function exchangeTransaction(
+  originalTransactionId: string,
+  userId: string,
+  exchangeData: ExchangeTransactionData,
+  prismaClient: PrismaClientOrTransaction
+) {
+  const startedAt = Date.now();
+
+  try {
+    const parsedExchangeData = ExchangeTransactionDataSchema.parse(exchangeData);
+
+    serviceLogInfo("Exchange transaction started", {
+      originalTransactionId,
+      userId,
+      returnQuantity: parsedExchangeData.returnQuantity,
+      newProductVariationId: parsedExchangeData.newProductVariationId,
+      newQuantity: parsedExchangeData.newQuantity,
+    });
+
+    const execute = async (tx: Prisma.TransactionClient) => {
+      // 1. Process Return
+      const originalTx = await tx.transaction.findUnique({
+        where: { id: originalTransactionId },
+      });
+
+      if (!originalTx) throw new Error("Original transaction not found");
+
+      validateReturnEligibility(
+        originalTx,
+        parsedExchangeData.returnQuantity
+      );
+
+      const refundAmount = calculateRefundAmount(
+        originalTx.unit_price,
+        parsedExchangeData.returnQuantity
+      );
+
+      // Fetch new product for sale
+      const newProduct = await validateProductVariation(
+        tx,
+        parsedExchangeData.newProductVariationId
+      );
+
+      const unitPrice =
+        parsedExchangeData.newUnitPrice ?? newProduct.selling_price;
+
+      const { netAmount, saleAmount } = calculateExchangeFinancials(
+        refundAmount,
+        unitPrice,
+        parsedExchangeData.newQuantity
+      );
+
+      // Create Return Transaction
+      await createTransaction(
+        {
+          product_variation_id: originalTx.product_variation_id!,
+          quantity: parsedExchangeData.returnQuantity,
+          unit_price: originalTx.unit_price,
+          total_amount: refundAmount,
+          transaction_type: "return",
+          remarks: `Exchange Return for ${originalTransactionId}`,
+          customer_id: originalTx.customer_id,
+          store_id: originalTx.store_id,
+          userId,
+          payment_method: parsedExchangeData.paymentMethod || PaymentMethod.cash,
+          group_id: originalTx.group_id || undefined,
+        },
+        tx
+      );
+
+      // Create New Sale Transaction
+      const newSaleTx = await createTransaction(
+        {
+          product_variation_id: parsedExchangeData.newProductVariationId,
+          quantity: parsedExchangeData.newQuantity,
+          unit_price: unitPrice,
+          total_amount: saleAmount,
+          transaction_type: "export",
+          remarks: `Exchange Sale for ${originalTransactionId}`,
+          customer_id: originalTx.customer_id,
+          store_id: originalTx.store_id,
+          userId,
+          payment_method: parsedExchangeData.paymentMethod || PaymentMethod.cash,
+          group_id: originalTx.group_id || undefined,
+        },
+        tx
+      );
+
+      return {
+        netAmount: netAmount.toNumber(),
+        newTransaction: newSaleTx,
+      };
+    };
+
+    const result = "$transaction" in prismaClient
+      ? await (prismaClient as PrismaClient).$transaction(execute)
+      : await execute(prismaClient as Prisma.TransactionClient);
+
+    serviceLogInfo("Exchange transaction completed", {
+      originalTransactionId,
+      userId,
+      durationMs: Date.now() - startedAt,
+      newTransactionId: result.newTransaction.id,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Exchange transaction failed", error, {
+      originalTransactionId,
+      userId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
+  }
+}
+
+export async function repayDebt(
+  customerId: string,
+  amount: number | string | Prisma.Decimal,
+  storeId: string,
+  userId: string,
+  prismaClient: PrismaClientOrTransaction
+) {
+  const startedAt = Date.now();
+
+  try {
+    const repaymentAmount = DecimalSchema.parse(amount);
+
+    validateRepaymentAmount(repaymentAmount);
+
+    serviceLogInfo("Repay debt started", {
+      customerId,
+      storeId,
+      userId,
+      amount: repaymentAmount.toNumber(),
+    });
+
+    const execute = async (tx: Prisma.TransactionClient) => {
+      // We need a transaction record for the repayment
+      // Usually debt repayment is a financial transaction, not inventory.
+      // product_variation_id is optional.
+
+      const transaction = await tx.transaction.create({
+        data: {
+          transaction_type: "repayment",
+          total_amount: repaymentAmount,
+          quantity: 1, // Dummy quantity
+          unit_price: repaymentAmount,
+          customer_id: customerId,
+          store_id: storeId,
+          user_id: userId,
+          selling_price: new Prisma.Decimal(0),
+          delivery_cost: new Prisma.Decimal(0),
+          remarks: "Debt repayment",
+          transaction_date: new Date(),
+          // product_variation_id is null
+          // group_id is null
+        },
+      });
+
+      // Create payment record
+      await processPayments(
+        tx,
+        transaction.id,
+        undefined, // no list of payments
+        PaymentMethod.cash, // Default to cash, or pass it in if we extend API
+        repaymentAmount
+      );
+
+      // Return complete transaction
+      // We need to fetch it to match the return type structure (with empty relations)
+      const fullTransaction = await tx.transaction.findUniqueOrThrow({
+        where: { id: transaction.id },
+        include: {
+          product_variation: {
+            include: {
+              product: true,
+              unit: true,
+            },
+          },
+          customer: true,
+          supplier: true,
+          payments: true,
+          returns: {
+            include: {
+              product_variation: {
+                include: {
+                  product: true,
+                  unit: true,
+                },
+              },
+              customer: true,
+              supplier: true,
+              payments: true,
+            },
+          },
+        },
+      });
+
+      return mapTransactionResponse(fullTransaction);
+    };
+
+    const result = "$transaction" in prismaClient
+      ? await (prismaClient as PrismaClient).$transaction(execute)
+      : await execute(prismaClient as Prisma.TransactionClient);
+
+    serviceLogInfo("Repay debt completed", {
+      customerId,
+      storeId,
+      userId,
+      amount: repaymentAmount.toNumber(),
+      durationMs: Date.now() - startedAt,
+      transactionId: result.id,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Repay debt failed", error, {
+      customerId,
+      storeId,
+      userId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
 }
 
@@ -1336,178 +1561,210 @@ export async function transferStock(
   userId: string,
   prismaClient: PrismaClientOrTransaction
 ) {
-  // Input validation
-  if (quantity <= 0) {
-    throw new Error("Transfer quantity must be positive");
-  }
+  const startedAt = Date.now();
 
-  if (sourceStoreId === targetStoreId) {
-    throw new Error("Cannot transfer to the same store");
-  }
+  serviceLogInfo("Transfer stock started", {
+    sourceStoreId,
+    targetStoreId,
+    productVariationId,
+    quantity,
+    userId,
+  });
 
-  // Generate unique group_id to link transfer_in and transfer_out transactions
-  const transferGroupId = `transfer_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  try {
+    // Input validation
+    if (quantity <= 0) {
+      throw new Error("Transfer quantity must be positive");
+    }
 
-  const execute = async (tx: Prisma.TransactionClient) => {
-    // 1. Validate both stores exist
-    const sourceStore = await validateStore(tx, sourceStoreId, "source");
-    const targetStore = await validateStore(tx, targetStoreId, "destination");
+    if (sourceStoreId === targetStoreId) {
+      throw new Error("Cannot transfer to the same store");
+    }
 
-    // 2. Verify Product Variation exists and get details
-    const pv = await validateProductVariation(tx, productVariationId);
-    const productDisplayName = `${pv.product.name} - ${pv.name}`;
+    // Generate unique group_id to link transfer_in and transfer_out transactions
+    const transferGroupId = `transfer_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    // 3. Pre-check inventory availability before starting transaction
-    await checkInventoryAvailability(
-      tx,
+    const execute = async (tx: Prisma.TransactionClient) => {
+      // 1. Validate both stores exist
+      const sourceStore = await validateStore(tx, sourceStoreId, "source");
+      const targetStore = await validateStore(tx, targetStoreId, "destination");
+
+      // 2. Verify Product Variation exists and get details
+      const pv = await validateProductVariation(tx, productVariationId);
+      const productDisplayName = `${pv.product.name} - ${pv.name}`;
+
+      // 3. Pre-check inventory availability before starting transaction
+      await checkInventoryAvailability(
+        tx,
+        sourceStoreId,
+        productVariationId,
+        quantity,
+        productDisplayName
+      );
+
+      // 4. Validate product is available in target store (or is global)
+      await validateProductInStore(tx, productVariationId, targetStoreId);
+
+      // 5. Handle Outgoing from Source (FIFO cost calculation)
+      const { totalCost, allocationsToCreate } = await handleOutgoingStock(
+        tx,
+        sourceStoreId,
+        productVariationId,
+        pv.product.name,
+        pv.name,
+        quantity,
+        pv.price
+      );
+
+      // Calculate effective unit cost for this transfer
+      const transferUnitCost = totalCost.div(quantity);
+
+      // Prepare transfer metadata for audit trail
+      const timestamp = new Date().toISOString();
+      const transferOutRemarks = `Transfer OUT to "${targetStore.name}" (${targetStoreId}) | Product: ${productDisplayName} | Qty: ${quantity} | User: ${userId} | Time: ${timestamp}`;
+      const transferInRemarks = `Transfer IN from "${sourceStore.name}" (${sourceStoreId}) | Product: ${productDisplayName} | Qty: ${quantity} | User: ${userId} | Time: ${timestamp}`;
+
+      // 6. Create Transfer Out Record (Source)
+      const transferOutTx = await createTransactionRecord(
+        tx,
+        {
+          product_variation_id: productVariationId,
+          store_id: sourceStoreId,
+          transaction_type: "transfer_out",
+          quantity: quantity,
+          unit_price: transferUnitCost,
+          total_amount: totalCost,
+          userId,
+          remarks: transferOutRemarks,
+          group_id: transferGroupId, // Link to transfer
+          customer_id: null,
+          supplier_id: null,
+          supplier_order_id: null,
+          payment_method: undefined,
+          payments: [],
+          redeem_points: undefined,
+          loyalty_discount_amount: undefined,
+        },
+        transferUnitCost, // cost price
+        pv.selling_price,
+        new Prisma.Decimal(0) // loyalty discount
+      );
+
+      // 7. Create batch allocations for outgoing stock
+      await createPostTransactionRecords(
+        tx,
+        transferOutTx.id,
+        {
+          transaction_type: "transfer_out",
+          product_variation_id: productVariationId,
+          store_id: sourceStoreId,
+          quantity: quantity,
+          unit_price: transferUnitCost,
+          total_amount: totalCost,
+          userId,
+        } as CreateTransactionData,
+        allocationsToCreate,
+        transferUnitCost,
+        null
+      );
+
+      // 8. Handle Incoming to Target (updates aggregate inventory)
+      await handleIncomingStock(
+        tx,
+        targetStoreId,
+        productVariationId,
+        quantity
+      );
+
+      // 9. Create Transfer In Record (Target)
+      const transferInTx = await createTransactionRecord(
+        tx,
+        {
+          product_variation_id: productVariationId,
+          store_id: targetStoreId,
+          transaction_type: "transfer_in",
+          quantity: quantity,
+          unit_price: transferUnitCost, // Same FIFO cost from source
+          total_amount: totalCost,
+          userId,
+          remarks: transferInRemarks,
+          group_id: transferGroupId, // Link to transfer
+          customer_id: null,
+          supplier_id: null,
+          supplier_order_id: null,
+          payment_method: undefined,
+          payments: [],
+          redeem_points: undefined,
+          loyalty_discount_amount: undefined,
+        },
+        transferUnitCost, // cost price
+        pv.selling_price,
+        new Prisma.Decimal(0)
+      );
+
+      // 10. Create new batch for target store
+      await createPostTransactionRecords(
+        tx,
+        transferInTx.id,
+        {
+          transaction_type: "transfer_in",
+          product_variation_id: productVariationId,
+          store_id: targetStoreId,
+          quantity: quantity,
+          unit_price: transferUnitCost,
+          total_amount: totalCost,
+          userId,
+        } as CreateTransactionData,
+        [], // No allocations for incoming
+        transferUnitCost, // This becomes the cost_price of the new batch
+        null
+      );
+
+      return {
+        transferOut: transferOutTx,
+        transferIn: transferInTx,
+        groupId: transferGroupId,
+        summary: {
+          product: productDisplayName,
+          quantity,
+          fromStore: sourceStore.name,
+          toStore: targetStore.name,
+          unitCost: transferUnitCost.toNumber(),
+          totalCost: totalCost.toNumber(),
+        },
+      };
+    };
+
+    // Execute within transaction
+    const result = "$transaction" in prismaClient
+      ? await (prismaClient as PrismaClient).$transaction(execute, {
+        maxWait: 5000,
+        timeout: 10000,
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      })
+      : await execute(prismaClient as Prisma.TransactionClient);
+
+    serviceLogInfo("Transfer stock completed", {
       sourceStoreId,
-      productVariationId,
-      quantity,
-      productDisplayName
-    );
-
-    // 4. Validate product is available in target store (or is global)
-    await validateProductInStore(tx, productVariationId, targetStoreId);
-
-    // 5. Handle Outgoing from Source (FIFO cost calculation)
-    const { totalCost, allocationsToCreate } = await handleOutgoingStock(
-      tx,
-      sourceStoreId,
-      productVariationId,
-      pv.product.name,
-      pv.name,
-      quantity,
-      pv.price
-    );
-
-    // Calculate effective unit cost for this transfer
-    const transferUnitCost = totalCost.div(quantity);
-
-    // Prepare transfer metadata for audit trail
-    const timestamp = new Date().toISOString();
-    const transferOutRemarks = `Transfer OUT to "${targetStore.name}" (${targetStoreId}) | Product: ${productDisplayName} | Qty: ${quantity} | User: ${userId} | Time: ${timestamp}`;
-    const transferInRemarks = `Transfer IN from "${sourceStore.name}" (${sourceStoreId}) | Product: ${productDisplayName} | Qty: ${quantity} | User: ${userId} | Time: ${timestamp}`;
-
-    // 6. Create Transfer Out Record (Source)
-    const transferOutTx = await createTransactionRecord(
-      tx,
-      {
-        product_variation_id: productVariationId,
-        store_id: sourceStoreId,
-        transaction_type: "transfer_out",
-        quantity: quantity,
-        unit_price: transferUnitCost,
-        total_amount: totalCost,
-        userId,
-        remarks: transferOutRemarks,
-        group_id: transferGroupId, // Link to transfer
-        customer_id: null,
-        supplier_id: null,
-        supplier_order_id: null,
-        payment_method: undefined,
-        payments: [],
-        redeem_points: undefined,
-        loyalty_discount_amount: undefined,
-      },
-      transferUnitCost, // cost price
-      pv.selling_price,
-      new Prisma.Decimal(0) // loyalty discount
-    );
-
-    // 7. Create batch allocations for outgoing stock
-    await createPostTransactionRecords(
-      tx,
-      transferOutTx.id,
-      {
-        transaction_type: "transfer_out",
-        product_variation_id: productVariationId,
-        store_id: sourceStoreId,
-        quantity: quantity,
-        unit_price: transferUnitCost,
-        total_amount: totalCost,
-        userId,
-      } as CreateTransactionData,
-      allocationsToCreate,
-      transferUnitCost,
-      null
-    );
-
-    // 8. Handle Incoming to Target (updates aggregate inventory)
-    await handleIncomingStock(
-      tx,
       targetStoreId,
       productVariationId,
-      quantity
-    );
-
-    // 9. Create Transfer In Record (Target)
-    const transferInTx = await createTransactionRecord(
-      tx,
-      {
-        product_variation_id: productVariationId,
-        store_id: targetStoreId,
-        transaction_type: "transfer_in",
-        quantity: quantity,
-        unit_price: transferUnitCost, // Same FIFO cost from source
-        total_amount: totalCost,
-        userId,
-        remarks: transferInRemarks,
-        group_id: transferGroupId, // Link to transfer
-        customer_id: null,
-        supplier_id: null,
-        supplier_order_id: null,
-        payment_method: undefined,
-        payments: [],
-        redeem_points: undefined,
-        loyalty_discount_amount: undefined,
-      },
-      transferUnitCost, // cost price
-      pv.selling_price,
-      new Prisma.Decimal(0)
-    );
-
-    // 10. Create new batch for target store
-    await createPostTransactionRecords(
-      tx,
-      transferInTx.id,
-      {
-        transaction_type: "transfer_in",
-        product_variation_id: productVariationId,
-        store_id: targetStoreId,
-        quantity: quantity,
-        unit_price: transferUnitCost,
-        total_amount: totalCost,
-        userId,
-      } as CreateTransactionData,
-      [], // No allocations for incoming
-      transferUnitCost, // This becomes the cost_price of the new batch
-      null
-    );
-
-    return {
-      transferOut: transferOutTx,
-      transferIn: transferInTx,
-      groupId: transferGroupId,
-      summary: {
-        product: productDisplayName,
-        quantity,
-        fromStore: sourceStore.name,
-        toStore: targetStore.name,
-        unitCost: transferUnitCost.toNumber(),
-        totalCost: totalCost.toNumber(),
-      },
-    };
-  };
-
-  // Execute within transaction
-  if ("$transaction" in prismaClient) {
-    return await (prismaClient as PrismaClient).$transaction(execute, {
-      maxWait: 5000,
-      timeout: 10000,
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      quantity,
+      userId,
+      durationMs: Date.now() - startedAt,
+      transferGroupId: result.groupId,
     });
-  } else {
-    return await execute(prismaClient as Prisma.TransactionClient);
+
+    return result;
+  } catch (error) {
+    serviceLogError("Transfer stock failed", error, {
+      sourceStoreId,
+      targetStoreId,
+      productVariationId,
+      quantity,
+      userId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
 }
 
@@ -1860,19 +2117,43 @@ export const deleteTransaction = async (
   storeId: string,
   tx: PrismaClientOrTransaction
 ) => {
-  const transaction = await tx.transaction.findUnique({
-    where: { id: transactionId },
-  });
+  const startedAt = Date.now();
 
-  if (!transaction) {
-    throw new Error("Transaction not found");
+  try {
+    serviceLogInfo("Delete transaction started", {
+      transactionId,
+      storeId,
+    });
+
+    const transaction = await tx.transaction.findUnique({
+      where: { id: transactionId },
+    });
+
+    if (!transaction) {
+      throw new Error("Transaction not found");
+    }
+
+    if (transaction.store_id !== storeId) {
+      throw new Error("Transaction belongs to another store");
+    }
+
+    const result = await tx.transaction.delete({
+      where: { id: transactionId },
+    });
+
+    serviceLogInfo("Delete transaction completed", {
+      transactionId,
+      storeId,
+      durationMs: Date.now() - startedAt,
+    });
+
+    return result;
+  } catch (error) {
+    serviceLogError("Delete transaction failed", error, {
+      transactionId,
+      storeId,
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
-
-  if (transaction.store_id !== storeId) {
-    throw new Error("Transaction belongs to another store");
-  }
-
-  return tx.transaction.delete({
-    where: { id: transactionId },
-  });
 };

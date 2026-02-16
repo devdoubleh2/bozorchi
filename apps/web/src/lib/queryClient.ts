@@ -1,4 +1,5 @@
-import { QueryClient, MutationCache } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { ApiRequestError } from "./api";
 
 const FIVE_MINUTES = 1000 * 60 * 5;
 
@@ -10,21 +11,28 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      retry: 1,
+      retry: (failureCount, error) => {
+        if (
+          error instanceof ApiRequestError &&
+          error.status >= 400 &&
+          error.status < 500
+        ) {
+          return false;
+        }
+        return failureCount < 1;
+      },
     },
     mutations: {
       retry: (failureCount, error) => {
-        // Don't retry 4xx errors (client errors), only 5xx (server errors)
-        const is4xx = error instanceof Error && error.message.includes("4");
-        if (is4xx) return false;
+        if (
+          error instanceof ApiRequestError &&
+          error.status >= 400 &&
+          error.status < 500
+        ) {
+          return false;
+        }
         return failureCount < 3;
       },
     },
   },
-  mutationCache: new MutationCache({
-    onSuccess: () => {
-      // Invalidate all queries on successful mutation to ensure fresh data
-      queryClient.invalidateQueries();
-    },
-  }),
 });
