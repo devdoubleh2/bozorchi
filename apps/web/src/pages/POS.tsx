@@ -42,6 +42,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { POSSidebar } from "@/components/pos/POSSidebar";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const normalizeImageUrl = (url?: string | null) => {
   if (!url) return null;
@@ -272,6 +273,7 @@ export default function POSPage() {
 
 
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
@@ -312,7 +314,7 @@ export default function POSPage() {
 
   // Use infinite query for paginated inventory loading
   const inventoryQuery = useInfiniteQuery({
-    queryKey: ["pos-inventory", storeId, searchQuery, activeCategory],
+    queryKey: ["pos-inventory", storeId, debouncedSearchQuery, activeCategory],
     queryFn: async ({ pageParam }): Promise<InventoryResponse> => {
       const emptyResponse: InventoryResponse = {
         inventory: [],
@@ -336,8 +338,8 @@ export default function POSPage() {
         params.set("cursor", pageParam);
       }
 
-      if (searchQuery.trim()) {
-        params.set("search", searchQuery.trim());
+      if (debouncedSearchQuery.trim()) {
+        params.set("search", debouncedSearchQuery.trim());
       }
 
       if (activeCategory && activeCategory !== "all") {

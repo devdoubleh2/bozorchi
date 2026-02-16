@@ -1,6 +1,10 @@
 import { Router } from "express";
 import { InventoryController } from "../controllers/inventoryController";
-import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
+import {
+  AuthRequest,
+  createAuthHandler,
+  createAuthMiddleware,
+} from "../middleware/auth";
 import { requirePermission } from "../middleware/rbac";
 import {
   validateRequest,
@@ -9,6 +13,7 @@ import {
 } from "../middleware/validation";
 import { Permission } from "../generated/public/client";
 import { z } from "zod";
+import logger from "../../logs/log";
 
 const router: Router = Router();
 const inventoryController = new InventoryController();
@@ -42,6 +47,57 @@ const inventoryQuerySchema = z.object({
 // All routes require authentication
 router.use(createAuthMiddleware());
 const requireManageInventory = requirePermission([Permission.MANAGE_INVENTORY]);
+
+router.use((req, res, next) => {
+  const startedAt = Date.now();
+  const authReq = req as AuthRequest;
+
+  void logger.debug("inventoryRoute", "Inventory request started", {
+    method: req.method,
+    path: req.originalUrl,
+    userId: authReq.userId ?? null,
+    storeId: authReq.store?.id ?? null,
+    query: req.query,
+  });
+
+  res.on("finish", () => {
+    const durationMs = Date.now() - startedAt;
+    const logPayload = {
+      method: req.method,
+      path: req.originalUrl,
+      statusCode: res.statusCode,
+      durationMs,
+      userId: authReq.userId ?? null,
+      storeId: authReq.store?.id ?? null,
+    };
+
+    if (res.statusCode >= 500) {
+      void logger.error(
+        "inventoryRoute",
+        "Inventory request completed with server error",
+        logPayload
+      );
+      return;
+    }
+
+    if (res.statusCode >= 400) {
+      void logger.warn(
+        "inventoryRoute",
+        "Inventory request completed with client error",
+        logPayload
+      );
+      return;
+    }
+
+    void logger.info(
+      "inventoryRoute",
+      "Inventory request completed successfully",
+      logPayload
+    );
+  });
+
+  next();
+});
 
 // Routes
 router.get(

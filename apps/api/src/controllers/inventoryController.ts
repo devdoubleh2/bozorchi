@@ -61,19 +61,73 @@ const transferSchema = z.object({
   destinationStoreId: z.string().min(1),
 });
 
+const CONTROLLER_SOURCE = "inventoryController";
+
+const baseRequestMeta = (req: AuthRequest): Record<string, unknown> => ({
+  userId: req.userId ?? null,
+  storeId: req.store?.id ?? null,
+  organizationId: req.organization?.id ?? null,
+});
+
+const normalizeError = (error: unknown): Record<string, unknown> => {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    };
+  }
+
+  return { error };
+};
+
+const logInfo = (message: string, data?: Record<string, unknown>): void => {
+  void logger.info(CONTROLLER_SOURCE, message, data);
+};
+
+const logWarn = (message: string, data?: Record<string, unknown>): void => {
+  void logger.warn(CONTROLLER_SOURCE, message, data);
+};
+
+const logError = (
+  message: string,
+  error: unknown,
+  data?: Record<string, unknown>
+): void => {
+  void logger.error(CONTROLLER_SOURCE, message, {
+    ...data,
+    ...normalizeError(error),
+  });
+};
+
 export class InventoryController {
   async getInventory(req: AuthRequest, res: Response): Promise<Response> {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getInventory",
+      query: req.query,
+    };
+
     try {
+      logInfo("Get inventory started", requestMeta);
+
       if (!req.userId) {
+        logWarn("Get inventory rejected: missing user id", requestMeta);
         return res.status(400).json({ error: "User ID is required" });
       }
 
       if (!req.store?.id) {
+        logWarn("Get inventory rejected: missing store context", requestMeta);
         return res.status(400).json({ error: "Store context is required" });
       }
 
       const validation = getInventorySchema.safeParse(req.query);
       if (!validation.success) {
+        logWarn("Get inventory validation failed", {
+          ...requestMeta,
+          validationErrors: validation.error.issues,
+        });
         return res.status(400).json({
           error: "Invalid query parameters",
           details: validation.error.issues,
@@ -150,6 +204,7 @@ export class InventoryController {
       }
 
       if (!req.tenantPrisma) {
+        logWarn("Get inventory rejected: tenant prisma missing", requestMeta);
         return res.status(404).json({ error: "Tenant not found" });
       }
 
@@ -253,19 +308,33 @@ export class InventoryController {
       }> = [];
 
       if (shouldIncludeServices) {
-        serviceProducts = await req.tenantPrisma.productVariation.findMany({
-          where: serviceProductConditions,
-          include: {
-            product: {
-              include: {
-                product_category: true,
+        try {
+          serviceProducts = await req.tenantPrisma.productVariation.findMany({
+            where: serviceProductConditions,
+            include: {
+              product: {
+                include: {
+                  product_category: true,
+                },
               },
+              unit: true,
+              supplier: true,
             },
-            unit: true,
-            supplier: true,
-          },
-          orderBy: { created_at: "desc" },
-        });
+            orderBy: { created_at: "desc" },
+          });
+        } catch (serviceError) {
+          logError("Service product fetch failed", serviceError, {
+            ...requestMeta,
+            filters: {
+              search,
+              category,
+              price_min,
+              price_max,
+              stock_level,
+            },
+          });
+          throw serviceError;
+        }
       }
 
       // Format inventory for POS frontend (matching InventoryItem interface)
@@ -363,6 +432,23 @@ export class InventoryController {
       // Combine inventory items with services (services first for visibility)
       const combinedInventory = [...formattedServices, ...formattedInventory];
 
+      logInfo("Get inventory completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        pagination: {
+          total: totalCount + serviceProducts.length,
+          limit: take,
+          hasNextPage,
+          nextCursor,
+          page: pageNum ?? null,
+        },
+        counts: {
+          inventoryItems: formattedInventory.length,
+          serviceItems: formattedServices.length,
+          returned: combinedInventory.length,
+        },
+      });
+
       return res.json({
         inventory: combinedInventory,
         pagination: {
@@ -377,7 +463,10 @@ export class InventoryController {
         },
       });
     } catch (error) {
-      logger.error("Get inventory error:", "inventoryController", error);
+      logError("Get inventory failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to get inventory",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -386,9 +475,22 @@ export class InventoryController {
   }
 
   async restock(req: AuthRequest, res: Response): Promise<Response> {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "restock",
+      body: req.body,
+    };
+
     try {
+      logInfo("Restock started", requestMeta);
+
       const validation = restockSchema.safeParse(req.body);
       if (!validation.success) {
+        logWarn("Restock validation failed", {
+          ...requestMeta,
+          validationErrors: validation.error.issues,
+        });
         return res.status(400).json({
           error: "Invalid input data",
           details: validation.error.issues,
@@ -403,10 +505,12 @@ export class InventoryController {
       } = validation.data;
 
       if (!req.store?.id) {
+        logWarn("Restock rejected: missing store context", requestMeta);
         return res.status(403).json({ error: "Store context required" });
       }
 
       if (!req.tenantPrisma) {
+        logWarn("Restock rejected: tenant prisma missing", requestMeta);
         return res.status(404).json({ error: "Tenant not found" });
       }
 
@@ -460,9 +564,19 @@ export class InventoryController {
         }
       );
 
+      logInfo("Restock completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        variationId,
+        quantity,
+      });
+
       return res.json({ message: "Stock updated successfully", result });
     } catch (error) {
-      logger.error("Restock error:", "inventoryController", error);
+      logError("Restock failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to update stock",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -471,12 +585,23 @@ export class InventoryController {
   }
 
   async getLowStockItems(req: AuthRequest, res: Response): Promise<Response> {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getLowStockItems",
+      query: req.query,
+    };
+
     try {
+      logInfo("Get low stock items started", requestMeta);
+
       if (!req.store?.id) {
+        logWarn("Low stock request rejected: missing store context", requestMeta);
         return res.status(400).json({ error: "Store context is required" });
       }
 
       if (!req.tenantPrisma) {
+        logWarn("Low stock request rejected: tenant prisma missing", requestMeta);
         return res.status(404).json({ error: "Tenant not found" });
       }
 
@@ -514,9 +639,18 @@ export class InventoryController {
         })
       );
 
+      logInfo("Get low stock items completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        count: formattedItems.length,
+      });
+
       return res.json({ items: formattedItems });
     } catch (error) {
-      logger.error("Get low stock items error:", "inventoryController", error);
+      logError("Get low stock items failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to get low stock items",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -525,9 +659,22 @@ export class InventoryController {
   }
 
   async getStockReport(req: AuthRequest, res: Response): Promise<Response> {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "getStockReport",
+      query: req.query,
+    };
+
     try {
+      logInfo("Get stock report started", requestMeta);
+
       const validation = stockReportSchema.safeParse(req.query);
       if (!validation.success) {
+        logWarn("Stock report validation failed", {
+          ...requestMeta,
+          validationErrors: validation.error.issues,
+        });
         return res.status(400).json({
           error: "Invalid query parameters",
           details: validation.error.issues,
@@ -536,6 +683,7 @@ export class InventoryController {
       const { store_id } = validation.data;
 
       if (!store_id) {
+        logWarn("Stock report rejected: missing store id", requestMeta);
         return res.status(400).json({
           error: "Store ID is required",
         });
@@ -543,6 +691,7 @@ export class InventoryController {
 
       // 1. Total Inventory Value (Cost Price * Quantity)
       if (!req.tenantPrisma) {
+        logWarn("Stock report rejected: tenant prisma missing", requestMeta);
         return res.status(404).json({ error: "Tenant not found" });
       }
 
@@ -585,6 +734,16 @@ export class InventoryController {
         take: 5,
       });
 
+      logInfo("Get stock report completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        reportStoreId: store_id,
+        totalValue,
+        lowStockCount,
+        outOfStockCount,
+        mostStockedCount: mostStocked.length,
+      });
+
       return res.json({
         total_value: totalValue,
         low_stock_count: lowStockCount,
@@ -595,7 +754,10 @@ export class InventoryController {
         })),
       });
     } catch (error) {
-      logger.error("Get stock report error:", "inventoryController", error);
+      logError("Get stock report failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to get stock report",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -604,9 +766,22 @@ export class InventoryController {
   }
 
   async transfer(req: AuthRequest, res: Response): Promise<Response> {
+    const startedAt = Date.now();
+    const requestMeta = {
+      ...baseRequestMeta(req),
+      route: "transfer",
+      body: req.body,
+    };
+
     try {
+      logInfo("Transfer started", requestMeta);
+
       const validation = transferSchema.safeParse(req.body);
       if (!validation.success) {
+        logWarn("Transfer validation failed", {
+          ...requestMeta,
+          validationErrors: validation.error.issues,
+        });
         return res.status(400).json({
           error: "Invalid input data",
           details: validation.error.issues,
@@ -615,16 +790,22 @@ export class InventoryController {
       const { items, destinationStoreId } = validation.data;
 
       if (!req.store?.id) {
+        logWarn("Transfer rejected: missing source store context", requestMeta);
         return res.status(403).json({ error: "Source store context required" });
       }
 
       if (req.store.id === destinationStoreId) {
+        logWarn("Transfer rejected: same source and destination store", {
+          ...requestMeta,
+          destinationStoreId,
+        });
         return res
           .status(400)
           .json({ error: "Cannot transfer to the same store" });
       }
 
       if (!req.tenantPrisma) {
+        logWarn("Transfer rejected: tenant prisma missing", requestMeta);
         return res.status(404).json({ error: "Tenant not found" });
       }
 
@@ -656,7 +837,13 @@ export class InventoryController {
             quantity: item.quantity,
             error: errorMessage,
           });
-          logger.error(`Transfer error for item ${index}:`, "inventoryController", error);
+          logError("Transfer item failed", error, {
+            ...requestMeta,
+            itemIndex: index,
+            variationId: item.variationId,
+            quantity: item.quantity,
+            destinationStoreId,
+          });
 
           // For bulk transfers, stop on first error to maintain atomicity
           break;
@@ -664,6 +851,14 @@ export class InventoryController {
       }
 
       if (errors.length > 0) {
+        logWarn("Transfer completed with failures", {
+          ...requestMeta,
+          durationMs: Date.now() - startedAt,
+          destinationStoreId,
+          completedCount: results.length,
+          failureCount: errors.length,
+        });
+
         return res.status(400).json({
           error: "Transfer failed",
           message: `Failed to transfer item(s). ${errors.length} error(s) occurred.`,
@@ -672,13 +867,23 @@ export class InventoryController {
         });
       }
 
+      logInfo("Transfer completed", {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+        destinationStoreId,
+        transferredCount: items.length,
+      });
+
       return res.json({
         message: "Transfer completed successfully",
         transferred: items.length,
         results,
       });
     } catch (error) {
-      logger.error("Transfer error:", "inventoryController", error);
+      logError("Transfer failed", error, {
+        ...requestMeta,
+        durationMs: Date.now() - startedAt,
+      });
       return res.status(500).json({
         error: "Failed to transfer items",
         message: error instanceof Error ? error.message : "Unknown error",
