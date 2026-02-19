@@ -74,8 +74,15 @@ export const useAuthStore = create<AuthState>()(
       // Bind API client callbacks
       if (typeof window !== "undefined") {
         api.onAuthFailure = async () => {
+          // During initial bootstrap, unauthenticated users can legitimately
+          // receive 401 responses (no cookie yet). Avoid forcing a full-page
+          // navigation in that case.
+          const { isAuthenticated, user } = get();
+          if (!isAuthenticated && !user) {
+            return;
+          }
+
           await get().signOut();
-          window.location.href = "/login";
         };
       }
 

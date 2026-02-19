@@ -4,7 +4,7 @@
  * COOKIE-BASED AUTH:
  * - All requests include credentials: 'include' to send HttpOnly cookies
  * - No token management needed on frontend - cookies are handled automatically
- * - On 401, triggers auth failure callback to redirect to login
+ * - On 401, triggers auth failure callback to clear auth state
  */
 
 /** Error codes from backend auth middleware */
@@ -49,7 +49,7 @@ export class ApiClient {
   private baseUrl: string;
 
   /**
-   * Callback to handle auth failure (sign out and redirect).
+   * Callback to handle auth failure (e.g., sign out and clear local auth state).
    * Set by AuthStore at runtime.
    */
   onAuthFailure: (() => Promise<void>) | null = null;
@@ -114,7 +114,8 @@ export class ApiClient {
         // Don't trigger failure for auth endpoints themselves
         if (
           !path.includes("/api/auth/login") &&
-          !path.includes("/api/auth/register")
+          !path.includes("/api/auth/register") &&
+          !path.includes("/api/auth/logout")
         ) {
           if (this.onAuthFailure) {
             await this.onAuthFailure();
