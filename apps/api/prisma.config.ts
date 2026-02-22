@@ -1,13 +1,22 @@
 import { defineConfig, env } from "prisma/config";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 
-// 1️⃣ Determine env file from NODE_ENV
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env" : ".env.development";
+// Load env vars with sensible fallbacks for local + CI/docker builds.
+// In many deployments `.env` is not checked into git, while `.env.production` is.
+const nodeEnv = process.env.NODE_ENV;
+const envFiles =
+  nodeEnv === "production"
+    ? [".env.production", ".env"]
+    : [".env.development", ".env"];
 
-// 2️⃣ Load env vars
-dotenv.config({ path: path.resolve(envFile) });
+for (const file of envFiles) {
+  const fullPath = path.resolve(file);
+  if (fs.existsSync(fullPath)) {
+    dotenv.config({ path: fullPath, override: false });
+  }
+}
 
 export default defineConfig({
   schema: "prisma/schema/",
