@@ -59,13 +59,6 @@ function resolveApiBaseUrl(): string {
     return trimTrailingSlash(explicitApiUrl);
   }
 
-  if (!import.meta.env.DEV && typeof window !== "undefined") {
-    const browserOrigin = window.location.origin?.trim();
-    if (browserOrigin) {
-      return trimTrailingSlash(browserOrigin);
-    }
-  }
-
   const customEnv = import.meta.env.VITE_ENV?.trim().toLowerCase();
   if (customEnv === "development") return DEV_API_BASE_URL;
   if (customEnv === "production" && !import.meta.env.DEV) {
