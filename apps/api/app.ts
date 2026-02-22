@@ -145,42 +145,52 @@ const wildcardAllowedOrigins = corsOrigin
 
 const bozorchiDomainRegex = /^https?:\/\/([a-z0-9-]+\.)*bozorchi\.store$/i;
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+const isAllowedCorsOrigin = (origin: string): boolean => {
+  const isDevEnvironment = process.env["NODE_ENV"] !== "production";
+  const isDevOrigin = isDevEnvironment && defaultDevOrigins.includes(origin);
+  const isExactMatch = exactAllowedOrigins.includes(origin);
+  const matchesWildcard = wildcardAllowedOrigins.some((regex) =>
+    regex.test(origin)
+  );
+  const isBozorchiDomain = bozorchiDomainRegex.test(origin);
+  const isLocalhost =
+    allowLocalhostOrigins &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
 
-      const isDevEnvironment = process.env["NODE_ENV"] !== "production";
-      const isDevOrigin =
-        isDevEnvironment && defaultDevOrigins.includes(origin);
-      const isExactMatch = exactAllowedOrigins.includes(origin);
-      const matchesWildcard = wildcardAllowedOrigins.some((regex) =>
-        regex.test(origin)
-      );
-      const isBozorchiDomain = bozorchiDomainRegex.test(origin);
-      const isLocalhost =
-        allowLocalhostOrigins &&
-        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+  return (
+    isExactMatch ||
+    matchesWildcard ||
+    isDevOrigin ||
+    isBozorchiDomain ||
+    isLocalhost
+  );
+};
 
-      if (
-        isExactMatch ||
-        matchesWildcard ||
-        isDevOrigin ||
-        isBozorchiDomain ||
-        isLocalhost
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Content-Length", "X-Request-Id"],
-    maxAge: 86400, // 24 hours
-  })
-);
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (isAllowedCorsOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
+  exposedHeaders: ["Content-Length", "X-Request-Id"],
+  maxAge: 86400, // 24 hours
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Global rate limiter
 const rateLimitWindowMs = parseInt(

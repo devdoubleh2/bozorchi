@@ -59,6 +59,13 @@ function resolveApiBaseUrl(): string {
     return trimTrailingSlash(explicitApiUrl);
   }
 
+  if (!import.meta.env.DEV && typeof window !== "undefined") {
+    const browserOrigin = window.location.origin?.trim();
+    if (browserOrigin) {
+      return trimTrailingSlash(browserOrigin);
+    }
+  }
+
   const customEnv = import.meta.env.VITE_ENV?.trim().toLowerCase();
   if (customEnv === "development") return DEV_API_BASE_URL;
   if (customEnv === "production" && !import.meta.env.DEV) {
@@ -68,8 +75,28 @@ function resolveApiBaseUrl(): string {
   return import.meta.env.DEV ? DEV_API_BASE_URL : PROD_API_BASE_URL;
 }
 
+function resolveFallbackBaseUrl(primaryBaseUrl: string): string | null {
+  const candidates = new Set<string>();
+
+  if (typeof window !== "undefined" && window.location.origin) {
+    candidates.add(trimTrailingSlash(window.location.origin));
+  }
+
+  candidates.add(trimTrailingSlash(PROD_API_BASE_URL));
+
+  const normalizedPrimary = trimTrailingSlash(primaryBaseUrl);
+  for (const candidate of candidates) {
+    if (candidate !== normalizedPrimary) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 export class ApiClient {
   private baseUrl: string;
+  private fallbackBaseUrl: string | null;
 
   /**
    * Callback to handle auth failure (e.g., sign out and clear local auth state).
@@ -79,6 +106,7 @@ export class ApiClient {
 
   constructor() {
     this.baseUrl = resolveApiBaseUrl();
+    this.fallbackBaseUrl = resolveFallbackBaseUrl(this.baseUrl);
   }
 
   getBaseUrl(): string {
@@ -111,17 +139,44 @@ export class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    const requestUrl = new URL(path, this.baseUrl).toString();
-    let response: Response;
+    let response: Response | null = null;
+    let requestUrl = "";
     try {
-      response = await fetch(requestUrl, {
-        ...init,
-        headers,
-        credentials: "include", // Send cookies with every request
-      });
+      const baseUrls = [this.baseUrl];
+      if (this.fallbackBaseUrl) {
+        baseUrls.push(this.fallbackBaseUrl);
+      }
+
+      let lastError: unknown = null;
+      for (let i = 0; i < baseUrls.length; i += 1) {
+        requestUrl = new URL(path, baseUrls[i]!).toString();
+        try {
+          response = await fetch(requestUrl, {
+            ...init,
+            headers,
+            credentials: "include", // Send cookies with every request
+          });
+          break;
+        } catch (error) {
+          lastError = error;
+          if (i === baseUrls.length - 1) {
+            const reason =
+              lastError instanceof Error ? lastError.message : "Unknown error";
+            throw new Error(
+              `Network request failed: ${path} (tried: ${baseUrls.join(", ")}; ${reason})`
+            );
+          }
+        }
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Network request failed: ${requestUrl} (${reason})`);
+      throw new Error(
+        `Network request failed: ${requestUrl || path} (${reason})`
+      );
+    }
+
+    if (!response) {
+      throw new Error(`Network request failed: ${requestUrl || path}`);
     }
 
     if (!response.ok) {
@@ -225,17 +280,44 @@ export class ApiClient {
     const headers: Record<string, string> = {
       Accept: "application/octet-stream",
     };
-    const requestUrl = new URL(path, this.baseUrl).toString();
-    let response: Response;
+    let response: Response | null = null;
+    let requestUrl = "";
     try {
-      response = await fetch(requestUrl, {
-        method: "GET",
-        headers,
-        credentials: "include",
-      });
+      const baseUrls = [this.baseUrl];
+      if (this.fallbackBaseUrl) {
+        baseUrls.push(this.fallbackBaseUrl);
+      }
+
+      let lastError: unknown = null;
+      for (let i = 0; i < baseUrls.length; i += 1) {
+        requestUrl = new URL(path, baseUrls[i]!).toString();
+        try {
+          response = await fetch(requestUrl, {
+            method: "GET",
+            headers,
+            credentials: "include",
+          });
+          break;
+        } catch (error) {
+          lastError = error;
+          if (i === baseUrls.length - 1) {
+            const reason =
+              lastError instanceof Error ? lastError.message : "Unknown error";
+            throw new Error(
+              `Download request failed: ${path} (tried: ${baseUrls.join(", ")}; ${reason})`
+            );
+          }
+        }
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Download request failed: ${requestUrl} (${reason})`);
+      throw new Error(
+        `Download request failed: ${requestUrl || path} (${reason})`
+      );
+    }
+
+    if (!response) {
+      throw new Error(`Download request failed: ${requestUrl || path}`);
     }
 
     if (!response.ok) {

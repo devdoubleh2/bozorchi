@@ -15,7 +15,7 @@
     "generate:tenant": "bunx prisma generate --schema=prisma/tenant/schema.prisma",
     "generate:shared": "bunx prisma generate --schema=../../packages/@bozorchi/shared/src/generated/schema.prisma",
     "generate:all": "bun run generate:public && bun run generate:tenant && bun run generate:shared",
-    "start": "bun app.ts",
+    "start": "bun --env-file=.env.production app.ts",
     "test": "jest",
     "test:int": "bun test tests/integration",
     "test:watch": "jest --watch",

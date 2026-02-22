@@ -6,6 +6,7 @@ import {
   Worker,
   type ConnectionOptions,
 } from "bullmq";
+import Redis from "ioredis";
 import logger from "../../logs/log";
 import { getTenantPrisma } from "./prisma";
 import {
@@ -59,6 +60,9 @@ let importQueueEvents: QueueEvents | null = null;
 let queueAvailable = false;
 let queueUnavailableReason =
   "REDIS_URL/BullMQ unavailable. Bulk import queue is not initialized.";
+let lastConnectionErrorLogAt = 0;
+
+const CONNECTION_ERROR_LOG_THROTTLE_MS = 30_000;
 
 const defaultProgress = (inputCount: number): ImportProgressSnapshot => ({
   inputCount,
@@ -128,7 +132,69 @@ const normalizeProgress = (
 
 const buildConnectionOptions = (redisUrl: string): ConnectionOptions => ({
   url: redisUrl,
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: null,
+  connectTimeout: 10_000,
+  retryStrategy: (attempts: number) => {
+    if (attempts > 5) {
+      return null;
+    }
+    return Math.min(attempts * 500, 5_000);
+  },
 });
+
+const normalizeRedisUrl = (value: string): string => {
+  const trimmed = value.trim();
+  const parsed = new URL(trimmed);
+  if (parsed.hash) {
+    throw new Error(
+      "REDIS_URL contains an unescaped '#'. URL-encode special characters in the password."
+    );
+  }
+
+  if (parsed.protocol !== "redis:" && parsed.protocol !== "rediss:") {
+    throw new Error("REDIS_URL must start with redis:// or rediss://");
+  }
+
+  return parsed.toString();
+};
+
+const verifyRedisConnection = async (redisUrl: string): Promise<void> => {
+  const probe = new Redis(redisUrl, {
+    lazyConnect: true,
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: 1,
+    connectTimeout: 5_000,
+    retryStrategy: () => null,
+  });
+
+  try {
+    await probe.connect();
+    await probe.ping();
+  } finally {
+    await probe.quit().catch(() => {
+      probe.disconnect();
+    });
+  }
+};
+
+const logQueueConnectionError = (source: string, error: unknown): void => {
+  const maybeError = error as { code?: string };
+  const isConnectionError =
+    maybeError?.code === "ECONNREFUSED" ||
+    maybeError?.code === "ETIMEDOUT" ||
+    maybeError?.code === "EHOSTUNREACH";
+
+  if (isConnectionError) {
+    const now = Date.now();
+    if (now - lastConnectionErrorLogAt < CONNECTION_ERROR_LOG_THROTTLE_MS) {
+      return;
+    }
+    lastConnectionErrorLogAt = now;
+  }
+
+  logger.error(source, "importQueue", error);
+};
 
 export const isImportQueueAvailable = (): boolean => queueAvailable;
 
@@ -158,12 +224,31 @@ export async function initializeImportQueue(): Promise<{
     };
   }
 
+  let normalizedRedisUrl = "";
+  try {
+    normalizedRedisUrl = normalizeRedisUrl(redisUrl);
+  } catch (error) {
+    queueAvailable = false;
+    queueUnavailableReason =
+      "REDIS_URL/BullMQ unavailable. Invalid REDIS_URL format.";
+    logger.warn("Import queue disabled due to invalid REDIS_URL", "importQueue", {
+      reason: error instanceof Error ? error.message : String(error),
+    });
+
+    return {
+      available: false,
+      message: queueUnavailableReason,
+    };
+  }
+
   await closeImportQueue();
 
   try {
-    queueConnection = buildConnectionOptions(redisUrl);
-    workerConnection = buildConnectionOptions(redisUrl);
-    queueEventsConnection = buildConnectionOptions(redisUrl);
+    await verifyRedisConnection(normalizedRedisUrl);
+
+    queueConnection = buildConnectionOptions(normalizedRedisUrl);
+    workerConnection = buildConnectionOptions(normalizedRedisUrl);
+    queueEventsConnection = buildConnectionOptions(normalizedRedisUrl);
 
     importQueue = new Queue(IMPORT_QUEUE_NAME, {
       connection: queueConnection,
@@ -208,11 +293,11 @@ export async function initializeImportQueue(): Promise<{
     );
 
     importQueueEvents.on("error", (error) => {
-      logger.error("Import queue events error", "importQueue", error);
+      logQueueConnectionError("Import queue events error", error);
     });
 
     importWorker.on("error", (error) => {
-      logger.error("Import queue worker error", "importQueue", error);
+      logQueueConnectionError("Import queue worker error", error);
     });
 
     importWorker.on("failed", (job, error) => {
@@ -237,10 +322,13 @@ export async function initializeImportQueue(): Promise<{
     };
   } catch (error) {
     queueAvailable = false;
+    const reason = error instanceof Error ? error.message : String(error);
     queueUnavailableReason =
       "REDIS_URL/BullMQ unavailable. Failed to initialize queue infrastructure.";
 
-    logger.error("Failed to initialize import queue", "importQueue", error);
+    logger.error("Failed to initialize import queue", "importQueue", {
+      reason,
+    });
     await closeImportQueue();
 
     return {
