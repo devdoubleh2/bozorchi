@@ -122,11 +122,6 @@ export interface ImportRowInput {
   rawData: unknown;
 }
 
-type DedupeComparableRow = Pick<
-  ProductRow,
-  "productName" | "variationName" | "unitName" | "color"
->;
-
 export interface ImportExecutionError {
   row: number;
   product: string;
@@ -235,58 +230,6 @@ export const normalizeForMatch = (value: string | undefined | null): string =>
 export const normalizeColor = (value: string | undefined | null): string => {
   const normalized = normalizeForMatch(value);
   return normalized || DEFAULT_VARIATION_COLOR;
-};
-
-export const buildImportDedupeKey = (
-  storeId: string,
-  row: DedupeComparableRow
-): string => {
-  const productName = normalizeForMatch(row.productName);
-  const variationName = normalizeForMatch(row.variationName);
-  const unitName = normalizeForMatch(row.unitName);
-  const color = normalizeColor(row.color);
-
-  return `${storeId}|${productName}|${variationName}|${unitName}|${color}`;
-};
-
-export const buildDedupeWhereClause = (
-  storeId: string,
-  row: DedupeComparableRow
-): Prisma.ProductVariationWhereInput => {
-  const normalizedColor = normalizeColor(row.color);
-  const colorWhere: Prisma.ProductVariationWhereInput[] = [
-    {
-      color: {
-        equals: normalizedColor,
-        mode: "insensitive",
-      },
-    },
-  ];
-
-  if (normalizedColor === DEFAULT_VARIATION_COLOR) {
-    colorWhere.push({ color: null });
-  }
-
-  return {
-    store_id: storeId,
-    product: {
-      name: {
-        equals: row.productName.trim(),
-        mode: "insensitive",
-      },
-    },
-    name: {
-      equals: row.variationName.trim(),
-      mode: "insensitive",
-    },
-    unit: {
-      name: {
-        equals: row.unitName.trim(),
-        mode: "insensitive",
-      },
-    },
-    OR: colorWhere,
-  };
 };
 
 export const parseWorksheetProductRows = (
@@ -408,90 +351,78 @@ export async function validateImportRows(
         message: `Штрихкод уже существует в базе: ${row.data.barcode}`,
       });
     });
-  }
-
-  const dedupeRows = new Map<string, number[]>();
-  parsedRows.forEach((row) => {
-    const dedupeKey = buildImportDedupeKey(storeId, row.data);
-    const existing = dedupeRows.get(dedupeKey) || [];
-    existing.push(row.rowNumber);
-    dedupeRows.set(dedupeKey, existing);
-  });
-
-  dedupeRows.forEach((rowNumbers) => {
-    if (rowNumbers.length <= 1) {
-      return;
     }
 
-    rowNumbers.forEach((rowNumber) => {
-      errors.push({
-        row: rowNumber,
-        field: "dedupeKey",
-        message:
-          "Дубликат в файле: комбинация товар/вариация/единица/цвет должна быть уникальной",
-      });
-    });
-  });
-
-  const uniqueRowsForDbLookup: ProductRow[] = [];
-  const seenKeys = new Set<string>();
-  parsedRows.forEach((row) => {
-    const dedupeKey = buildImportDedupeKey(storeId, row.data);
-    if (seenKeys.has(dedupeKey)) {
-      return;
-    }
-
-    seenKeys.add(dedupeKey);
-    uniqueRowsForDbLookup.push(row.data);
-  });
-
-  if (uniqueRowsForDbLookup.length > 0) {
-    const existingDedupeMatches = await tenantPrisma.productVariation.findMany({
-      where: {
-        OR: uniqueRowsForDbLookup.map((row) => buildDedupeWhereClause(storeId, row)),
-      },
-      select: {
-        store_id: true,
-        name: true,
-        color: true,
-        product: {
-          select: {
-            name: true,
-          },
-        },
-        unit: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    const existingDedupeSet = new Set(
-      existingDedupeMatches.map((item) =>
-        buildImportDedupeKey(item.store_id || storeId, {
-          productName: item.product.name,
-          variationName: item.name,
-          unitName: item.unit.name,
-          color: item.color ?? undefined,
-        })
-      )
-    );
-
+    const skuRows = new Map<string, { sku: string; rows: number[] }>();
     parsedRows.forEach((row) => {
-      const dedupeKey = buildImportDedupeKey(storeId, row.data);
-      if (!existingDedupeSet.has(dedupeKey)) {
+      if (!row.data.sku) {
         return;
       }
 
-      errors.push({
-        row: row.rowNumber,
-        field: "dedupeKey",
-        message:
-          "Комбинация товар/вариация/единица/цвет уже существует в базе",
+      const sku = row.data.sku.trim();
+      if (!sku) {
+        return;
+      }
+
+      const key = normalizeForMatch(sku);
+      const existing = skuRows.get(key);
+      if (existing) {
+        existing.rows.push(row.rowNumber);
+        return;
+      }
+
+      skuRows.set(key, { sku, rows: [row.rowNumber] });
+    });
+
+    skuRows.forEach((entry) => {
+      if (entry.rows.length <= 1) {
+        return;
+      }
+
+      entry.rows.forEach((rowNumber) => {
+        errors.push({
+          row: rowNumber,
+          field: "sku",
+          message: `Дубликат SKU в файле: ${entry.sku}`,
+        });
       });
     });
-  }
+
+    const skuValues = Array.from(skuRows.values()).map((entry) => entry.sku);
+    if (skuValues.length > 0) {
+      const existingSkus = await tenantPrisma.productVariation.findMany({
+        where: {
+          store_id: storeId,
+          OR: buildInsensitiveSkuOr(skuValues),
+        },
+        select: {
+          sku: true,
+        },
+      });
+
+      const existingSkuSet = new Set(
+        existingSkus
+          .filter((item): item is { sku: string } => item.sku !== null)
+          .map((item) => normalizeForMatch(item.sku))
+      );
+
+      parsedRows.forEach((row) => {
+        if (!row.data.sku) {
+          return;
+        }
+
+        const normalizedSku = normalizeForMatch(row.data.sku);
+        if (!existingSkuSet.has(normalizedSku)) {
+          return;
+        }
+
+        errors.push({
+          row: row.rowNumber,
+          field: "sku",
+          message: `SKU уже существует в базе: ${row.data.sku}`,
+        });
+      });
+    }
 
   const rowsWithErrors = new Set(errors.map((error) => error.row));
 
@@ -530,6 +461,14 @@ const buildInsensitiveNameOr = (names: string[]) =>
       equals: name,
       mode: "insensitive" as const,
     },
+  }));
+
+const buildInsensitiveSkuOr = (skus: string[]) =>
+  skus.map((sku) => ({
+    sku: {
+      equals: sku,
+      mode: "insensitive",
+    } as Prisma.StringNullableFilter,
   }));
 
 export async function executeImportRows(
@@ -754,14 +693,27 @@ export async function executeImportRows(
             }
 
             const duplicateVariation = await tx.productVariation.findFirst({
-              where: buildDedupeWhereClause(storeId, productData),
+              where: {
+                store_id: storeId,
+                OR: [
+                  { barcode: productData.barcode },
+                  ...(productData.sku
+                    ? [
+                        {
+                          sku: {
+                            equals: productData.sku,
+                            mode: "insensitive",
+                          } as Prisma.StringNullableFilter,
+                        },
+                      ]
+                    : []),
+                ],
+              },
               select: { id: true },
             });
 
             if (duplicateVariation) {
-              throw new Error(
-                "Комбинация товар/вариация/единица/цвет уже существует в базе"
-              );
+              throw new Error("Штрихкод или SKU уже существует в базе");
             }
 
             const productVariation = await tx.productVariation.create({

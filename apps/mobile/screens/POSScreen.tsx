@@ -146,6 +146,30 @@ const getImageUrl = (
   return "";
 };
 
+const SEARCH_DEBOUNCE_MS = 300;
+
+const useDebouncedQuery = (value: string, delay: number): string => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    // Apply clear actions immediately so cancel feels responsive.
+    if (!value) {
+      setDebouncedValue(value);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 export default function POSScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,6 +180,14 @@ export default function POSScreen() {
   );
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [showCustomerSection, setShowCustomerSection] = useState(false);
+  const debouncedSearchQuery = useDebouncedQuery(
+    searchQuery,
+    SEARCH_DEBOUNCE_MS
+  );
+  const debouncedCustomerSearchQuery = useDebouncedQuery(
+    customerSearchQuery,
+    SEARCH_DEBOUNCE_MS
+  );
 
   // Form states
   const [customerForm, setCustomerForm] = useState({
@@ -666,23 +698,24 @@ export default function POSScreen() {
 
   // Filter inventory based on search
   const filteredInventory = useMemo(() => {
-    if (!searchQuery.trim()) {
+    const normalizedQuery = debouncedSearchQuery.trim();
+    if (!normalizedQuery) {
       return inventory;
     }
 
+    const searchLower = normalizedQuery.toLowerCase();
     return inventory.filter((item) => {
-      const searchLower = searchQuery.toLowerCase();
       return (
         item.product_variation.name.toLowerCase().includes(searchLower) ||
         item.product_variation.product.name
           .toLowerCase()
           .includes(searchLower) ||
-        item.product_variation.barcode.includes(searchQuery) ||
+        item.product_variation.barcode.includes(normalizedQuery) ||
         (item.product_variation.sku &&
           item.product_variation.sku.toLowerCase().includes(searchLower))
       );
     });
-  }, [inventory, searchQuery]);
+  }, [inventory, debouncedSearchQuery]);
 
   // Group inventory by category for SectionList
   const groupedInventory: InventorySection[] = useMemo(() => {
@@ -713,20 +746,21 @@ export default function POSScreen() {
 
   // Filter customers based on search
   const filteredCustomers = useMemo(() => {
-    if (!customerSearchQuery.trim()) {
+    const normalizedQuery = debouncedCustomerSearchQuery.trim();
+    if (!normalizedQuery) {
       return customers;
     }
 
+    const searchLower = normalizedQuery.toLowerCase();
     return customers.filter((customer) => {
-      const searchLower = customerSearchQuery.toLowerCase();
       return (
         customer.name.toLowerCase().includes(searchLower) ||
         (customer.email &&
           customer.email.toLowerCase().includes(searchLower)) ||
-        (customer.phone && customer.phone.includes(customerSearchQuery))
+        (customer.phone && customer.phone.includes(normalizedQuery))
       );
     });
-  }, [customers, customerSearchQuery]);
+  }, [customers, debouncedCustomerSearchQuery]);
 
   // Cart calculations from store
   const cartTotal = getCartTotal();

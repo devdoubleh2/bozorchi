@@ -299,6 +299,9 @@ const TabNavigator = () => {
                 }) => {
                   posSearchHandlersRef.onSearchSubmit(event.nativeEvent.text);
                 },
+                onCancelButtonPress: () => {
+                  posSearchHandlersRef.onSearchCancel();
+                },
               }
             ),
             headerRight: () => (
