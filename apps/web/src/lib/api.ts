@@ -45,6 +45,29 @@ const PERMISSION_LABELS: Record<string, string> = {
   VIEW_DASHBOARD: "View Dashboard",
 };
 
+const DEV_API_BASE_URL =
+  "https://bozorchi-devbackend-ikzdd4-b4a788-46-62-221-217.traefik.me";
+const PROD_API_BASE_URL = "https://app.bozorchi.store";
+
+function trimTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
+function resolveApiBaseUrl(): string {
+  const explicitApiUrl = import.meta.env.VITE_API_URL?.trim();
+  if (explicitApiUrl) {
+    return trimTrailingSlash(explicitApiUrl);
+  }
+
+  const customEnv = import.meta.env.VITE_ENV?.trim().toLowerCase();
+  if (customEnv === "development") return DEV_API_BASE_URL;
+  if (customEnv === "production" && !import.meta.env.DEV) {
+    return PROD_API_BASE_URL;
+  }
+
+  return import.meta.env.DEV ? DEV_API_BASE_URL : PROD_API_BASE_URL;
+}
+
 export class ApiClient {
   private baseUrl: string;
 
@@ -55,11 +78,7 @@ export class ApiClient {
   onAuthFailure: (() => Promise<void>) | null = null;
 
   constructor() {
-    this.baseUrl =
-      import.meta.env.VITE_ENV === "development"
-        ? "https://bozorchi-devbackend-ikzdd4-b4a788-46-62-221-217.traefik.me"
-        // : "http://localhost:3000";
-        : "https://app.bozorchi.store";
+    this.baseUrl = resolveApiBaseUrl();
   }
 
   getBaseUrl(): string {
@@ -92,11 +111,18 @@ export class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(new URL(path, this.baseUrl).toString(), {
-      ...init,
-      headers,
-      credentials: "include", // Send cookies with every request
-    });
+    const requestUrl = new URL(path, this.baseUrl).toString();
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        ...init,
+        headers,
+        credentials: "include", // Send cookies with every request
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown error";
+      throw new Error(`Network request failed: ${requestUrl} (${reason})`);
+    }
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
@@ -199,12 +225,18 @@ export class ApiClient {
     const headers: Record<string, string> = {
       Accept: "application/octet-stream",
     };
-
-    const response = await fetch(new URL(path, this.baseUrl).toString(), {
-      method: "GET",
-      headers,
-      credentials: "include",
-    });
+    const requestUrl = new URL(path, this.baseUrl).toString();
+    let response: Response;
+    try {
+      response = await fetch(requestUrl, {
+        method: "GET",
+        headers,
+        credentials: "include",
+      });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown error";
+      throw new Error(`Download request failed: ${requestUrl} (${reason})`);
+    }
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
