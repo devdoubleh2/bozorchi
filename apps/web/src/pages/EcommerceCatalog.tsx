@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { Search, ShoppingCart, Loader2, X, Plus, Minus, Package2, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Seo from "@/components/Seo";
 
 const normalizeImageUrl = (url?: string | null) => {
   if (!url) return null;
@@ -107,8 +108,17 @@ interface Organization {
   logo?: string;
 }
 
+const toDisplayName = (slug: string): string => {
+  return slug
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function EcommerceCatalog() {
   const { retailName } = useParams<{ retailName: string }>();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -134,6 +144,36 @@ export default function EcommerceCatalog() {
     },
     retry: false,
   });
+
+  const fallbackStoreName = useMemo(() => {
+    return retailName ? toDisplayName(retailName) : "Store";
+  }, [retailName]);
+
+  const organizationName = orgData?.name ?? null;
+  const hasOrganization = Boolean(orgData);
+  const hasOrgError = Boolean(orgError);
+  const storeNameForSeo = organizationName ?? fallbackStoreName;
+  const isStoreUnavailable = !orgLoading && (hasOrgError || !hasOrganization);
+  const seoTitle = isStoreUnavailable
+    ? `${storeNameForSeo} Store`
+    : `${storeNameForSeo} Online Store`;
+  const seoDescription = isStoreUnavailable
+    ? `The store page for ${storeNameForSeo} is currently unavailable.`
+    : `Shop ${storeNameForSeo} online. Browse available products and place orders in minutes.`;
+  const seoRobots = isStoreUnavailable
+    ? "noindex,nofollow"
+    : "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
+  const seoJsonLd = isStoreUnavailable
+    ? null
+    : {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        name: storeNameForSeo,
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}${location.pathname}`
+            : location.pathname,
+      };
 
   // Use infinite query for paginated inventory loading (same pattern as POS.tsx)
   const inventoryQuery = useInfiniteQuery({
@@ -291,12 +331,22 @@ export default function EcommerceCatalog() {
 
   if (orgLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin" />
-          <p className="text-muted-foreground">Загрузка...</p>
+      <>
+        <Seo
+          title={seoTitle}
+          description={seoDescription}
+          path={location.pathname}
+          robots={seoRobots}
+          type="website"
+          jsonLd={seoJsonLd}
+        />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin" />
+            <p className="text-muted-foreground">Загрузка...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -307,25 +357,44 @@ export default function EcommerceCatalog() {
       (orgError.response as unknown as { status: number })?.status === 403;
 
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">
-            {isDisabled ? "Магазин недоступен" : "Магазин не найден"}
-          </h1>
-          <p className="text-muted-foreground">
-            {isDisabled 
-              ? `Интернет-магазин ${retailName} в настоящее время отключен. Пожалуйста, свяжитесь с владельцем магазина.`
-              : `Не удалось найти магазин: ${retailName}`
-            }
-          </p>
+      <>
+        <Seo
+          title={seoTitle}
+          description={seoDescription}
+          path={location.pathname}
+          robots={seoRobots}
+          type="website"
+          jsonLd={seoJsonLd}
+        />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-2">
+              {isDisabled ? "Магазин недоступен" : "Магазин не найден"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isDisabled 
+                ? `Интернет-магазин ${retailName} в настоящее время отключен. Пожалуйста, свяжитесь с владельцем магазина.`
+                : `Не удалось найти магазин: ${retailName}`
+              }
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <Seo
+        title={seoTitle}
+        description={seoDescription}
+        path={location.pathname}
+        robots={seoRobots}
+        type="website"
+        jsonLd={seoJsonLd}
+      />
+      <div className="min-h-screen bg-background">
       {/* Fixed Header */}
       <div className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -687,6 +756,7 @@ export default function EcommerceCatalog() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

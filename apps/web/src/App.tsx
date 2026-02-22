@@ -59,6 +59,7 @@ import { RequireAccess } from "@/components/auth";
 import type { Permission, Role } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
+import SeoManager from "@/components/SeoManager";
 
 // =============================================================================
 // TYPES
@@ -155,6 +156,7 @@ const ResetPasswordPage = lazyPage(() => import("./pages/ResetPassword"));
 
 // Core
 const Landing = lazyPage(() => import("./pages/Landing"));
+const ResourcesPage = lazyPage(() => import("./pages/Resources"));
 const Dashboard = lazyPage(() => import("./pages/Dashboard"));
 
 // Inventory
@@ -359,6 +361,7 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 const PUBLIC_ROUTES: RouteConfig[] = [
   { path: "/login", component: Login },
   { path: "/", component: Landing },
+  { path: "/resources", component: ResourcesPage },
   { path: "/register", component: Register },
   { path: "/forgot-password", component: ForgotPasswordPage },
   { path: "/reset-password", component: ResetPasswordPage },
@@ -848,6 +851,7 @@ export default function App() {
       <Toaster />
       <Paywall>
         <Router>
+          <SeoManager />
           <AppRoutes />
         </Router>
       </Paywall>

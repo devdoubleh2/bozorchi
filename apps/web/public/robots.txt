@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Keep private app surfaces out of search indexes.
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /inventory
+Disallow: /customers
+Disallow: /suppliers
+Disallow: /pos
+Disallow: /transactions
+Disallow: /repay-debt
+Disallow: /reports
+Disallow: /account
+Disallow: /staff
+Disallow: /subscription
+Disallow: /mobile-paywall
+Disallow: /stores
+Disallow: /fiscal-settings
+
+Sitemap: https://app.bozorchi.store/sitemap.xml

@@ -36,6 +36,7 @@ export default function LandingPage() {
                         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
                             <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-zinc-900 transition-colors">{t('landing.nav.platform', 'Platform')}</button>
                             <button onClick={() => document.getElementById('showcase')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-zinc-900 transition-colors">{t('landing.nav.solutions', 'Solutions')}</button>
+                            <button onClick={() => navigate("/resources")} className="hover:text-zinc-900 transition-colors">{t('landing.nav.resources', 'Resources')}</button>
                         </div>
 
                         {/* Desktop Actions */}
@@ -118,6 +119,12 @@ export default function LandingPage() {
                                             className="text-left py-3 px-4 rounded-xl text-zinc-600 hover:bg-zinc-50 font-medium transition-colors"
                                         >
                                             {t('landing.nav.solutions', 'Solutions')}
+                                        </button>
+                                        <button
+                                            onClick={() => { navigate("/resources"); closeMobileMenu(); }}
+                                            className="text-left py-3 px-4 rounded-xl text-zinc-600 hover:bg-zinc-50 font-medium transition-colors"
+                                        >
+                                            {t('landing.nav.resources', 'Resources')}
                                         </button>
                                     </div>
 
@@ -574,7 +581,7 @@ export default function LandingPage() {
                             <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-zinc-500">
                                 <li><a href="#" className="hover:text-zinc-900 transition-colors">About</a></li>
                                 <li><a href="#" className="hover:text-zinc-900 transition-colors">Careers</a></li>
-                                <li><a href="#" className="hover:text-zinc-900 transition-colors">Blog</a></li>
+                                <li><a href="/resources" className="hover:text-zinc-900 transition-colors">Resources</a></li>
                                 <li><a href="#" className="hover:text-zinc-900 transition-colors">Contact</a></li>
                             </ul>
                         </motion.div>
