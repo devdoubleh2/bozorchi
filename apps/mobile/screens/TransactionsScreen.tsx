@@ -58,9 +58,7 @@ const isSaleTransaction = (type?: TransactionType | string | null) =>
 // Check if transaction increases inventory (money going out)
 const isInventoryIncrease = (type?: TransactionType | string | null) =>
   type === "import" || type === "return" || type === "transfer_in" || type === "supplier_return";
-
-const toTestId = (value: string): string =>
-  value.replace(/[^a-zA-Z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+;
 
 export const transactionsSearchHandlersRef = {
   onSearchChange: (text: string) => { },
@@ -423,7 +421,7 @@ export default function TransactionsScreen() {
       quantity,
     }: {
       transactionId: string;
-      quantity?: number;
+      quantity: number;
     }) => {
       const response = await api.post<{
         message: string;
@@ -480,8 +478,8 @@ export default function TransactionsScreen() {
   const handleConfirmReturn = useCallback(() => {
     if (!returnTransaction) return;
 
-    const qty = parseInt(returnQuantity);
-    if (isNaN(qty) || qty <= 0) {
+    const qty = Number.parseFloat(returnQuantity);
+    if (Number.isNaN(qty) || qty <= 0) {
       Alert.alert(t("common.error"), t("transactions.invalidQuantity"));
       return;
     }
@@ -513,7 +511,6 @@ export default function TransactionsScreen() {
             <TouchableOpacity
               style={[styles.rightAction, styles.returnAction]}
               onPress={() => handleReturnTransactionClick(tx)}
-              testID={`transactions-return-${toTestId(tx.product_name)}`}
             >
               <Undo2 size={24} color="#fff" />
             </TouchableOpacity>
@@ -531,7 +528,6 @@ export default function TransactionsScreen() {
                 borderColor: isDark ? "#38383A" : "#E5E5EA",
               },
             ]}
-            testID={`transactions-item-${toTestId(tx.product_name)}`}
           >
             <View style={styles.txHeader}>
               <View style={styles.txHeaderLeft}>
@@ -858,7 +854,7 @@ export default function TransactionsScreen() {
                             : "#D1D1D6",
                       },
                     ]}
-                    onPress={() => setTempStatusFilter(option.value)}
+                    onPress={() => setTempStatusFilter(option.value as StatusFilter)}
                   >
                     <Text
                       style={[

@@ -25,10 +25,13 @@ const redisUrl = process.env["REDIS_URL"];
 if (redisUrl) {
     try {
         redis = new Redis(redisUrl, {
-            maxRetriesPerRequest: 3,
+            // Cache is best-effort, so fail fast when Redis isn't ready.
+            enableOfflineQueue: false,
+            maxRetriesPerRequest: 1,
             retryStrategy: (times) => {
-                if (times > 3) return null; // Stop retrying after 3 attempts
-                return Math.min(times * 100, 2000);
+                // Keep reconnecting indefinitely so transient outages recover
+                // without requiring an API process restart.
+                return Math.min(times * 200, 5000);
             },
             lazyConnect: false,
         });
@@ -45,6 +48,15 @@ if (redisUrl) {
 
         redis.on("close", () => {
             console.log("[REDIS] Connection closed");
+            redisEnabled = false;
+        });
+
+        redis.on("reconnecting", (ms: number) => {
+            console.log(`[REDIS] Reconnecting in ${ms}ms`);
+        });
+
+        redis.on("end", () => {
+            console.log("[REDIS] Connection ended");
             redisEnabled = false;
         });
 

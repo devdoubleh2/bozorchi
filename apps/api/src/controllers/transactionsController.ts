@@ -109,7 +109,7 @@ const createTransactionSchema = z.object({
 });
 
 const returnTransactionSchema = z.object({
-  quantity: z.number().int().positive(),
+  quantity: z.number().positive().optional(),
 });
 
 const getTransactionSummarySchema = z.object({
@@ -329,15 +329,6 @@ export class TransactionsController {
 
     const userId = req.userId!;
 
-    // Convert numbers to Decimals for service if needed, or pass as numbers if service expects numbers.
-    // Looking at service types (from previous context), it seems to expect numbers or Decimals depending on implementation.
-    // But `createTransaction` in service likely takes `TransactionCreateInput` which might expect numbers or Decimals.
-    // The service implementation (viewed earlier) uses `Prisma.Decimal` for `unit_price` and `total_amount`.
-    // However, the `transactionService.createTransaction` signature (from `inventoryController` usage) accepts an object.
-    // Let's check `inventoryController` usage:
-    // unit_price: new Decimal(cost_price), total_amount: ...
-    // So we should convert to Decimal here.
-
     const {
       unit_price,
       total_amount,
@@ -367,11 +358,6 @@ export class TransactionsController {
       })),
       userId,
     };
-
-    // Note: The service `createTransaction` might need to be updated to accept `Decimal` if it doesn't already,
-    // or we cast it. In `inventoryController`, it was passed `new Decimal()`.
-    // Actually, `inventoryController` imports `createTransaction` from `@/services/transactions`.
-    // Here we import `* as transactionService`.
 
     if (!req.tenantPrisma) {
       logWarn("Create transaction rejected: tenant prisma missing", requestMeta);
@@ -423,12 +409,6 @@ export class TransactionsController {
       return res.status(400).json({ error: "Transaction ID is required" });
     }
 
-    // Fix: getTransaction expects (id, userId) or (id, userId, storeId).
-    // The error said "Expected 1-2 arguments, but got 3".
-    // Let's check the service definition if possible, but based on error, it likely only takes 2 args.
-    // Or maybe (id, userId).
-    // I will try with 2 arguments first as `req.store?.id` might be implicit or not needed if ID is unique.
-    // Wait, the error `Expected 1-2 arguments, but got 3` implies it accepts at most 2.
 
     if (!req.tenantPrisma) {
       logWarn("Get transaction rejected: tenant prisma missing", requestMeta);

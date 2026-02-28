@@ -716,14 +716,13 @@ export default function TransactionsPage() {
 
     setIsReturning(true);
     try {
-      const body =
-        parsedQuantity === originalQuantity
-          ? undefined
-          : { quantity: parsedQuantity };
-
-      await returnMutation.mutateAsync({ id: returnTransaction.id, quantity: body?.quantity });
+      await returnMutation.mutateAsync({
+        id: returnTransaction.id,
+        quantity: parsedQuantity,
+      });
       toast.success(t("transactions.returnSuccess"));
       setReturnTransaction(null);
+      setReturnQuantity("");
       // Automatic invalidation handled by hook
 
       // Generate return receipt
@@ -1831,9 +1830,10 @@ export default function TransactionsPage() {
                                     <>
                                       <DropdownMenuItem
 
-                                        onSelect={() =>
-                                          setReturnTransaction(item)
-                                        }
+                                        onSelect={() => {
+                                          setReturnTransaction(item);
+                                          setReturnQuantity(item.quantity.toString());
+                                        }}
                                       >
                                         {t("transactions.table.return")}
                                       </DropdownMenuItem>
@@ -2288,7 +2288,12 @@ export default function TransactionsPage() {
       {/* Return Transaction Dialog */}
       <Dialog
         open={!!returnTransaction}
-        onOpenChange={(open) => !open && setReturnTransaction(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReturnTransaction(null);
+            setReturnQuantity("");
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -2340,7 +2345,10 @@ export default function TransactionsPage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setReturnTransaction(null)}
+              onClick={() => {
+                setReturnTransaction(null);
+                setReturnQuantity("");
+              }}
               disabled={isReturning}
             >
               {t("common.cancel")}

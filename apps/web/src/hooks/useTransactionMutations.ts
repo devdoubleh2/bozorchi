@@ -16,7 +16,7 @@ type CreateTransactionParams = {
 
 type ReturnTransactionParams = {
     id: string;
-    quantity?: number;
+    quantity: number;
 };
 
 type ExchangeTransactionParams = {
@@ -109,8 +109,7 @@ export const useTransactionMutations = () => {
     const returnTransaction = useMutation({
         mutationKey: ["return-transaction"],
         mutationFn: ({ id, quantity }: ReturnTransactionParams) => {
-            const body = quantity ? { quantity } : undefined;
-            return api.post(`/api/transactions/${id}/return`, body);
+            return api.post(`/api/transactions/${id}/return`, { quantity });
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["transactions"] });

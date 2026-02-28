@@ -13,24 +13,26 @@ import logger from "../../logs/log";
 
 // Only log operations slower than this threshold (in ms)
 const SLOW_QUERY_THRESHOLD_MS = 10;
+const isRedisReady = (): boolean => redis !== null && redis.status === "ready";
 
 export const cache = {
     /**
      * Check if Redis is available
      */
     get isEnabled(): boolean {
-        return redis !== null && redis.status === "ready";
+        return isRedisReady();
     },
 
     /**
      * Get cached data by key
      */
     async get<T>(key: string): Promise<T | null> {
-        if (!redis) return null;
+        const client = redis;
+        if (!client || client.status !== "ready") return null;
 
         const start = performance.now();
         try {
-            const data = await redis.get(key);
+            const data = await client.get(key);
             const ms = performance.now() - start;
 
             if (ms > SLOW_QUERY_THRESHOLD_MS) {
@@ -50,11 +52,12 @@ export const cache = {
      * Set data in cache with TTL
      */
     async set(key: string, data: unknown, ttlSeconds: number): Promise<void> {
-        if (!redis) return;
+        const client = redis;
+        if (!client || client.status !== "ready") return;
 
         const start = performance.now();
         try {
-            await redis.setex(key, ttlSeconds, JSON.stringify(data));
+            await client.setex(key, ttlSeconds, JSON.stringify(data));
             const ms = performance.now() - start;
 
             if (ms > SLOW_QUERY_THRESHOLD_MS) {
@@ -70,11 +73,12 @@ export const cache = {
      * Delete a specific key
      */
     async del(key: string): Promise<void> {
-        if (!redis) return;
+        const client = redis;
+        if (!client || client.status !== "ready") return;
 
         const start = performance.now();
         try {
-            await redis.del(key);
+            await client.del(key);
             const ms = performance.now() - start;
 
             if (ms > SLOW_QUERY_THRESHOLD_MS) {
