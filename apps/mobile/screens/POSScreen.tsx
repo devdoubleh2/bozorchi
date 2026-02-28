@@ -134,6 +134,14 @@ interface InventorySection {
   data: InventoryItem[];
 }
 
+interface InventoryQueryResponse {
+  inventory: InventoryItem[];
+  pagination?: {
+    hasNextPage?: boolean;
+    nextCursor?: string | null;
+  };
+}
+
 // Helper function to get the proper image URL with fallback logic
 const getImageUrl = (
   variationImageUrl: string | null | undefined,
@@ -147,6 +155,8 @@ const getImageUrl = (
 };
 
 const SEARCH_DEBOUNCE_MS = 300;
+const INVENTORY_PAGE_SIZE = 100;
+const MAX_INVENTORY_PAGES = 200;
 
 const useDebouncedQuery = (value: string, delay: number): string => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -291,12 +301,53 @@ export default function POSScreen() {
         return { inventory: [] };
       }
       try {
-        const res = await api.get<{ inventory: InventoryItem[] }>(
-          `/api/inventory?storeId=${store_id}&stock_level=in_stock`
-        );
+        const allItems: InventoryItem[] = [];
+        const seenIds = new Set<string>();
+        let cursor: string | undefined;
+        let hasNextPage = true;
+        let pageCount = 0;
+
+        while (hasNextPage && pageCount < MAX_INVENTORY_PAGES) {
+          const params = new URLSearchParams({
+            storeId: store_id,
+            stock_level: "in_stock",
+            limit: INVENTORY_PAGE_SIZE.toString(),
+          });
+
+          if (cursor) {
+            params.set("cursor", cursor);
+          }
+
+          const page = await api.get<InventoryQueryResponse>(
+            `/api/inventory?${params.toString()}`
+          );
+
+          for (const item of page.inventory ?? []) {
+            if (seenIds.has(item.id)) {
+              continue;
+            }
+            seenIds.add(item.id);
+            allItems.push(item);
+          }
+
+          cursor = page.pagination?.nextCursor ?? undefined;
+          hasNextPage = Boolean(page.pagination?.hasNextPage && cursor);
+          pageCount += 1;
+        }
+
+        if (pageCount >= MAX_INVENTORY_PAGES && hasNextPage) {
+          log.warn("POSScreen", "Inventory pagination stopped at safety limit", {
+            store_id,
+            pageCount,
+            uniqueCount: allItems.length,
+          });
+        }
+
+        const res = { inventory: allItems };
         log.info("POSScreen", "Fetched inventory", {
           store_id,
           count: res.inventory.length,
+          pagesFetched: pageCount,
         });
         return res;
       } catch (err) {

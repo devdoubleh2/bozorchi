@@ -60,6 +60,7 @@ import type { Permission, Role } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
 import SeoManager from "@/components/SeoManager";
+import Landing from "./pages/Landing";
 
 // =============================================================================
 // TYPES
@@ -155,7 +156,6 @@ const ForgotPasswordPage = lazyPage(() => import("./pages/ForgotPassword"));
 const ResetPasswordPage = lazyPage(() => import("./pages/ResetPassword"));
 
 // Core
-const Landing = lazyPage(() => import("./pages/Landing"));
 const ResourcesPage = lazyPage(() => import("./pages/Resources"));
 const Dashboard = lazyPage(() => import("./pages/Dashboard"));
 
@@ -441,7 +441,9 @@ const RequireStaffApproval = ({ children }: { children: React.ReactNode }) => {
 const ProtectedLayout = () => (
   <RequireAuth>
     <RequireStaffApproval>
-      <AppLayout />
+      <Paywall>
+        <AppLayout />
+      </Paywall>
     </RequireStaffApproval>
   </RequireAuth>
 );
@@ -849,12 +851,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster />
-      <Paywall>
-        <Router>
-          <SeoManager />
-          <AppRoutes />
-        </Router>
-      </Paywall>
+      <Router>
+        <SeoManager />
+        <AppRoutes />
+      </Router>
     </ThemeProvider>
   );
 }
