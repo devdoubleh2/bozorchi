@@ -6,3 +6,7 @@
 /apps/web/dist
 /apps/web/.env
 /apps/mobile/node_modules
+/apps/mobile/.expo
+/apps/mobile/.expo-shared
+/apps/mobile/dist
+/apps/mobile/*.tsbuildinfo
