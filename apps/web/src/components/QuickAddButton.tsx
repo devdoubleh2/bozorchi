@@ -116,6 +116,9 @@ export function QuickAddButton() {
       if (!productForm.price.trim()) {
         throw new Error(t("products.sellingPriceRequired"));
       }
+      if (!productForm.deliveryCost.trim()) {
+        throw new Error(t("products.deliveryCostRequired", { defaultValue: "Delivery cost is required" }));
+      }
       if (!productForm.unitId) {
         throw new Error(t("products.unitRequired"));
       }
@@ -126,6 +129,9 @@ export function QuickAddButton() {
 
       if (Number.isNaN(priceValue) || priceValue <= 0) {
         throw new Error(t("products.sellingPriceRequired"));
+      }
+      if (!Number.isFinite(deliveryCostValue) || deliveryCostValue < 0) {
+        throw new Error(t("products.deliveryCostInvalid"));
       }
 
       const payload = {
@@ -138,9 +144,8 @@ export function QuickAddButton() {
             description: "",
             barcode: productForm.barcode.trim(),
             sku: productForm.sku.trim(),
-            delivery_cost: Number.isFinite(deliveryCostValue)
-              ? deliveryCostValue
-              : 0,
+            price: deliveryCostValue,
+            delivery_cost: deliveryCostValue,
             selling_price: priceValue,
             unit_id: productForm.unitId,
             color: "",

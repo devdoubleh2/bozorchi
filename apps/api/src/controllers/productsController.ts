@@ -77,7 +77,8 @@ const createProductSchema = z.object({
         barcode: z.string().optional().nullable(),
         sku: z.string().optional().nullable(),
         price: z.number(),
-        selling_price: z.number().optional(),
+        selling_price: z.number(),
+        delivery_cost: z.number(),
         wholesale_price: z.number().optional(),
         cost_price: z.number().optional(),
         unit_id: z.string().min(1),
@@ -100,6 +101,7 @@ const updateProductSchema = z.object({
         name: z.string().min(1),
         price: z.number(),
         selling_price: z.number(),
+        delivery_cost: z.number(),
         wholesale_price: z.number().optional(),
         unit_id: z.string().min(1),
         image_url: z.string().optional(),
@@ -120,6 +122,7 @@ const bulkUpdateProductsSchema = z.object({
       productCategoryId: z.string().optional().nullable(),
       sellingPrice: z.number().optional(),
       price: z.number().optional(),
+      deliveryCost: z.number().optional(),
       supplierId: z.string().optional().nullable(),
       unitId: z.string().optional().nullable(),
     })
@@ -576,14 +579,9 @@ export class ProductsController {
             }
 
             const basePrice = new Decimal(variation.price);
-            const costPrice = variation.cost_price !== undefined
-              ? new Decimal(variation.cost_price)
-              : undefined;
+            const deliveryCost = new Decimal(variation.delivery_cost);
 
-            // Ensure selling_price is a valid number, default to 0
-            const sellingPrice = typeof variation.selling_price === 'number' && Number.isFinite(variation.selling_price)
-              ? new Decimal(variation.selling_price)
-              : new Decimal(0);
+            const sellingPrice = new Decimal(variation.selling_price);
 
             // Ensure wholesale_price is a valid number, default to 0
             const wholesalePrice = typeof variation.wholesale_price === 'number' && Number.isFinite(variation.wholesale_price)
@@ -601,8 +599,8 @@ export class ProductsController {
               barcode: variation.barcode || null,
               description: variation.description ?? null,
               selling_price: sellingPrice,
-              delivery_cost: basePrice,
-              delivery_cost_base: basePrice,
+              delivery_cost: deliveryCost,
+              delivery_cost_base: deliveryCost,
               delivery_cost_currency: "UZS",
               wholesale_price: wholesalePrice,
               image_url: variation.image_url || null,
@@ -634,7 +632,7 @@ export class ProductsController {
               });
 
               if (variation.initial_stock && variation.initial_stock > 0) {
-                const unitCost = costPrice ?? basePrice;
+                const unitCost = basePrice;
                 await createTransaction(
                   {
                     product_variation_id: productVariation.id,
@@ -763,17 +761,21 @@ export class ProductsController {
         await req.tenantPrisma.$transaction(
           async (tx: Prisma.TransactionClient) => {
             for (const variation of variations) {
+              const variationData: Record<string, unknown> = {
+                name: variation.name,
+                price: new Decimal(variation.price),
+                selling_price: new Decimal(variation.selling_price),
+                unit_id: variation.unit_id,
+                image_url: variation.image_url || null,
+              };
+
+              const deliveryCost = new Decimal(variation.delivery_cost);
+              variationData["delivery_cost"] = deliveryCost;
+              variationData["delivery_cost_base"] = deliveryCost;
+
               await tx.productVariation.update({
                 where: { id: variation.id },
-                data: {
-                  name: variation.name,
-                  price: new Decimal(variation.price),
-                  selling_price: new Decimal(variation.selling_price),
-                  // Keep delivery_cost aligned with product price (legacy column)
-                  delivery_cost: new Decimal(variation.price),
-                  unit_id: variation.unit_id,
-                  image_url: variation.image_url || null,
-                },
+                data: variationData,
               });
             }
           }
@@ -987,6 +989,7 @@ export class ProductsController {
         imageUrl?: string | null;
         sellingPrice?: number;
         price?: number;
+        deliveryCost?: number;
         supplierId?: string | null;
         unitId?: string | null;
       }>();
@@ -1009,6 +1012,7 @@ export class ProductsController {
           item.variationImageUrl !== undefined ||
           item.sellingPrice !== undefined ||
           item.price !== undefined ||
+          item.deliveryCost !== undefined ||
           item.supplierId !== undefined ||
           item.unitId !== undefined
         ) {
@@ -1016,6 +1020,7 @@ export class ProductsController {
             imageUrl: item.variationImageUrl,
             sellingPrice: item.sellingPrice,
             price: item.price,
+            deliveryCost: item.deliveryCost,
             supplierId: item.supplierId,
             unitId: item.unitId,
           });
@@ -1083,9 +1088,11 @@ export class ProductsController {
           if (updates.price !== undefined) {
             const price = new Decimal(updates.price);
             data["price"] = price;
-            // Keep delivery_cost aligned with product price (legacy column)
-            data["delivery_cost"] = price;
-            data["delivery_cost_base"] = price;
+          }
+          if (updates.deliveryCost !== undefined) {
+            const deliveryCost = new Decimal(updates.deliveryCost);
+            data["delivery_cost"] = deliveryCost;
+            data["delivery_cost_base"] = deliveryCost;
           }
           if (updates.supplierId !== undefined) {
             data["supplier_id"] = updates.supplierId;

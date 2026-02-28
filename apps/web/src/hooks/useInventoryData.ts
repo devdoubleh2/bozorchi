@@ -554,10 +554,10 @@ export function useFlattenedInventoryData(): UseFlattenedInventoryDataResult {
             inStock: stockQuantity,
             stockStatus,
             sellingPrice: Number(
-              variation.selling_price ?? variation.price ?? 0
+              variation.selling_price,
             ),
-            deliveryCost: Number(variation.delivery_cost ?? 0),
-            unitCost: Number(variation.price ?? 0),
+            deliveryCost: Number(variation.delivery_cost),
+            unitCost: Number(variation.price),
             unitId: variation.unit_id,
             unitName: variation.unit?.name ?? "",
             supplierId: variation.supplier?.id ?? null,

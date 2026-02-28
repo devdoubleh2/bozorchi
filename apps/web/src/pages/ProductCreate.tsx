@@ -92,6 +92,7 @@ type VariationPayload = {
   sku: string;
   price: number;
   selling_price: number;
+  delivery_cost: number;
   wholesale_price: number;
   cost_price?: number;
   unit_id: string;
@@ -373,14 +374,22 @@ export default function ProductCreatePage() {
         varErrors.sellingPrice = t("products.sellingPriceRequired");
       }
 
-      if (productType !== "service" && variation.deliveryCost) {
+      if (productType !== "service" && !variation.deliveryCost.trim()) {
+        varErrors.deliveryCost = t("products.deliveryCostRequired", {
+          defaultValue: "Delivery cost is required",
+        });
+      } else if (productType !== "service") {
         const deliveryCost = Number.parseFloat(variation.deliveryCost);
         if (!Number.isFinite(deliveryCost) || deliveryCost < 0) {
           varErrors.deliveryCost = t("products.deliveryCostInvalid");
         }
       }
 
-      if (productType !== "service" && variation.costPrice) {
+      if (productType !== "service" && !variation.costPrice.trim()) {
+        varErrors.costPrice = t("products.costPriceRequired", {
+          defaultValue: "Cost price is required",
+        });
+      } else if (productType !== "service") {
         const costPrice = Number.parseFloat(variation.costPrice);
         if (!Number.isFinite(costPrice) || costPrice < 0) {
           varErrors.costPrice = t("products.costPriceInvalid");
@@ -411,16 +420,28 @@ export default function ProductCreatePage() {
           : [formData.variations[0]];
 
       const variations = sourceVariations.map((variation) => {
-        const sellingPrice = toNumberOrNull(variation.sellingPrice) ?? 0;
-        const costInput = toNumberOrNull(variation.deliveryCost);
-        const costValue = costInput ?? sellingPrice;
-        const resolvedCost = costValue > 0 ? costValue : sellingPrice;
-        const wholesalePrice = toNumberOrNull(variation.wholesalePrice) ?? 0;
+        const sellingPrice = toNumberOrNull(variation.sellingPrice);
+        const deliveryCostValue = toNumberOrNull(variation.deliveryCost);
         const costPriceValue = toNumberOrNull(variation.costPrice);
+        const wholesalePriceValue = toNumberOrNull(variation.wholesalePrice);
         const initialStock = toNumberOrNull(variation.initialStock) ?? 0;
-        const basePrice = resolvedCost || sellingPrice;
 
         const isService = productType === "service";
+        if (sellingPrice === null || sellingPrice <= 0) {
+          throw new Error("Selling price is required");
+        }
+
+        if (!isService && (deliveryCostValue === null || deliveryCostValue < 0)) {
+          throw new Error("Delivery cost is required");
+        }
+
+        if (!isService && (costPriceValue === null || costPriceValue < 0)) {
+          throw new Error("Cost price is required");
+        }
+
+        const unitCost = isService ? sellingPrice : costPriceValue!;
+        const deliveryCost = isService ? 0 : deliveryCostValue!;
+        const wholesalePrice = isService ? 0 : wholesalePriceValue ?? 0;
 
         const payload: VariationPayload = {
           name:
@@ -430,9 +451,10 @@ export default function ProductCreatePage() {
           description: variation.description.trim(),
           barcode: variation.barcode.trim(),
           sku: variation.sku.trim(),
-          price: basePrice,
+          price: unitCost,
           selling_price: sellingPrice,
-          wholesale_price: isService ? 0 : wholesalePrice,
+          delivery_cost: deliveryCost,
+          wholesale_price: wholesalePrice,
           unit_id: variation.unitId,
           supplier_id: isService
             ? undefined
@@ -442,8 +464,8 @@ export default function ProductCreatePage() {
           image_url: variation.imageUrl || "",
         };
 
-        if (costPriceValue !== null && costPriceValue >= 0 && !isService) {
-          payload.cost_price = costPriceValue;
+        if (!isService) {
+          payload.cost_price = unitCost;
         }
 
         return payload;

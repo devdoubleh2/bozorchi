@@ -89,6 +89,7 @@ type VariationPayload = {
     sku: string;
     price: number;
     selling_price: number;
+    delivery_cost: number;
     cost_price?: number;
     unit_id: string;
     supplier_id?: string;
@@ -269,9 +270,11 @@ export default function ProductEditPage() {
                     description: v.description || "",
                     barcode: v.barcode || "",
                     sku: v.sku || "",
-                    sellingPrice: v.selling_price?.toString() || "",
-                    deliveryCost: v.price?.toString() || "",
-                    costPrice: v.cost_price?.toString() || "",
+                    sellingPrice:
+                        v.selling_price === null ? "" : v.selling_price.toString(),
+                    deliveryCost:
+                        v.delivery_cost === null ? "" : v.delivery_cost.toString(),
+                    costPrice: v.price === null ? "" : v.price.toString(),
                     unitId: v.unit_id,
                     supplierId: v.supplier_id || "",
                     initialStock: v.inventory?.[0]?.quantity_in_stock?.toString() || "0",
@@ -371,14 +374,22 @@ export default function ProductEditPage() {
                 varErrors.sellingPrice = t("products.sellingPriceRequired");
             }
 
-            if (variation.deliveryCost) {
+            if (!variation.deliveryCost.trim()) {
+                varErrors.deliveryCost = t("products.deliveryCostRequired", {
+                    defaultValue: "Delivery cost is required",
+                });
+            } else {
                 const deliveryCost = Number.parseFloat(variation.deliveryCost);
                 if (!Number.isFinite(deliveryCost) || deliveryCost < 0) {
                     varErrors.deliveryCost = t("products.deliveryCostInvalid");
                 }
             }
 
-            if (variation.costPrice) {
+            if (!variation.costPrice.trim()) {
+                varErrors.costPrice = t("products.costPriceRequired", {
+                    defaultValue: "Cost price is required",
+                });
+            } else {
                 const costPrice = Number.parseFloat(variation.costPrice);
                 if (!Number.isFinite(costPrice) || costPrice < 0) {
                     varErrors.costPrice = t("products.costPriceInvalid");
@@ -404,12 +415,19 @@ export default function ProductEditPage() {
             const productImageUrl = formData.imageUrl || "";
 
             const variations = formData.variations.map((variation) => {
-                const sellingPrice = toNumberOrNull(variation.sellingPrice) ?? 0;
-                const costInput = toNumberOrNull(variation.deliveryCost);
-                const costValue = costInput ?? sellingPrice;
-                const costPriceValue = toNumberOrNull(variation.costPrice);
+                const sellingPrice = toNumberOrNull(variation.sellingPrice);
+                const deliveryCost = toNumberOrNull(variation.deliveryCost);
+                const unitCost = toNumberOrNull(variation.costPrice);
                 const initialStock = toNumberOrNull(variation.initialStock) ?? 0;
-                const basePrice = costValue > 0 ? costValue : sellingPrice;
+                if (sellingPrice === null || sellingPrice <= 0) {
+                    throw new Error("Selling price is required");
+                }
+                if (deliveryCost === null || deliveryCost < 0) {
+                    throw new Error("Delivery cost is required");
+                }
+                if (unitCost === null || unitCost < 0) {
+                    throw new Error("Cost price is required");
+                }
 
                 const payload: VariationPayload = {
                     id: variation.id,
@@ -417,8 +435,9 @@ export default function ProductEditPage() {
                     description: variation.description.trim(),
                     barcode: variation.barcode.trim(),
                     sku: variation.sku.trim(),
-                    price: basePrice,
+                    price: unitCost,
                     selling_price: sellingPrice,
+                    delivery_cost: deliveryCost,
                     unit_id: variation.unitId,
                     supplier_id: variation.supplierId || undefined,
                     color: variation.color,
@@ -426,9 +445,7 @@ export default function ProductEditPage() {
                     image_url: variation.imageUrl || "",
                 };
 
-                if (costPriceValue !== null && costPriceValue >= 0) {
-                    payload.cost_price = costPriceValue;
-                }
+                payload.cost_price = unitCost;
 
                 return payload;
             });
