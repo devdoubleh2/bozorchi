@@ -141,6 +141,8 @@ const isSaleTransaction = (type?: TransactionType | string | null) =>
 interface TransactionWithDetails {
   id: string;
   group_id?: string | null;
+  user_id?: string | null;
+  seller_name?: string | null;
   transaction_type: TransactionType;
   total_amount: number;
   quantity: number;
@@ -1513,7 +1515,7 @@ export default function TransactionsPage() {
 
           {/* Table Content */}
           <ScrollArea className="h-full">
-            <div className="min-w-[1000px]">
+            <div className="min-w-[1100px]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1532,6 +1534,9 @@ export default function TransactionsPage() {
                     </TableHead>
                     <TableHead>
                       {t("transactions.type", { defaultValue: "Type" })}
+                    </TableHead>
+                    <TableHead>
+                      {t("transactions.seller", { defaultValue: "Seller" })}
                     </TableHead>
                     <TableHead>
                       {t("transactions.quantity", { defaultValue: "Qty" })}
@@ -1749,6 +1754,11 @@ export default function TransactionsPage() {
                               </div>
                             </TableCell>
                             <TableCell>
+                              <span className="text-sm text-foreground">
+                                {item.seller_name || t("common.notSpecified")}
+                              </span>
+                            </TableCell>
+                            <TableCell>
                               <div className="font-medium">
                                 {formatNumber(item.quantity, locale)}{" "}
                                 {!isItemGroup && (
@@ -1760,23 +1770,6 @@ export default function TransactionsPage() {
                             </TableCell>
                             <TableCell className="text-right font-medium">
                               {formatCurrency(item.total_amount, "UZS", locale)}
-                              {/* FISCALIZATION DISABLED - fiscal status badge
-                              {item.fiscal_status && (
-                                <div className="mt-1 flex justify-end">
-                                  <Badge
-                                    variant={item.fiscal_status === 'confirmed' ? 'outline' : 'secondary'}
-                                    className={cn(
-                                      "text-[10px] px-1 py-0 h-5",
-                                      item.fiscal_status === 'failed' && "bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20",
-                                      item.fiscal_status === 'confirmed' && "text-green-600 border-green-600/20 bg-green-50"
-                                    )}
-                                  >
-                                    {item.fiscal_status === 'confirmed' ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
-                                    {item.fiscal_status}
-                                  </Badge>
-                                </div>
-                              )}
-                              */}
                             </TableCell>
                             <TableCell className="text-right text-sm text-muted-foreground">
                               {formatDateTime(item.transaction_date, locale)}
@@ -1921,7 +1914,7 @@ export default function TransactionsPage() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">
+                      <TableCell colSpan={9} className="h-24 text-center">
                         <div className="flex flex-col items-center justify-center gap-1 text-sm text-muted-foreground">
                           <span>
                             {t("transactions.noTransactions", {
@@ -2441,9 +2434,9 @@ export default function TransactionsPage() {
                 </div>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex w-full gap-2">
               <Button
-                className="w-full"
+                className="flex-1"
                 variant="outline"
                 onClick={() => {
                   if (receiptRef.current) {
@@ -2472,7 +2465,7 @@ export default function TransactionsPage() {
                 {t("common.print", { defaultValue: "Print" })}
               </Button>
               <Button
-                className="w-full"
+                className="flex-1"
                 onClick={() => setReturnReceiptOpen(false)}
               >
                 {t("common.close", { defaultValue: "Close" })}

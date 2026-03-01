@@ -107,7 +107,8 @@
         "unknown": "(Unknown)",
         "createdBy": "Created by",
         "days": "Days",
-        "saving": "Saving..."
+        "saving": "Saving...",
+        "processing": "Processing..."
     },
     "dateRange": {
         "today": "Today",

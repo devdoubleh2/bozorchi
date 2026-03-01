@@ -49,7 +49,8 @@
     "refresh": "Yangilash",
     "from": "Dan",
     "to": "Gacha",
-    "reset": "Qayta o'rnatish"
+    "reset": "Qayta o'rnatish",
+    "processing": "Ishlenmoqda..."
   },
   "settings": {
     "title": "Sozlamalar",

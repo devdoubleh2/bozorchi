@@ -7,6 +7,7 @@ import {
   PaymentMethod,
   TransactionType,
 } from "../generated/tenant/client";
+import { prisma as publicPrisma } from "../lib/prisma";
 import logger from "../../logs/log";
 
 const Decimal = Prisma.Decimal;
@@ -119,6 +120,54 @@ const getTransactionSummarySchema = z.object({
   endDate: z.string().optional(),
 });
 
+type TransactionResponseNode = {
+  user_id?: string | null;
+  seller_name?: string | null;
+  items?: TransactionResponseNode[];
+  returns?: TransactionResponseNode[];
+};
+
+const enrichTransactionsWithSellerNames = async <T extends TransactionResponseNode>(
+  transactions: T[]
+): Promise<Array<T & { seller_name: string | null }>> => {
+  const userIds = new Set<string>();
+  const stack: TransactionResponseNode[] = [...transactions];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+
+    if (current.user_id) {
+      userIds.add(current.user_id);
+    }
+
+    if (current.items?.length) stack.push(...current.items);
+    if (current.returns?.length) stack.push(...current.returns);
+  }
+
+  if (userIds.size === 0) {
+    return transactions.map(t => ({ ...t, seller_name: null }));
+  }
+
+  const users = await publicPrisma.user.findMany({
+    where: { id: { in: Array.from(userIds) } },
+    select: { id: true, name: true, email: true },
+  });
+
+  const userNameMap = new Map<string, string>(
+    users.map((u) => [u.id, u.name || u.email || `User ${u.id.slice(-6)}`])
+  );
+
+  const mapNode = <N extends T>(node: N): N & { seller_name: string | null } => ({
+    ...node,
+    seller_name: node.user_id ? (userNameMap.get(node.user_id) ?? null) : null,
+    items: node.items?.map((child) => mapNode(child as T)) as N["items"],
+    returns: node.returns?.map((child) => mapNode(child as T)) as N["returns"],
+  });
+
+  return transactions.map(mapNode);
+};
+
 const exchangeTransactionSchema = z.object({
   returnQuantity: z.number().int().positive(),
   newProductVariationId: z.string().min(1),
@@ -134,7 +183,7 @@ const repayDebtSchema = z.object({
 });
 
 export class TransactionsController {
-  async getTransactions(req: AuthRequest, res: Response) {
+  async getTransactions(req: AuthRequest, res: Response): Promise<Response> {
     const startedAt = Date.now();
     const requestMeta = {
       ...baseRequestMeta(req),
@@ -197,6 +246,24 @@ export class TransactionsController {
         req.tenantPrisma
       );
 
+      type EnrichedTransaction = (typeof result.transactions)[number] & { seller_name: string | null };
+      let enrichedTransactions: EnrichedTransaction[] = result.transactions.map(t => ({ ...t, seller_name: null }));
+      
+      try {
+        const enriched = await enrichTransactionsWithSellerNames(
+          result.transactions as unknown as TransactionResponseNode[]
+        );
+        enrichedTransactions = enriched as EnrichedTransaction[];
+      } catch (userLookupError) {
+        logWarn("Failed to enrich seller names for transactions", {
+          ...requestMeta,
+          userLookupError:
+            userLookupError instanceof Error
+              ? userLookupError.message
+              : String(userLookupError),
+        });
+      }
+
       logInfo("Get transactions completed", {
         ...requestMeta,
         durationMs: Date.now() - startedAt,
@@ -204,7 +271,10 @@ export class TransactionsController {
         total: result.pagination.total,
       });
 
-      return res.json(result);
+      return res.json({
+        ...result,
+        transactions: enrichedTransactions,
+      });
     } catch (error) {
       logError("Get transactions failed", error, {
         ...requestMeta,
@@ -512,8 +582,6 @@ export class TransactionsController {
     }
   }
 
-
-
   async getDashboardStats(req: AuthRequest, res: Response) {
     const startedAt = Date.now();
     const requestMeta = {
@@ -819,6 +887,7 @@ export class TransactionsController {
         .json({ message: "Internal server error", error: String(error) });
     }
   }
+
   async deleteTransaction(req: AuthRequest, res: Response) {
     const startedAt = Date.now();
     const requestMeta = {

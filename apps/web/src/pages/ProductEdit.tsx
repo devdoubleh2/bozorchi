@@ -72,6 +72,7 @@ interface VariationError {
     barcode?: string;
     sellingPrice?: string;
     deliveryCost?: string;
+    unitCost?: string;
     costPrice?: string;
     unitId?: string;
 }
@@ -202,6 +203,7 @@ export default function ProductEditPage() {
         [variationIndex: number]: {
             sellingPrice?: string;
             deliveryCost?: string;
+            unitCost?: string;
             costPrice?: string;
         };
     }>({});
@@ -382,6 +384,11 @@ export default function ProductEditPage() {
                 }
             }
 
+            const unitCost = Number.parseFloat(variation.unitCost);
+            if (!Number.isFinite(unitCost) || unitCost <= 0) {
+                varErrors.unitCost = t("products.costPriceInvalid");
+            }
+
             if (variation.costPrice) {
                 const costPrice = Number.parseFloat(variation.costPrice);
                 if (!Number.isFinite(costPrice) || costPrice < 0) {
@@ -468,7 +475,7 @@ export default function ProductEditPage() {
 
     const handlePriceInputChange = (
         variationIndex: number,
-        field: "sellingPrice" | "deliveryCost" | "costPrice",
+        field: "sellingPrice" | "deliveryCost" | "unitCost" | "costPrice",
         text: string
     ) => {
         if (text === "") {
@@ -495,7 +502,7 @@ export default function ProductEditPage() {
 
     const handlePriceInputBlur = (
         variationIndex: number,
-        field: "sellingPrice" | "deliveryCost" | "costPrice"
+        field: "sellingPrice" | "deliveryCost" | "unitCost" | "costPrice"
     ) => {
         const currentText = priceInputTexts[variationIndex]?.[field];
         if (currentText !== undefined) {
@@ -798,32 +805,32 @@ export default function ProductEditPage() {
                                             </span>
                                             <CurrencyInput
                                                 value={
-                                                    priceText.costPrice !== undefined
-                                                        ? priceText.costPrice
-                                                        : variation.costPrice === "0"
+                                                    priceText.unitCost !== undefined
+                                                        ? priceText.unitCost
+                                                        : variation.unitCost === "0"
                                                             ? ""
-                                                            : variation.costPrice
+                                                            : variation.unitCost
                                                 }
                                                 onValueChange={(values) =>
                                                     handlePriceInputChange(
                                                         index,
-                                                        "costPrice",
+                                                        "unitCost",
                                                         values.value
                                                     )
                                                 }
                                                 onBlur={() =>
-                                                    handlePriceInputBlur(index, "costPrice")
+                                                    handlePriceInputBlur(index, "unitCost")
                                                 }
                                                 placeholder="0.00"
                                                 className={cn(
                                                     "rounded-l-none h-11",
-                                                    variationErrors.costPrice && "border-destructive"
+                                                    variationErrors.unitCost && "border-destructive"
                                                 )}
                                             />
                                         </div>
-                                        {variationErrors.costPrice && (
+                                        {variationErrors.unitCost && (
                                             <p className="text-sm text-destructive mt-1.5">
-                                                {variationErrors.costPrice}
+                                                {variationErrors.unitCost}
                                             </p>
                                         )}
                                     </div>

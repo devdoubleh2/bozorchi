@@ -60,7 +60,7 @@ router.use((req, res, next) => {
   const startedAt = Date.now();
   const authReq = req as AuthRequest;
 
-  void logger.debug("transactionsRoute", "Transactions request started", {
+   logger.debug("transactionsRoute", "Transactions request started", {
     method: req.method,
     path: req.originalUrl,
     userId: authReq.userId ?? null,

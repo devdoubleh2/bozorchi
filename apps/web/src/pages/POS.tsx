@@ -14,6 +14,7 @@ import {
   Grid3X3,
   List,
   Trash2,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTransactionMutations } from "@/hooks/useTransactionMutations";
@@ -1056,9 +1057,21 @@ export default function POSPage() {
                   placeholder={t("pos.searchProducts", {
                     defaultValue: "Search products, SKU or barcode...",
                   })}
-                  className="w-full pl-10 h-10"
+                  className="w-full pl-10 pr-10 h-10"
                 />
                 <Package2 className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 size-4" />
+                {searchQuery ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setSearchQuery("")}
+                    aria-label={t("common.clear", { defaultValue: "Clear" })}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                ) : null}
               </div>
 
               {/* Layout Toggle */}
