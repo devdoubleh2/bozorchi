@@ -23,6 +23,7 @@ export class AuthController {
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        path: "/",
       });
 
       return res.status(201).json({
@@ -70,6 +71,7 @@ export class AuthController {
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        path: "/",
       });
 
       return res.json({

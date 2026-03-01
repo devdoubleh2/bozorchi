@@ -38,6 +38,7 @@ router.post("/logout", (_req, res) => {
     secure: process.env["NODE_ENV"] === "production",
     sameSite: "none",
     expires: new Date(0), // Expire immediately
+    path: "/",
   });
   return res.json({ message: "Logged out successfully" });
 });
