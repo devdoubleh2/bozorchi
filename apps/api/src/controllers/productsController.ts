@@ -602,8 +602,6 @@ export class ProductsController {
               barcode: variation.barcode || null,
               description: variation.description ?? null,
               selling_price: sellingPrice,
-              delivery_cost: basePrice,
-              delivery_cost_base: basePrice,
               delivery_cost_currency: "UZS",
               wholesale_price: wholesalePrice,
               image_url: variation.image_url || null,
