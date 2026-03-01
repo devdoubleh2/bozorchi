@@ -48,6 +48,7 @@ export function QuickAddButton() {
     barcode: "",
     sku: "",
     price: "",
+    sellingPrice: "",
     deliveryCost: "",
     unitId: "",
     initialStock: "",
@@ -116,22 +117,21 @@ export function QuickAddButton() {
       if (!productForm.price.trim()) {
         throw new Error(t("products.sellingPriceRequired"));
       }
-      if (!productForm.deliveryCost.trim()) {
-        throw new Error(t("products.deliveryCostRequired", { defaultValue: "Delivery cost is required" }));
-      }
       if (!productForm.unitId) {
         throw new Error(t("products.unitRequired"));
       }
 
       const priceValue = Number.parseFloat(productForm.price);
+      const sellingPriceValue = Number.parseFloat(productForm.sellingPrice);
       const deliveryCostValue = Number.parseFloat(productForm.deliveryCost);
       const stockValue = Number.parseFloat(productForm.initialStock);
 
       if (Number.isNaN(priceValue) || priceValue <= 0) {
-        throw new Error(t("products.sellingPriceRequired"));
+        throw new Error(t("products.priceRequired"));
       }
-      if (!Number.isFinite(deliveryCostValue) || deliveryCostValue < 0) {
-        throw new Error(t("products.deliveryCostInvalid"));
+
+      if (Number.isNaN(sellingPriceValue) || sellingPriceValue <= 0) {
+        throw new Error(t("products.sellingPriceRequired"));
       }
 
       const payload = {
@@ -144,9 +144,11 @@ export function QuickAddButton() {
             description: "",
             barcode: productForm.barcode.trim(),
             sku: productForm.sku.trim(),
-            price: deliveryCostValue,
-            delivery_cost: deliveryCostValue,
-            selling_price: priceValue,
+            price: priceValue,
+            delivery_cost: Number.isFinite(deliveryCostValue)
+              ? deliveryCostValue
+              : 0,
+            selling_price: sellingPriceValue,
             unit_id: productForm.unitId,
             color: "",
             initial_stock: Number.isFinite(stockValue) ? stockValue : 0,
@@ -171,6 +173,7 @@ export function QuickAddButton() {
         barcode: "",
         sku: "",
         price: "",
+        sellingPrice: "",
         deliveryCost: "",
         unitId: "",
         initialStock: "",
@@ -365,23 +368,35 @@ export function QuickAddButton() {
                       price: event.target.value,
                     }))
                   }
-                  placeholder={t("products.sellingPrice")}
+                  placeholder={t("products.price", { defaultValue: "Cost price" })}
                   type="number"
                   min="0"
                 />
                 <Input
-                  value={productForm.deliveryCost}
+                  value={productForm.sellingPrice}
                   onChange={(event) =>
                     setProductForm((prev) => ({
                       ...prev,
-                      deliveryCost: event.target.value,
+                      sellingPrice: event.target.value,
                     }))
                   }
-                  placeholder={t("products.deliveryCost")}
+                  placeholder={t("products.sellingPrice")}
                   type="number"
                   min="0"
                 />
               </div>
+              <Input
+                value={productForm.deliveryCost}
+                onChange={(event) =>
+                  setProductForm((prev) => ({
+                    ...prev,
+                    deliveryCost: event.target.value,
+                  }))
+                }
+                placeholder={t("products.deliveryCost")}
+                type="number"
+                min="0"
+              />
               <div className="grid gap-3 md:grid-cols-2">
                 <select
                   value={productForm.unitId}

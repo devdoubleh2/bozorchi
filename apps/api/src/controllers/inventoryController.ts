@@ -42,6 +42,7 @@ const restockSchema = z.object({
   quantity: z.number().int().positive(),
   cost_price: z.number().optional(),
   price: z.number().optional(),
+  delivery_cost: z.number().optional(),
   selling_price: z.number().optional(),
 });
 
@@ -501,6 +502,7 @@ export class InventoryController {
         quantity,
         cost_price,
         price,
+        delivery_cost,
         selling_price,
       } = validation.data;
 
@@ -540,7 +542,14 @@ export class InventoryController {
           if (resolvedPrice !== undefined) {
             const priceDecimal = new Decimal(resolvedPrice);
             variationUpdateData.price = priceDecimal;
-            // Keep delivery_cost aligned with product price (legacy column)
+          }
+          if (delivery_cost !== undefined) {
+            const deliveryCostDecimal = new Decimal(delivery_cost);
+            variationUpdateData.delivery_cost = deliveryCostDecimal;
+            variationUpdateData.delivery_cost_base = deliveryCostDecimal;
+          } else if (resolvedPrice !== undefined) {
+            // Fallback to price if delivery_cost not provided (legacy behavior)
+            const priceDecimal = new Decimal(resolvedPrice);
             variationUpdateData.delivery_cost = priceDecimal;
             variationUpdateData.delivery_cost_base = priceDecimal;
           }

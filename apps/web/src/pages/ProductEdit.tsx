@@ -50,6 +50,7 @@ interface ProductVariationFormData {
     sku: string;
     sellingPrice: string;
     deliveryCost: string;
+    unitCost: string;
     costPrice: string;
     unitId: string;
     supplierId: string;
@@ -89,7 +90,7 @@ type VariationPayload = {
     sku: string;
     price: number;
     selling_price: number;
-    delivery_cost: number;
+    delivery_cost?: number;
     cost_price?: number;
     unit_id: string;
     supplier_id?: string;
@@ -113,6 +114,7 @@ const createDefaultVariation = (): ProductVariationFormData => ({
     sku: "",
     sellingPrice: "",
     deliveryCost: "",
+    unitCost: "",
     costPrice: "",
     unitId: "",
     supplierId: "",
@@ -270,11 +272,10 @@ export default function ProductEditPage() {
                     description: v.description || "",
                     barcode: v.barcode || "",
                     sku: v.sku || "",
-                    sellingPrice:
-                        v.selling_price === null ? "" : v.selling_price.toString(),
-                    deliveryCost:
-                        v.delivery_cost === null ? "" : v.delivery_cost.toString(),
-                    costPrice: v.price === null ? "" : v.price.toString(),
+                    sellingPrice: v.selling_price?.toString() || "",
+                    deliveryCost: (v.delivery_cost)?.toString() || "",
+                    unitCost: v.price?.toString() || "",
+                    costPrice: v.cost_price?.toString() || "",
                     unitId: v.unit_id,
                     supplierId: v.supplier_id || "",
                     initialStock: v.inventory?.[0]?.quantity_in_stock?.toString() || "0",
@@ -374,22 +375,14 @@ export default function ProductEditPage() {
                 varErrors.sellingPrice = t("products.sellingPriceRequired");
             }
 
-            if (!variation.deliveryCost.trim()) {
-                varErrors.deliveryCost = t("products.deliveryCostRequired", {
-                    defaultValue: "Delivery cost is required",
-                });
-            } else {
+            if (variation.deliveryCost) {
                 const deliveryCost = Number.parseFloat(variation.deliveryCost);
                 if (!Number.isFinite(deliveryCost) || deliveryCost < 0) {
                     varErrors.deliveryCost = t("products.deliveryCostInvalid");
                 }
             }
 
-            if (!variation.costPrice.trim()) {
-                varErrors.costPrice = t("products.costPriceRequired", {
-                    defaultValue: "Cost price is required",
-                });
-            } else {
+            if (variation.costPrice) {
                 const costPrice = Number.parseFloat(variation.costPrice);
                 if (!Number.isFinite(costPrice) || costPrice < 0) {
                     varErrors.costPrice = t("products.costPriceInvalid");
@@ -415,19 +408,11 @@ export default function ProductEditPage() {
             const productImageUrl = formData.imageUrl || "";
 
             const variations = formData.variations.map((variation) => {
-                const sellingPrice = toNumberOrNull(variation.sellingPrice);
+                const price = toNumberOrNull(variation.unitCost) ?? 0;
+                const sellingPrice = toNumberOrNull(variation.sellingPrice) ?? 0;
                 const deliveryCost = toNumberOrNull(variation.deliveryCost);
-                const unitCost = toNumberOrNull(variation.costPrice);
+                const costPrice = toNumberOrNull(variation.costPrice);
                 const initialStock = toNumberOrNull(variation.initialStock) ?? 0;
-                if (sellingPrice === null || sellingPrice <= 0) {
-                    throw new Error("Selling price is required");
-                }
-                if (deliveryCost === null || deliveryCost < 0) {
-                    throw new Error("Delivery cost is required");
-                }
-                if (unitCost === null || unitCost < 0) {
-                    throw new Error("Cost price is required");
-                }
 
                 const payload: VariationPayload = {
                     id: variation.id,
@@ -435,17 +420,16 @@ export default function ProductEditPage() {
                     description: variation.description.trim(),
                     barcode: variation.barcode.trim(),
                     sku: variation.sku.trim(),
-                    price: unitCost,
+                    price: price,
                     selling_price: sellingPrice,
-                    delivery_cost: deliveryCost,
+                    delivery_cost: deliveryCost !== null && deliveryCost >= 0 ? deliveryCost : undefined,
+                    cost_price: costPrice !== null && costPrice >= 0 ? costPrice : undefined,
                     unit_id: variation.unitId,
                     supplier_id: variation.supplierId || undefined,
                     color: variation.color,
                     initial_stock: initialStock,
                     image_url: variation.imageUrl || "",
                 };
-
-                payload.cost_price = unitCost;
 
                 return payload;
             });

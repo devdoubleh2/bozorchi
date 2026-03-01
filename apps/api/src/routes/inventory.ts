@@ -23,6 +23,7 @@ const restockSchema = z.object({
   quantity: z.coerce.number().int("Quantity must be an integer").min(1, "Quantity must be at least 1"),
   cost_price: z.coerce.number().min(0, "Cost price must be at least 0").optional(),
   price: z.coerce.number().min(0, "Price must be at least 0").optional(),
+  delivery_cost: z.coerce.number().min(0, "Delivery cost must be at least 0").optional(),
   selling_price: z.coerce.number().min(0, "Selling price must be at least 0").optional(),
 });
 
