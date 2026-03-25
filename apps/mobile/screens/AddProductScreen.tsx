@@ -66,7 +66,6 @@ import ColorPicker from "../src/components/ColorPicker";
 import ProductCategoryTagSelector from "../src/components/ProductCategoryTagSelector";
 import UnitTagSelector from "../src/components/UnitTagSelector";
 import SupplierTagSelector from "../src/components/SupplierTagSelector";
-import { statusColors } from "../src/utils/sharedStyles";
 
 type ProductType = "simple" | "variable" | "service";
 

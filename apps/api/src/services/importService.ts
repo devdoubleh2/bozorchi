@@ -743,7 +743,9 @@ export async function executeImportRows(
                   transaction_type: "import",
                   quantity: productData.initialStock,
                   unit_price: productData.price,
-                  total_amount: productData.price.times(productData.initialStock),
+                  total_amount: new Prisma.Decimal(productData.price).times(
+                    productData.initialStock
+                  ),
                   remarks: "Bulk import - initial stock",
                   userId,
                 },
