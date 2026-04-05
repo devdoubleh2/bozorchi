@@ -7,6 +7,7 @@ class FileUploadService {
   private static minioClient: Minio.Client;
   static bucketName = "uploads";
   static publicEndpoint = "https://minio.bozorchi.store";
+  private static bucketInitPromise: Promise<void> | null = null;
 
 
   static ALLOWED_MIME_TYPES = [
@@ -29,19 +30,35 @@ class FileUploadService {
   };
 
   constructor() {
-    const rawPort = process.env["MINIO_PORT"] || "9000";
     const rawPublicUrl = process.env["MINIO_PUBLIC_URL"] || "https://minio.bozorchi.store";
+    const parsedPublicUrl = FileUploadService.parseUrl(rawPublicUrl);
 
+    const endpoint =
+      process.env["MINIO_ENDPOINT"] ||
+      parsedPublicUrl?.hostname ||
+      "minio";
 
-    const port = rawPort;
-    const endpoint = process.env["MINIO_ENDPOINT"] || "minio";
-    const useSSL = process.env["MINIO_USE_SSL"] === "true";
+    const useSSL =
+      process.env["MINIO_USE_SSL"] !== undefined
+        ? process.env["MINIO_USE_SSL"] === "true"
+        : parsedPublicUrl?.protocol === "https:";
+
+    const rawPort =
+      process.env["MINIO_PORT"] ||
+      (parsedPublicUrl?.port
+        ? parsedPublicUrl.port
+        : useSSL
+          ? "443"
+          : "9000");
+
+    const port = Number(rawPort);
     const accessKey = process.env["MINIO_ACCESS_KEY"] || "minioadmin";
     const secretKey = process.env["MINIO_SECRET_KEY"] || "xhzjs55iu6sqxg7x";
 
     // Update static properties from env
     FileUploadService.bucketName = process.env["MINIO_BUCKET"] || "uploads";
-    FileUploadService.publicEndpoint = rawPublicUrl || "https://minio.bozorchi.store";
+    FileUploadService.publicEndpoint =
+      parsedPublicUrl?.origin || rawPublicUrl || "https://minio.bozorchi.store";
 
     // === OBSERVABILITY: Log all MinIO config values ===
     logger.info("[MinIO] ========== CONFIGURATION DEBUG ==========", "fileUpload");
@@ -60,12 +77,19 @@ class FileUploadService {
       useSSL,
       bucket: FileUploadService.bucketName,
       publicEndpoint: FileUploadService.publicEndpoint,
+      derivedFromPublicUrl: parsedPublicUrl
+        ? {
+          hostname: parsedPublicUrl.hostname,
+          port: parsedPublicUrl.port || "(none)",
+          protocol: parsedPublicUrl.protocol,
+        }
+        : null,
     });
     logger.info("[MinIO] ==========================================", "fileUpload");
 
     FileUploadService.minioClient = new Minio.Client({
       endPoint: endpoint,
-      port: Number(rawPort),
+      port,
       useSSL: useSSL,
       accessKey: accessKey,
       secretKey: secretKey,
@@ -76,6 +100,15 @@ class FileUploadService {
 
   static sanitizeFileName(fileName: string): string {
     return fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+  }
+
+  private static parseUrl(rawUrl?: string): URL | null {
+    if (!rawUrl) return null;
+    try {
+      return new URL(rawUrl);
+    } catch {
+      return null;
+    }
   }
 
   getMulterConfig() {
@@ -133,6 +166,7 @@ class FileUploadService {
     });
 
     try {
+      await FileUploadService.ensureBucketExists();
       await FileUploadService.minioClient.putObject(
         FileUploadService.bucketName,
         objectName,
@@ -159,6 +193,42 @@ class FileUploadService {
     const publicUrl = `${FileUploadService.publicEndpoint}/${FileUploadService.bucketName}/${objectName}`;
 
     return publicUrl;
+  }
+
+  private static async ensureBucketExists(): Promise<void> {
+    if (FileUploadService.bucketInitPromise) {
+      return FileUploadService.bucketInitPromise;
+    }
+
+    FileUploadService.bucketInitPromise = (async () => {
+      const exists = await FileUploadService.minioClient.bucketExists(
+        FileUploadService.bucketName
+      );
+
+      if (!exists) {
+        await FileUploadService.minioClient.makeBucket(
+          FileUploadService.bucketName
+        );
+        logger.info("[MinIO] Bucket created", "fileUpload", {
+          bucket: FileUploadService.bucketName,
+        });
+      }
+    })().catch((error) => {
+      FileUploadService.bucketInitPromise = null;
+      logger.error("[MinIO] Bucket verification failed", "fileUpload", {
+        bucket: FileUploadService.bucketName,
+        errorName: error?.name,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        fullError: JSON.stringify(
+          error,
+          Object.getOwnPropertyNames(error || {})
+        ),
+      });
+      throw error;
+    });
+
+    return FileUploadService.bucketInitPromise;
   }
 
   static async deleteFile(objectName: string): Promise<void> {
