@@ -11,7 +11,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@bozorchi/shared": ["../packages/@bozorchi/shared/src/index.ts"]
     }
   }
 }

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { cn, parseApiError } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from 'sonner'
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -22,25 +22,7 @@ import ProductCategoryTagSelector from "@/components/ui/product-category-tag-sel
 import UnitTagSelector from "@/components/ui/unit-tag-selector";
 import SupplierTagSelector from "@/components/ui/supplier-tag-selector";
 import ImageUpload from "@/components/ui/image-upload";
-
-interface Unit {
-    id: string;
-    name: string;
-    category_id: string;
-}
-
-interface Supplier {
-    id: string;
-    name: string;
-    contact: string | null;
-    phone: string | null;
-    email: string | null;
-    address: string | null;
-    notes: string | null;
-    store_id: string;
-    created_at: string;
-    updated_at: string;
-}
+import type { Prisma } from "@bozorchi/shared";
 
 interface ProductVariationFormData {
     id?: string;
@@ -82,6 +64,27 @@ interface FormErrors {
     productCategoryId?: string;
     variations: { [key: number]: VariationError };
 }
+
+// UI-friendly types that widen nullable/optional fields expected by selectors
+type UnitOption = Prisma.UnitGetPayload<{}> & { category_id?: string | null };
+type SupplierOption = Prisma.SupplierGetPayload<{}> & { store_id?: string | null };
+type ProductWithRelations = Prisma.ProductGetPayload<{
+    include: {
+        product_category: true;
+        product_variations: {
+            include: {
+                unit: true;
+                inventory: true;
+                supplier: true;
+            };
+        };
+    };
+}>;
+type ProductWithOptionalDescription = ProductWithRelations & {
+    description?: string | null;
+};
+type VariationApi = ProductWithRelations["product_variations"][number];
+
 
 type VariationPayload = {
     id?: string;
@@ -237,7 +240,7 @@ export default function ProductEditPage() {
     const unitsQuery = useQuery({
         queryKey: ["units"],
         queryFn: async () => {
-            const response = await api.get<{ units: Unit[] }>("/api/units");
+            const response = await api.get<{ units: UnitOption[] }>("/api/units");
             return response.units ?? [];
         },
     });
@@ -245,7 +248,7 @@ export default function ProductEditPage() {
     const suppliersQuery = useQuery({
         queryKey: ["suppliers"],
         queryFn: async () => {
-            const response = await api.get<{ suppliers: Supplier[] }>(
+            const response = await api.get<{ suppliers: SupplierOption[] }>(
                 "/api/suppliers"
             );
             return response.suppliers ?? [];
@@ -256,18 +259,41 @@ export default function ProductEditPage() {
     const productQuery = useQuery({
         queryKey: ["product", productId],
         queryFn: async () => {
-            const response = await api.get<{ product: any }>(`/api/products/${productId}`);
+            const response = await api.get<{ product: ProductWithRelations }>(
+                `/api/products/${productId}`
+            );
             return response.product;
         },
         enabled: !!productId,
     });
 
-    const units = useMemo(() => unitsQuery.data ?? [], [unitsQuery.data]);
-    const suppliers = suppliersQuery.data ?? [];
+    const units = useMemo<UnitOption[]>(() => unitsQuery.data ?? [], [unitsQuery.data]);
+    const suppliers = useMemo<SupplierOption[]>(() => suppliersQuery.data ?? [], [suppliersQuery.data]);
+
+    // Normalize for UI components that expect non-null legacy fields
+    const normalizedUnits = useMemo(
+        () =>
+            units.map((u) => ({
+                ...u,
+                category_id: (u as { category_id?: string | null }).category_id ?? "",
+            })),
+        [units]
+    );
+
+    const normalizedSuppliers = useMemo(
+        () =>
+            suppliers.map((s) => ({
+                ...s,
+                store_id: s.store_id ?? "",
+                created_at: String(s.created_at ?? ""),
+                updated_at: String(s.updated_at ?? ""),
+              })),
+        [suppliers]
+    );
 
     useEffect(() => {
         if (productQuery.data) {
-            const product = productQuery.data;
+            const product = productQuery.data as ProductWithOptionalDescription;
             console.debug(`${LOG_TAG} product loaded`, {
                 productId: product.id,
                 variations: product.product_variations?.length ?? 0,
@@ -278,7 +304,7 @@ export default function ProductEditPage() {
                 description: product.description || "",
                 productCategoryId: product.product_category_id || "",
                 imageUrl: product.image_url || "",
-                variations: product.product_variations.map((v: any) => ({
+                variations: product.product_variations.map((v: VariationApi) => ({
                     id: v.id,
                     name: v.name,
                     description: v.description || "",
@@ -287,7 +313,7 @@ export default function ProductEditPage() {
                     sellingPrice: v.selling_price?.toString() || "",
                     deliveryCost: (v.delivery_cost)?.toString() || "",
                     unitCost: v.price?.toString() || "",
-                    costPrice: v.cost_price?.toString() || "",
+                    costPrice: v.price?.toString() || "",
                     unitId: v.unit_id,
                     supplierId: v.supplier_id || "",
                     initialStock: v.inventory?.[0]?.quantity_in_stock?.toString() || "0",
@@ -856,7 +882,7 @@ export default function ProductEditPage() {
                                     </div>
                                     <div className="space-y-2.5">
                                         <label className="text-sm font-medium text-foreground">
-                                            {t("products.costPrice")}
+                                            {t("products.costPrice", { defaultValue: "Себестоимость" })}
                                             <span className="text-destructive">*</span>
                                         </label>
                                         <div className="flex">
@@ -894,6 +920,7 @@ export default function ProductEditPage() {
                                             </p>
                                         )}
                                     </div>
+
                                 </div>
                             </div>
 
@@ -908,7 +935,7 @@ export default function ProductEditPage() {
                                         <UnitTagSelector
                                             selectedUnitValue={variation.unitId}
                                             onUnitValueSelect={(value) => updateVariation(index, "unitId", value)}
-                                            units={units}
+                                            units={normalizedUnits}
                                             error={variationErrors.unitId}
                                         />
                                         {variationErrors.unitId && (
@@ -926,7 +953,7 @@ export default function ProductEditPage() {
                                             onSupplierSelect={(value) =>
                                                 updateVariation(index, "supplierId", value)
                                             }
-                                            suppliers={suppliers}
+                                            suppliers={normalizedSuppliers}
                                         />
                                     </div>
                                     <div className="space-y-2.5">
