@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCu9e1o-0sg4U3nz06op43aaEHQpsvRKNI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>190087209448</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.doubleh.bozorchi</string>
+	<key>PROJECT_ID</key>
+	<string>bozorchi-8b209</string>
+	<key>STORAGE_BUCKET</key>
+	<string>bozorchi-8b209.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:190087209448:ios:fc3181e923d3addfcec45d</string>
+</dict>
+</plist>

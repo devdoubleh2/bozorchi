@@ -24,6 +24,11 @@ export type Organization = $Result.DefaultSelection<Prisma.$OrganizationPayload>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model MobilePushToken
+ * 
+ */
+export type MobilePushToken = $Result.DefaultSelection<Prisma.$MobilePushTokenPayload>
+/**
  * Model PasswordResetToken
  * 
  */
@@ -220,6 +225,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mobilePushToken`: Exposes CRUD operations for the **MobilePushToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MobilePushTokens
+    * const mobilePushTokens = await prisma.mobilePushToken.findMany()
+    * ```
+    */
+  get mobilePushToken(): Prisma.MobilePushTokenDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.passwordResetToken`: Exposes CRUD operations for the **PasswordResetToken** model.
@@ -676,6 +691,7 @@ export namespace Prisma {
   export const ModelName: {
     Organization: 'Organization',
     User: 'User',
+    MobilePushToken: 'MobilePushToken',
     PasswordResetToken: 'PasswordResetToken',
     UserOrganization: 'UserOrganization'
   };
@@ -693,7 +709,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "passwordResetToken" | "userOrganization"
+      modelProps: "organization" | "user" | "mobilePushToken" | "passwordResetToken" | "userOrganization"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -842,6 +858,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      MobilePushToken: {
+        payload: Prisma.$MobilePushTokenPayload<ExtArgs>
+        fields: Prisma.MobilePushTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MobilePushTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MobilePushTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.MobilePushTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MobilePushTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          findMany: {
+            args: Prisma.MobilePushTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>[]
+          }
+          create: {
+            args: Prisma.MobilePushTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          createMany: {
+            args: Prisma.MobilePushTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MobilePushTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.MobilePushTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          update: {
+            args: Prisma.MobilePushTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.MobilePushTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MobilePushTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MobilePushTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.MobilePushTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MobilePushTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.MobilePushTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMobilePushToken>
+          }
+          groupBy: {
+            args: Prisma.MobilePushTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MobilePushTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MobilePushTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<MobilePushTokenCountAggregateOutputType> | number
           }
         }
       }
@@ -1103,6 +1193,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     organization?: OrganizationOmit
     user?: UserOmit
+    mobilePushToken?: MobilePushTokenOmit
     passwordResetToken?: PasswordResetTokenOmit
     userOrganization?: UserOrganizationOmit
   }
@@ -1216,10 +1307,12 @@ export namespace Prisma {
    */
 
   export type UserCountOutputType = {
+    mobile_push_tokens: number
     password_reset_tokens: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mobile_push_tokens?: boolean | UserCountOutputTypeCountMobile_push_tokensArgs
     password_reset_tokens?: boolean | UserCountOutputTypeCountPassword_reset_tokensArgs
   }
 
@@ -1232,6 +1325,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the UserCountOutputType
      */
     select?: UserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountMobile_push_tokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MobilePushTokenWhereInput
   }
 
   /**
@@ -2645,6 +2745,7 @@ export namespace Prisma {
     updated_at?: boolean
     push_token?: boolean
     owned_organization?: boolean | User$owned_organizationArgs<ExtArgs>
+    mobile_push_tokens?: boolean | User$mobile_push_tokensArgs<ExtArgs>
     password_reset_tokens?: boolean | User$password_reset_tokensArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
@@ -2682,6 +2783,7 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password_hash" | "created_at" | "updated_at" | "push_token", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owned_organization?: boolean | User$owned_organizationArgs<ExtArgs>
+    mobile_push_tokens?: boolean | User$mobile_push_tokensArgs<ExtArgs>
     password_reset_tokens?: boolean | User$password_reset_tokensArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -2692,6 +2794,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       owned_organization: Prisma.$OrganizationPayload<ExtArgs> | null
+      mobile_push_tokens: Prisma.$MobilePushTokenPayload<ExtArgs>[]
       password_reset_tokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -3097,6 +3200,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owned_organization<T extends User$owned_organizationArgs<ExtArgs> = {}>(args?: Subset<T, User$owned_organizationArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    mobile_push_tokens<T extends User$mobile_push_tokensArgs<ExtArgs> = {}>(args?: Subset<T, User$mobile_push_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     password_reset_tokens<T extends User$password_reset_tokensArgs<ExtArgs> = {}>(args?: Subset<T, User$password_reset_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3541,6 +3645,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.mobile_push_tokens
+   */
+  export type User$mobile_push_tokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    where?: MobilePushTokenWhereInput
+    orderBy?: MobilePushTokenOrderByWithRelationInput | MobilePushTokenOrderByWithRelationInput[]
+    cursor?: MobilePushTokenWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MobilePushTokenScalarFieldEnum | MobilePushTokenScalarFieldEnum[]
+  }
+
+  /**
    * User.password_reset_tokens
    */
   export type User$password_reset_tokensArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3580,6 +3708,1142 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MobilePushToken
+   */
+
+  export type AggregateMobilePushToken = {
+    _count: MobilePushTokenCountAggregateOutputType | null
+    _min: MobilePushTokenMinAggregateOutputType | null
+    _max: MobilePushTokenMaxAggregateOutputType | null
+  }
+
+  export type MobilePushTokenMinAggregateOutputType = {
+    id: string | null
+    user_id: string | null
+    token: string | null
+    platform: string | null
+    provider: string | null
+    device_name: string | null
+    app_version: string | null
+    build_number: string | null
+    created_at: Date | null
+    updated_at: Date | null
+    last_seen_at: Date | null
+  }
+
+  export type MobilePushTokenMaxAggregateOutputType = {
+    id: string | null
+    user_id: string | null
+    token: string | null
+    platform: string | null
+    provider: string | null
+    device_name: string | null
+    app_version: string | null
+    build_number: string | null
+    created_at: Date | null
+    updated_at: Date | null
+    last_seen_at: Date | null
+  }
+
+  export type MobilePushTokenCountAggregateOutputType = {
+    id: number
+    user_id: number
+    token: number
+    platform: number
+    provider: number
+    device_name: number
+    app_version: number
+    build_number: number
+    created_at: number
+    updated_at: number
+    last_seen_at: number
+    _all: number
+  }
+
+
+  export type MobilePushTokenMinAggregateInputType = {
+    id?: true
+    user_id?: true
+    token?: true
+    platform?: true
+    provider?: true
+    device_name?: true
+    app_version?: true
+    build_number?: true
+    created_at?: true
+    updated_at?: true
+    last_seen_at?: true
+  }
+
+  export type MobilePushTokenMaxAggregateInputType = {
+    id?: true
+    user_id?: true
+    token?: true
+    platform?: true
+    provider?: true
+    device_name?: true
+    app_version?: true
+    build_number?: true
+    created_at?: true
+    updated_at?: true
+    last_seen_at?: true
+  }
+
+  export type MobilePushTokenCountAggregateInputType = {
+    id?: true
+    user_id?: true
+    token?: true
+    platform?: true
+    provider?: true
+    device_name?: true
+    app_version?: true
+    build_number?: true
+    created_at?: true
+    updated_at?: true
+    last_seen_at?: true
+    _all?: true
+  }
+
+  export type MobilePushTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MobilePushToken to aggregate.
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MobilePushTokens to fetch.
+     */
+    orderBy?: MobilePushTokenOrderByWithRelationInput | MobilePushTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MobilePushTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MobilePushTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MobilePushTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MobilePushTokens
+    **/
+    _count?: true | MobilePushTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MobilePushTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MobilePushTokenMaxAggregateInputType
+  }
+
+  export type GetMobilePushTokenAggregateType<T extends MobilePushTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateMobilePushToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMobilePushToken[P]>
+      : GetScalarType<T[P], AggregateMobilePushToken[P]>
+  }
+
+
+
+
+  export type MobilePushTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MobilePushTokenWhereInput
+    orderBy?: MobilePushTokenOrderByWithAggregationInput | MobilePushTokenOrderByWithAggregationInput[]
+    by: MobilePushTokenScalarFieldEnum[] | MobilePushTokenScalarFieldEnum
+    having?: MobilePushTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MobilePushTokenCountAggregateInputType | true
+    _min?: MobilePushTokenMinAggregateInputType
+    _max?: MobilePushTokenMaxAggregateInputType
+  }
+
+  export type MobilePushTokenGroupByOutputType = {
+    id: string
+    user_id: string
+    token: string
+    platform: string
+    provider: string
+    device_name: string | null
+    app_version: string | null
+    build_number: string | null
+    created_at: Date
+    updated_at: Date
+    last_seen_at: Date
+    _count: MobilePushTokenCountAggregateOutputType | null
+    _min: MobilePushTokenMinAggregateOutputType | null
+    _max: MobilePushTokenMaxAggregateOutputType | null
+  }
+
+  type GetMobilePushTokenGroupByPayload<T extends MobilePushTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MobilePushTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MobilePushTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MobilePushTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], MobilePushTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MobilePushTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    token?: boolean
+    platform?: boolean
+    provider?: boolean
+    device_name?: boolean
+    app_version?: boolean
+    build_number?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    last_seen_at?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mobilePushToken"]>
+
+  export type MobilePushTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    token?: boolean
+    platform?: boolean
+    provider?: boolean
+    device_name?: boolean
+    app_version?: boolean
+    build_number?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    last_seen_at?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mobilePushToken"]>
+
+  export type MobilePushTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    user_id?: boolean
+    token?: boolean
+    platform?: boolean
+    provider?: boolean
+    device_name?: boolean
+    app_version?: boolean
+    build_number?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    last_seen_at?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mobilePushToken"]>
+
+  export type MobilePushTokenSelectScalar = {
+    id?: boolean
+    user_id?: boolean
+    token?: boolean
+    platform?: boolean
+    provider?: boolean
+    device_name?: boolean
+    app_version?: boolean
+    build_number?: boolean
+    created_at?: boolean
+    updated_at?: boolean
+    last_seen_at?: boolean
+  }
+
+  export type MobilePushTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "token" | "platform" | "provider" | "device_name" | "app_version" | "build_number" | "created_at" | "updated_at" | "last_seen_at", ExtArgs["result"]["mobilePushToken"]>
+  export type MobilePushTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type MobilePushTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type MobilePushTokenIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $MobilePushTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MobilePushToken"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      user_id: string
+      token: string
+      platform: string
+      provider: string
+      device_name: string | null
+      app_version: string | null
+      build_number: string | null
+      created_at: Date
+      updated_at: Date
+      last_seen_at: Date
+    }, ExtArgs["result"]["mobilePushToken"]>
+    composites: {}
+  }
+
+  type MobilePushTokenGetPayload<S extends boolean | null | undefined | MobilePushTokenDefaultArgs> = $Result.GetResult<Prisma.$MobilePushTokenPayload, S>
+
+  type MobilePushTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MobilePushTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MobilePushTokenCountAggregateInputType | true
+    }
+
+  export interface MobilePushTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MobilePushToken'], meta: { name: 'MobilePushToken' } }
+    /**
+     * Find zero or one MobilePushToken that matches the filter.
+     * @param {MobilePushTokenFindUniqueArgs} args - Arguments to find a MobilePushToken
+     * @example
+     * // Get one MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MobilePushTokenFindUniqueArgs>(args: SelectSubset<T, MobilePushTokenFindUniqueArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MobilePushToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MobilePushTokenFindUniqueOrThrowArgs} args - Arguments to find a MobilePushToken
+     * @example
+     * // Get one MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MobilePushTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, MobilePushTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MobilePushToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenFindFirstArgs} args - Arguments to find a MobilePushToken
+     * @example
+     * // Get one MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MobilePushTokenFindFirstArgs>(args?: SelectSubset<T, MobilePushTokenFindFirstArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MobilePushToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenFindFirstOrThrowArgs} args - Arguments to find a MobilePushToken
+     * @example
+     * // Get one MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MobilePushTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, MobilePushTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MobilePushTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MobilePushTokens
+     * const mobilePushTokens = await prisma.mobilePushToken.findMany()
+     * 
+     * // Get first 10 MobilePushTokens
+     * const mobilePushTokens = await prisma.mobilePushToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const mobilePushTokenWithIdOnly = await prisma.mobilePushToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MobilePushTokenFindManyArgs>(args?: SelectSubset<T, MobilePushTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MobilePushToken.
+     * @param {MobilePushTokenCreateArgs} args - Arguments to create a MobilePushToken.
+     * @example
+     * // Create one MobilePushToken
+     * const MobilePushToken = await prisma.mobilePushToken.create({
+     *   data: {
+     *     // ... data to create a MobilePushToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends MobilePushTokenCreateArgs>(args: SelectSubset<T, MobilePushTokenCreateArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MobilePushTokens.
+     * @param {MobilePushTokenCreateManyArgs} args - Arguments to create many MobilePushTokens.
+     * @example
+     * // Create many MobilePushTokens
+     * const mobilePushToken = await prisma.mobilePushToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MobilePushTokenCreateManyArgs>(args?: SelectSubset<T, MobilePushTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MobilePushTokens and returns the data saved in the database.
+     * @param {MobilePushTokenCreateManyAndReturnArgs} args - Arguments to create many MobilePushTokens.
+     * @example
+     * // Create many MobilePushTokens
+     * const mobilePushToken = await prisma.mobilePushToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MobilePushTokens and only return the `id`
+     * const mobilePushTokenWithIdOnly = await prisma.mobilePushToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MobilePushTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, MobilePushTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MobilePushToken.
+     * @param {MobilePushTokenDeleteArgs} args - Arguments to delete one MobilePushToken.
+     * @example
+     * // Delete one MobilePushToken
+     * const MobilePushToken = await prisma.mobilePushToken.delete({
+     *   where: {
+     *     // ... filter to delete one MobilePushToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MobilePushTokenDeleteArgs>(args: SelectSubset<T, MobilePushTokenDeleteArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MobilePushToken.
+     * @param {MobilePushTokenUpdateArgs} args - Arguments to update one MobilePushToken.
+     * @example
+     * // Update one MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MobilePushTokenUpdateArgs>(args: SelectSubset<T, MobilePushTokenUpdateArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MobilePushTokens.
+     * @param {MobilePushTokenDeleteManyArgs} args - Arguments to filter MobilePushTokens to delete.
+     * @example
+     * // Delete a few MobilePushTokens
+     * const { count } = await prisma.mobilePushToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MobilePushTokenDeleteManyArgs>(args?: SelectSubset<T, MobilePushTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MobilePushTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MobilePushTokens
+     * const mobilePushToken = await prisma.mobilePushToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MobilePushTokenUpdateManyArgs>(args: SelectSubset<T, MobilePushTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MobilePushTokens and returns the data updated in the database.
+     * @param {MobilePushTokenUpdateManyAndReturnArgs} args - Arguments to update many MobilePushTokens.
+     * @example
+     * // Update many MobilePushTokens
+     * const mobilePushToken = await prisma.mobilePushToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MobilePushTokens and only return the `id`
+     * const mobilePushTokenWithIdOnly = await prisma.mobilePushToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MobilePushTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, MobilePushTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MobilePushToken.
+     * @param {MobilePushTokenUpsertArgs} args - Arguments to update or create a MobilePushToken.
+     * @example
+     * // Update or create a MobilePushToken
+     * const mobilePushToken = await prisma.mobilePushToken.upsert({
+     *   create: {
+     *     // ... data to create a MobilePushToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MobilePushToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MobilePushTokenUpsertArgs>(args: SelectSubset<T, MobilePushTokenUpsertArgs<ExtArgs>>): Prisma__MobilePushTokenClient<$Result.GetResult<Prisma.$MobilePushTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MobilePushTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenCountArgs} args - Arguments to filter MobilePushTokens to count.
+     * @example
+     * // Count the number of MobilePushTokens
+     * const count = await prisma.mobilePushToken.count({
+     *   where: {
+     *     // ... the filter for the MobilePushTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends MobilePushTokenCountArgs>(
+      args?: Subset<T, MobilePushTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MobilePushTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MobilePushToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MobilePushTokenAggregateArgs>(args: Subset<T, MobilePushTokenAggregateArgs>): Prisma.PrismaPromise<GetMobilePushTokenAggregateType<T>>
+
+    /**
+     * Group by MobilePushToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MobilePushTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MobilePushTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MobilePushTokenGroupByArgs['orderBy'] }
+        : { orderBy?: MobilePushTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MobilePushTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMobilePushTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MobilePushToken model
+   */
+  readonly fields: MobilePushTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MobilePushToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MobilePushTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MobilePushToken model
+   */
+  interface MobilePushTokenFieldRefs {
+    readonly id: FieldRef<"MobilePushToken", 'String'>
+    readonly user_id: FieldRef<"MobilePushToken", 'String'>
+    readonly token: FieldRef<"MobilePushToken", 'String'>
+    readonly platform: FieldRef<"MobilePushToken", 'String'>
+    readonly provider: FieldRef<"MobilePushToken", 'String'>
+    readonly device_name: FieldRef<"MobilePushToken", 'String'>
+    readonly app_version: FieldRef<"MobilePushToken", 'String'>
+    readonly build_number: FieldRef<"MobilePushToken", 'String'>
+    readonly created_at: FieldRef<"MobilePushToken", 'DateTime'>
+    readonly updated_at: FieldRef<"MobilePushToken", 'DateTime'>
+    readonly last_seen_at: FieldRef<"MobilePushToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MobilePushToken findUnique
+   */
+  export type MobilePushTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which MobilePushToken to fetch.
+     */
+    where: MobilePushTokenWhereUniqueInput
+  }
+
+  /**
+   * MobilePushToken findUniqueOrThrow
+   */
+  export type MobilePushTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which MobilePushToken to fetch.
+     */
+    where: MobilePushTokenWhereUniqueInput
+  }
+
+  /**
+   * MobilePushToken findFirst
+   */
+  export type MobilePushTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which MobilePushToken to fetch.
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MobilePushTokens to fetch.
+     */
+    orderBy?: MobilePushTokenOrderByWithRelationInput | MobilePushTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MobilePushTokens.
+     */
+    cursor?: MobilePushTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MobilePushTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MobilePushTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MobilePushTokens.
+     */
+    distinct?: MobilePushTokenScalarFieldEnum | MobilePushTokenScalarFieldEnum[]
+  }
+
+  /**
+   * MobilePushToken findFirstOrThrow
+   */
+  export type MobilePushTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which MobilePushToken to fetch.
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MobilePushTokens to fetch.
+     */
+    orderBy?: MobilePushTokenOrderByWithRelationInput | MobilePushTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MobilePushTokens.
+     */
+    cursor?: MobilePushTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MobilePushTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MobilePushTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MobilePushTokens.
+     */
+    distinct?: MobilePushTokenScalarFieldEnum | MobilePushTokenScalarFieldEnum[]
+  }
+
+  /**
+   * MobilePushToken findMany
+   */
+  export type MobilePushTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which MobilePushTokens to fetch.
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MobilePushTokens to fetch.
+     */
+    orderBy?: MobilePushTokenOrderByWithRelationInput | MobilePushTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MobilePushTokens.
+     */
+    cursor?: MobilePushTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MobilePushTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MobilePushTokens.
+     */
+    skip?: number
+    distinct?: MobilePushTokenScalarFieldEnum | MobilePushTokenScalarFieldEnum[]
+  }
+
+  /**
+   * MobilePushToken create
+   */
+  export type MobilePushTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MobilePushToken.
+     */
+    data: XOR<MobilePushTokenCreateInput, MobilePushTokenUncheckedCreateInput>
+  }
+
+  /**
+   * MobilePushToken createMany
+   */
+  export type MobilePushTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MobilePushTokens.
+     */
+    data: MobilePushTokenCreateManyInput | MobilePushTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MobilePushToken createManyAndReturn
+   */
+  export type MobilePushTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many MobilePushTokens.
+     */
+    data: MobilePushTokenCreateManyInput | MobilePushTokenCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MobilePushToken update
+   */
+  export type MobilePushTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MobilePushToken.
+     */
+    data: XOR<MobilePushTokenUpdateInput, MobilePushTokenUncheckedUpdateInput>
+    /**
+     * Choose, which MobilePushToken to update.
+     */
+    where: MobilePushTokenWhereUniqueInput
+  }
+
+  /**
+   * MobilePushToken updateMany
+   */
+  export type MobilePushTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MobilePushTokens.
+     */
+    data: XOR<MobilePushTokenUpdateManyMutationInput, MobilePushTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which MobilePushTokens to update
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * Limit how many MobilePushTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MobilePushToken updateManyAndReturn
+   */
+  export type MobilePushTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update MobilePushTokens.
+     */
+    data: XOR<MobilePushTokenUpdateManyMutationInput, MobilePushTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which MobilePushTokens to update
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * Limit how many MobilePushTokens to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MobilePushToken upsert
+   */
+  export type MobilePushTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MobilePushToken to update in case it exists.
+     */
+    where: MobilePushTokenWhereUniqueInput
+    /**
+     * In case the MobilePushToken found by the `where` argument doesn't exist, create a new MobilePushToken with this data.
+     */
+    create: XOR<MobilePushTokenCreateInput, MobilePushTokenUncheckedCreateInput>
+    /**
+     * In case the MobilePushToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MobilePushTokenUpdateInput, MobilePushTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * MobilePushToken delete
+   */
+  export type MobilePushTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
+    /**
+     * Filter which MobilePushToken to delete.
+     */
+    where: MobilePushTokenWhereUniqueInput
+  }
+
+  /**
+   * MobilePushToken deleteMany
+   */
+  export type MobilePushTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MobilePushTokens to delete
+     */
+    where?: MobilePushTokenWhereInput
+    /**
+     * Limit how many MobilePushTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MobilePushToken without action
+   */
+  export type MobilePushTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MobilePushToken
+     */
+    select?: MobilePushTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MobilePushToken
+     */
+    omit?: MobilePushTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MobilePushTokenInclude<ExtArgs> | null
   }
 
 
@@ -5808,6 +7072,23 @@ export namespace Prisma {
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const MobilePushTokenScalarFieldEnum: {
+    id: 'id',
+    user_id: 'user_id',
+    token: 'token',
+    platform: 'platform',
+    provider: 'provider',
+    device_name: 'device_name',
+    app_version: 'app_version',
+    build_number: 'build_number',
+    created_at: 'created_at',
+    updated_at: 'updated_at',
+    last_seen_at: 'last_seen_at'
+  };
+
+  export type MobilePushTokenScalarFieldEnum = (typeof MobilePushTokenScalarFieldEnum)[keyof typeof MobilePushTokenScalarFieldEnum]
+
+
   export const PasswordResetTokenScalarFieldEnum: {
     id: 'id',
     token_hash: 'token_hash',
@@ -6078,6 +7359,7 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"User"> | Date | string
     push_token?: StringNullableFilter<"User"> | string | null
     owned_organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+    mobile_push_tokens?: MobilePushTokenListRelationFilter
     password_reset_tokens?: PasswordResetTokenListRelationFilter
   }
 
@@ -6090,6 +7372,7 @@ export namespace Prisma {
     updated_at?: SortOrder
     push_token?: SortOrderInput | SortOrder
     owned_organization?: OrganizationOrderByWithRelationInput
+    mobile_push_tokens?: MobilePushTokenOrderByRelationAggregateInput
     password_reset_tokens?: PasswordResetTokenOrderByRelationAggregateInput
   }
 
@@ -6105,6 +7388,7 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"User"> | Date | string
     push_token?: StringNullableFilter<"User"> | string | null
     owned_organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
+    mobile_push_tokens?: MobilePushTokenListRelationFilter
     password_reset_tokens?: PasswordResetTokenListRelationFilter
   }, "id" | "email">
 
@@ -6132,6 +7416,91 @@ export namespace Prisma {
     created_at?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updated_at?: DateTimeWithAggregatesFilter<"User"> | Date | string
     push_token?: StringNullableWithAggregatesFilter<"User"> | string | null
+  }
+
+  export type MobilePushTokenWhereInput = {
+    AND?: MobilePushTokenWhereInput | MobilePushTokenWhereInput[]
+    OR?: MobilePushTokenWhereInput[]
+    NOT?: MobilePushTokenWhereInput | MobilePushTokenWhereInput[]
+    id?: StringFilter<"MobilePushToken"> | string
+    user_id?: StringFilter<"MobilePushToken"> | string
+    token?: StringFilter<"MobilePushToken"> | string
+    platform?: StringFilter<"MobilePushToken"> | string
+    provider?: StringFilter<"MobilePushToken"> | string
+    device_name?: StringNullableFilter<"MobilePushToken"> | string | null
+    app_version?: StringNullableFilter<"MobilePushToken"> | string | null
+    build_number?: StringNullableFilter<"MobilePushToken"> | string | null
+    created_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    updated_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    last_seen_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type MobilePushTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    token?: SortOrder
+    platform?: SortOrder
+    provider?: SortOrder
+    device_name?: SortOrderInput | SortOrder
+    app_version?: SortOrderInput | SortOrder
+    build_number?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    last_seen_at?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type MobilePushTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: MobilePushTokenWhereInput | MobilePushTokenWhereInput[]
+    OR?: MobilePushTokenWhereInput[]
+    NOT?: MobilePushTokenWhereInput | MobilePushTokenWhereInput[]
+    user_id?: StringFilter<"MobilePushToken"> | string
+    platform?: StringFilter<"MobilePushToken"> | string
+    provider?: StringFilter<"MobilePushToken"> | string
+    device_name?: StringNullableFilter<"MobilePushToken"> | string | null
+    app_version?: StringNullableFilter<"MobilePushToken"> | string | null
+    build_number?: StringNullableFilter<"MobilePushToken"> | string | null
+    created_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    updated_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    last_seen_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "token">
+
+  export type MobilePushTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    token?: SortOrder
+    platform?: SortOrder
+    provider?: SortOrder
+    device_name?: SortOrderInput | SortOrder
+    app_version?: SortOrderInput | SortOrder
+    build_number?: SortOrderInput | SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    last_seen_at?: SortOrder
+    _count?: MobilePushTokenCountOrderByAggregateInput
+    _max?: MobilePushTokenMaxOrderByAggregateInput
+    _min?: MobilePushTokenMinOrderByAggregateInput
+  }
+
+  export type MobilePushTokenScalarWhereWithAggregatesInput = {
+    AND?: MobilePushTokenScalarWhereWithAggregatesInput | MobilePushTokenScalarWhereWithAggregatesInput[]
+    OR?: MobilePushTokenScalarWhereWithAggregatesInput[]
+    NOT?: MobilePushTokenScalarWhereWithAggregatesInput | MobilePushTokenScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MobilePushToken"> | string
+    user_id?: StringWithAggregatesFilter<"MobilePushToken"> | string
+    token?: StringWithAggregatesFilter<"MobilePushToken"> | string
+    platform?: StringWithAggregatesFilter<"MobilePushToken"> | string
+    provider?: StringWithAggregatesFilter<"MobilePushToken"> | string
+    device_name?: StringNullableWithAggregatesFilter<"MobilePushToken"> | string | null
+    app_version?: StringNullableWithAggregatesFilter<"MobilePushToken"> | string | null
+    build_number?: StringNullableWithAggregatesFilter<"MobilePushToken"> | string | null
+    created_at?: DateTimeWithAggregatesFilter<"MobilePushToken"> | Date | string
+    updated_at?: DateTimeWithAggregatesFilter<"MobilePushToken"> | Date | string
+    last_seen_at?: DateTimeWithAggregatesFilter<"MobilePushToken"> | Date | string
   }
 
   export type PasswordResetTokenWhereInput = {
@@ -6408,6 +7777,7 @@ export namespace Prisma {
     updated_at?: Date | string
     push_token?: string | null
     owned_organization?: OrganizationCreateNestedOneWithoutOwnerInput
+    mobile_push_tokens?: MobilePushTokenCreateNestedManyWithoutUserInput
     password_reset_tokens?: PasswordResetTokenCreateNestedManyWithoutUserInput
   }
 
@@ -6420,6 +7790,7 @@ export namespace Prisma {
     updated_at?: Date | string
     push_token?: string | null
     owned_organization?: OrganizationUncheckedCreateNestedOneWithoutOwnerInput
+    mobile_push_tokens?: MobilePushTokenUncheckedCreateNestedManyWithoutUserInput
     password_reset_tokens?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -6432,6 +7803,7 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
     owned_organization?: OrganizationUpdateOneWithoutOwnerNestedInput
+    mobile_push_tokens?: MobilePushTokenUpdateManyWithoutUserNestedInput
     password_reset_tokens?: PasswordResetTokenUpdateManyWithoutUserNestedInput
   }
 
@@ -6444,6 +7816,7 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
     owned_organization?: OrganizationUncheckedUpdateOneWithoutOwnerNestedInput
+    mobile_push_tokens?: MobilePushTokenUncheckedUpdateManyWithoutUserNestedInput
     password_reset_tokens?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -6475,6 +7848,103 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MobilePushTokenCreateInput = {
+    id?: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+    user: UserCreateNestedOneWithoutMobile_push_tokensInput
+  }
+
+  export type MobilePushTokenUncheckedCreateInput = {
+    id?: string
+    user_id: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+  }
+
+  export type MobilePushTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutMobile_push_tokensNestedInput
+  }
+
+  export type MobilePushTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MobilePushTokenCreateManyInput = {
+    id?: string
+    user_id: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+  }
+
+  export type MobilePushTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MobilePushTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    user_id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PasswordResetTokenCreateInput = {
@@ -6847,10 +8317,20 @@ export namespace Prisma {
     isNot?: OrganizationWhereInput | null
   }
 
+  export type MobilePushTokenListRelationFilter = {
+    every?: MobilePushTokenWhereInput
+    some?: MobilePushTokenWhereInput
+    none?: MobilePushTokenWhereInput
+  }
+
   export type PasswordResetTokenListRelationFilter = {
     every?: PasswordResetTokenWhereInput
     some?: PasswordResetTokenWhereInput
     none?: PasswordResetTokenWhereInput
+  }
+
+  export type MobilePushTokenOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type PasswordResetTokenOrderByRelationAggregateInput = {
@@ -6885,6 +8365,48 @@ export namespace Prisma {
     created_at?: SortOrder
     updated_at?: SortOrder
     push_token?: SortOrder
+  }
+
+  export type MobilePushTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    token?: SortOrder
+    platform?: SortOrder
+    provider?: SortOrder
+    device_name?: SortOrder
+    app_version?: SortOrder
+    build_number?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    last_seen_at?: SortOrder
+  }
+
+  export type MobilePushTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    token?: SortOrder
+    platform?: SortOrder
+    provider?: SortOrder
+    device_name?: SortOrder
+    app_version?: SortOrder
+    build_number?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    last_seen_at?: SortOrder
+  }
+
+  export type MobilePushTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    user_id?: SortOrder
+    token?: SortOrder
+    platform?: SortOrder
+    provider?: SortOrder
+    device_name?: SortOrder
+    app_version?: SortOrder
+    build_number?: SortOrder
+    created_at?: SortOrder
+    updated_at?: SortOrder
+    last_seen_at?: SortOrder
   }
 
   export type PasswordResetTokenCountOrderByAggregateInput = {
@@ -7070,6 +8592,13 @@ export namespace Prisma {
     connect?: OrganizationWhereUniqueInput
   }
 
+  export type MobilePushTokenCreateNestedManyWithoutUserInput = {
+    create?: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput> | MobilePushTokenCreateWithoutUserInput[] | MobilePushTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MobilePushTokenCreateOrConnectWithoutUserInput | MobilePushTokenCreateOrConnectWithoutUserInput[]
+    createMany?: MobilePushTokenCreateManyUserInputEnvelope
+    connect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+  }
+
   export type PasswordResetTokenCreateNestedManyWithoutUserInput = {
     create?: XOR<PasswordResetTokenCreateWithoutUserInput, PasswordResetTokenUncheckedCreateWithoutUserInput> | PasswordResetTokenCreateWithoutUserInput[] | PasswordResetTokenUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PasswordResetTokenCreateOrConnectWithoutUserInput | PasswordResetTokenCreateOrConnectWithoutUserInput[]
@@ -7081,6 +8610,13 @@ export namespace Prisma {
     create?: XOR<OrganizationCreateWithoutOwnerInput, OrganizationUncheckedCreateWithoutOwnerInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutOwnerInput
     connect?: OrganizationWhereUniqueInput
+  }
+
+  export type MobilePushTokenUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput> | MobilePushTokenCreateWithoutUserInput[] | MobilePushTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MobilePushTokenCreateOrConnectWithoutUserInput | MobilePushTokenCreateOrConnectWithoutUserInput[]
+    createMany?: MobilePushTokenCreateManyUserInputEnvelope
+    connect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
   }
 
   export type PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput = {
@@ -7098,6 +8634,20 @@ export namespace Prisma {
     delete?: OrganizationWhereInput | boolean
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutOwnerInput, OrganizationUpdateWithoutOwnerInput>, OrganizationUncheckedUpdateWithoutOwnerInput>
+  }
+
+  export type MobilePushTokenUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput> | MobilePushTokenCreateWithoutUserInput[] | MobilePushTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MobilePushTokenCreateOrConnectWithoutUserInput | MobilePushTokenCreateOrConnectWithoutUserInput[]
+    upsert?: MobilePushTokenUpsertWithWhereUniqueWithoutUserInput | MobilePushTokenUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MobilePushTokenCreateManyUserInputEnvelope
+    set?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    disconnect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    delete?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    connect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    update?: MobilePushTokenUpdateWithWhereUniqueWithoutUserInput | MobilePushTokenUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MobilePushTokenUpdateManyWithWhereWithoutUserInput | MobilePushTokenUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MobilePushTokenScalarWhereInput | MobilePushTokenScalarWhereInput[]
   }
 
   export type PasswordResetTokenUpdateManyWithoutUserNestedInput = {
@@ -7124,6 +8674,20 @@ export namespace Prisma {
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutOwnerInput, OrganizationUpdateWithoutOwnerInput>, OrganizationUncheckedUpdateWithoutOwnerInput>
   }
 
+  export type MobilePushTokenUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput> | MobilePushTokenCreateWithoutUserInput[] | MobilePushTokenUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MobilePushTokenCreateOrConnectWithoutUserInput | MobilePushTokenCreateOrConnectWithoutUserInput[]
+    upsert?: MobilePushTokenUpsertWithWhereUniqueWithoutUserInput | MobilePushTokenUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MobilePushTokenCreateManyUserInputEnvelope
+    set?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    disconnect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    delete?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    connect?: MobilePushTokenWhereUniqueInput | MobilePushTokenWhereUniqueInput[]
+    update?: MobilePushTokenUpdateWithWhereUniqueWithoutUserInput | MobilePushTokenUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MobilePushTokenUpdateManyWithWhereWithoutUserInput | MobilePushTokenUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MobilePushTokenScalarWhereInput | MobilePushTokenScalarWhereInput[]
+  }
+
   export type PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<PasswordResetTokenCreateWithoutUserInput, PasswordResetTokenUncheckedCreateWithoutUserInput> | PasswordResetTokenCreateWithoutUserInput[] | PasswordResetTokenUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PasswordResetTokenCreateOrConnectWithoutUserInput | PasswordResetTokenCreateOrConnectWithoutUserInput[]
@@ -7136,6 +8700,20 @@ export namespace Prisma {
     update?: PasswordResetTokenUpdateWithWhereUniqueWithoutUserInput | PasswordResetTokenUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: PasswordResetTokenUpdateManyWithWhereWithoutUserInput | PasswordResetTokenUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: PasswordResetTokenScalarWhereInput | PasswordResetTokenScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutMobile_push_tokensInput = {
+    create?: XOR<UserCreateWithoutMobile_push_tokensInput, UserUncheckedCreateWithoutMobile_push_tokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMobile_push_tokensInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutMobile_push_tokensNestedInput = {
+    create?: XOR<UserCreateWithoutMobile_push_tokensInput, UserUncheckedCreateWithoutMobile_push_tokensInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMobile_push_tokensInput
+    upsert?: UserUpsertWithoutMobile_push_tokensInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutMobile_push_tokensInput, UserUpdateWithoutMobile_push_tokensInput>, UserUncheckedUpdateWithoutMobile_push_tokensInput>
   }
 
   export type UserCreateNestedOneWithoutPassword_reset_tokensInput = {
@@ -7368,6 +8946,7 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     push_token?: string | null
+    mobile_push_tokens?: MobilePushTokenCreateNestedManyWithoutUserInput
     password_reset_tokens?: PasswordResetTokenCreateNestedManyWithoutUserInput
   }
 
@@ -7379,6 +8958,7 @@ export namespace Prisma {
     created_at?: Date | string
     updated_at?: Date | string
     push_token?: string | null
+    mobile_push_tokens?: MobilePushTokenUncheckedCreateNestedManyWithoutUserInput
     password_reset_tokens?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -7438,6 +9018,7 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
+    mobile_push_tokens?: MobilePushTokenUpdateManyWithoutUserNestedInput
     password_reset_tokens?: PasswordResetTokenUpdateManyWithoutUserNestedInput
   }
 
@@ -7449,6 +9030,7 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
+    mobile_push_tokens?: MobilePushTokenUncheckedUpdateManyWithoutUserNestedInput
     password_reset_tokens?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -7524,6 +9106,42 @@ export namespace Prisma {
     create: XOR<OrganizationCreateWithoutOwnerInput, OrganizationUncheckedCreateWithoutOwnerInput>
   }
 
+  export type MobilePushTokenCreateWithoutUserInput = {
+    id?: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+  }
+
+  export type MobilePushTokenUncheckedCreateWithoutUserInput = {
+    id?: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+  }
+
+  export type MobilePushTokenCreateOrConnectWithoutUserInput = {
+    where: MobilePushTokenWhereUniqueInput
+    create: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput>
+  }
+
+  export type MobilePushTokenCreateManyUserInputEnvelope = {
+    data: MobilePushTokenCreateManyUserInput | MobilePushTokenCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PasswordResetTokenCreateWithoutUserInput = {
     id?: string
     token_hash: string
@@ -7597,6 +9215,39 @@ export namespace Prisma {
     members?: UserOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
+  export type MobilePushTokenUpsertWithWhereUniqueWithoutUserInput = {
+    where: MobilePushTokenWhereUniqueInput
+    update: XOR<MobilePushTokenUpdateWithoutUserInput, MobilePushTokenUncheckedUpdateWithoutUserInput>
+    create: XOR<MobilePushTokenCreateWithoutUserInput, MobilePushTokenUncheckedCreateWithoutUserInput>
+  }
+
+  export type MobilePushTokenUpdateWithWhereUniqueWithoutUserInput = {
+    where: MobilePushTokenWhereUniqueInput
+    data: XOR<MobilePushTokenUpdateWithoutUserInput, MobilePushTokenUncheckedUpdateWithoutUserInput>
+  }
+
+  export type MobilePushTokenUpdateManyWithWhereWithoutUserInput = {
+    where: MobilePushTokenScalarWhereInput
+    data: XOR<MobilePushTokenUpdateManyMutationInput, MobilePushTokenUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type MobilePushTokenScalarWhereInput = {
+    AND?: MobilePushTokenScalarWhereInput | MobilePushTokenScalarWhereInput[]
+    OR?: MobilePushTokenScalarWhereInput[]
+    NOT?: MobilePushTokenScalarWhereInput | MobilePushTokenScalarWhereInput[]
+    id?: StringFilter<"MobilePushToken"> | string
+    user_id?: StringFilter<"MobilePushToken"> | string
+    token?: StringFilter<"MobilePushToken"> | string
+    platform?: StringFilter<"MobilePushToken"> | string
+    provider?: StringFilter<"MobilePushToken"> | string
+    device_name?: StringNullableFilter<"MobilePushToken"> | string | null
+    app_version?: StringNullableFilter<"MobilePushToken"> | string | null
+    build_number?: StringNullableFilter<"MobilePushToken"> | string | null
+    created_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    updated_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+    last_seen_at?: DateTimeFilter<"MobilePushToken"> | Date | string
+  }
+
   export type PasswordResetTokenUpsertWithWhereUniqueWithoutUserInput = {
     where: PasswordResetTokenWhereUniqueInput
     update: XOR<PasswordResetTokenUpdateWithoutUserInput, PasswordResetTokenUncheckedUpdateWithoutUserInput>
@@ -7625,6 +9276,70 @@ export namespace Prisma {
     created_at?: DateTimeFilter<"PasswordResetToken"> | Date | string
   }
 
+  export type UserCreateWithoutMobile_push_tokensInput = {
+    id?: string
+    name?: string | null
+    email: string
+    password_hash: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    push_token?: string | null
+    owned_organization?: OrganizationCreateNestedOneWithoutOwnerInput
+    password_reset_tokens?: PasswordResetTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutMobile_push_tokensInput = {
+    id?: string
+    name?: string | null
+    email: string
+    password_hash: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    push_token?: string | null
+    owned_organization?: OrganizationUncheckedCreateNestedOneWithoutOwnerInput
+    password_reset_tokens?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutMobile_push_tokensInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutMobile_push_tokensInput, UserUncheckedCreateWithoutMobile_push_tokensInput>
+  }
+
+  export type UserUpsertWithoutMobile_push_tokensInput = {
+    update: XOR<UserUpdateWithoutMobile_push_tokensInput, UserUncheckedUpdateWithoutMobile_push_tokensInput>
+    create: XOR<UserCreateWithoutMobile_push_tokensInput, UserUncheckedCreateWithoutMobile_push_tokensInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutMobile_push_tokensInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutMobile_push_tokensInput, UserUncheckedUpdateWithoutMobile_push_tokensInput>
+  }
+
+  export type UserUpdateWithoutMobile_push_tokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    push_token?: NullableStringFieldUpdateOperationsInput | string | null
+    owned_organization?: OrganizationUpdateOneWithoutOwnerNestedInput
+    password_reset_tokens?: PasswordResetTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutMobile_push_tokensInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    password_hash?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    push_token?: NullableStringFieldUpdateOperationsInput | string | null
+    owned_organization?: OrganizationUncheckedUpdateOneWithoutOwnerNestedInput
+    password_reset_tokens?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type UserCreateWithoutPassword_reset_tokensInput = {
     id?: string
     name?: string | null
@@ -7634,6 +9349,7 @@ export namespace Prisma {
     updated_at?: Date | string
     push_token?: string | null
     owned_organization?: OrganizationCreateNestedOneWithoutOwnerInput
+    mobile_push_tokens?: MobilePushTokenCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPassword_reset_tokensInput = {
@@ -7645,6 +9361,7 @@ export namespace Prisma {
     updated_at?: Date | string
     push_token?: string | null
     owned_organization?: OrganizationUncheckedCreateNestedOneWithoutOwnerInput
+    mobile_push_tokens?: MobilePushTokenUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPassword_reset_tokensInput = {
@@ -7672,6 +9389,7 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
     owned_organization?: OrganizationUpdateOneWithoutOwnerNestedInput
+    mobile_push_tokens?: MobilePushTokenUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPassword_reset_tokensInput = {
@@ -7683,6 +9401,7 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     push_token?: NullableStringFieldUpdateOperationsInput | string | null
     owned_organization?: OrganizationUncheckedUpdateOneWithoutOwnerNestedInput
+    mobile_push_tokens?: MobilePushTokenUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutMembersInput = {
@@ -7817,12 +9536,64 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type MobilePushTokenCreateManyUserInput = {
+    id?: string
+    token: string
+    platform: string
+    provider: string
+    device_name?: string | null
+    app_version?: string | null
+    build_number?: string | null
+    created_at?: Date | string
+    updated_at?: Date | string
+    last_seen_at?: Date | string
+  }
+
   export type PasswordResetTokenCreateManyUserInput = {
     id?: string
     token_hash: string
     expires_at: Date | string
     used_at?: Date | string | null
     created_at?: Date | string
+  }
+
+  export type MobilePushTokenUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MobilePushTokenUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MobilePushTokenUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    platform?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    device_name?: NullableStringFieldUpdateOperationsInput | string | null
+    app_version?: NullableStringFieldUpdateOperationsInput | string | null
+    build_number?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    last_seen_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PasswordResetTokenUpdateWithoutUserInput = {

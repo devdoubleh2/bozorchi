@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "190087209448",
+    "project_id": "bozorchi-8b209",
+    "storage_bucket": "bozorchi-8b209.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:190087209448:android:11acf3ecfd3d8b0dcec45d",
+        "android_client_info": {
+          "package_name": "com.doubleh.bozorchi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWnELN4ptQm86yxgfwEg3ya8e-7n21ePg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

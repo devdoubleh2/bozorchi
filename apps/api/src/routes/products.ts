@@ -37,12 +37,13 @@ const createProductSchema = z.object({
         sku: z.string().optional().nullable(),
         price: z.coerce.number().min(0, "Price must be non-negative"),
         selling_price: z.coerce.number().min(0),
-        delivery_cost: z.coerce.number().min(0),
-        wholesale_price: z.coerce.number().min(0).optional(),
-        cost_price: z.coerce.number().min(0).optional(),
+        // delivery_cost is optional for legacy clients (mobile) that don't send it
+        delivery_cost: z.coerce.number().min(0).optional().default(0),
+        wholesale_price: z.coerce.number().min(0).optional().default(0),
+        cost_price: z.coerce.number().min(0).optional().default(0),
         unit_id: z.string().min(1, "Unit ID is required"),
         color: z.string().optional().nullable(),
-        initial_stock: z.coerce.number().min(0).optional(),
+        initial_stock: z.coerce.number().min(0).optional().default(0),
         image_url: z.string().optional().nullable(),
       })
     )
@@ -85,7 +86,7 @@ const updateProductSchema = z.object({
         id: z.string().optional(),
         price: z.coerce.number().min(0).optional(),
         selling_price: z.coerce.number().min(0).optional(),
-        delivery_cost: z.coerce.number().min(0),
+        delivery_cost: z.coerce.number().min(0).optional(),
         wholesale_price: z.coerce.number().min(0).optional(),
         unit_id: z.string().optional(),
         image_url: z.string().optional().nullable(),

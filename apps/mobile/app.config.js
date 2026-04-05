@@ -17,6 +17,7 @@ export default {
     enabled: false,
   },
   plugins: [
+    "expo-dev-client",
     [
       "react-native-edge-to-edge",
       {
@@ -26,9 +27,21 @@ export default {
         },
       },
     ],
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          buildReactNativeFromSource: true,
+        },
+      },
+    ],
   ],
   android: {
     package: "com.doubleh.bozorchi",
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
     versionCode: 246,
     adaptiveIcon: {
       foregroundImage: "./assets/android.png",
@@ -44,6 +57,7 @@ export default {
       "android.permission.SYSTEM_ALERT_WINDOW",
       "android.permission.WAKE_LOCK",
       "android.permission.BLUETOOTH",
+      "android.permission.POST_NOTIFICATIONS",
       "android.permission.VIBRATE",
     ],
     softwareKeyboardLayoutMode: "pan",
@@ -54,6 +68,8 @@ export default {
   },
   ios: {
     bundleIdentifier: "com.doubleh.bozorchi",
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_INFO_PLIST || "./GoogleService-Info.plist",
     buildNumber: "246",
     supportsTablet: true,
     bitcode: false,

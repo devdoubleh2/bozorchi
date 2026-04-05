@@ -43,9 +43,29 @@ model User {
   updated_at            DateTime             @updatedAt
   push_token            String?
   owned_organization    Organization?        @relation("OrgOwner")
+  mobile_push_tokens    MobilePushToken[]
   password_reset_tokens PasswordResetToken[]
 
   @@map("users")
+}
+
+model MobilePushToken {
+  id            String   @id @default(cuid())
+  user_id       String
+  token         String   @unique
+  platform      String
+  provider      String
+  device_name   String?
+  app_version   String?
+  build_number  String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  last_seen_at  DateTime @default(now())
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([platform])
+  @@map("mobile_push_tokens")
 }
 
 model PasswordResetToken {

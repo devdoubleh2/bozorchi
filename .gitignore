@@ -10,3 +10,4 @@
 /apps/mobile/.expo-shared
 /apps/mobile/dist
 /apps/mobile/*.tsbuildinfo
+/.secrets

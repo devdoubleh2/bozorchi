@@ -12,6 +12,7 @@ import {
   UserStoreInfo
 } from "@/types/auth";
 import { queryClient } from "@/lib/queries/queryClient";
+import { unregisterStoredFcmToken } from "@/src/lib/firebaseMessaging";
 
 interface AuthState {
   user: AuthUser | null;
@@ -69,6 +70,7 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
           signOut: async () => {
             log.debug("AuthContext", "Starting sign out process");
             try {
+              await unregisterStoredFcmToken();
               await api.post("/api/auth/logout");
               queryClient.clear();
             } catch (e) {

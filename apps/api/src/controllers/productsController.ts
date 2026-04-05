@@ -78,8 +78,10 @@ const createProductSchema = z.object({
         sku: z.string().optional().nullable(),
         price: z.number(),
         selling_price: z.number().optional(),
-        wholesale_price: z.number().optional(),
-        cost_price: z.number().optional(),
+        // delivery_cost is optional for legacy/mobile clients; default to price when absent
+        delivery_cost: z.number().optional().default(0),
+        wholesale_price: z.number().optional().default(0),
+        cost_price: z.number().optional().default(0),
         unit_id: z.string().min(1),
         initial_stock: z.number().int().nonnegative().optional(),
         image_url: z.string().optional().nullable(),

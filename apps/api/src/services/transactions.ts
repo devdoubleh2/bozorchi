@@ -11,6 +11,7 @@ import {
 } from "./currencyService";
 import { logger } from "../lib/logger";
 import { TelegramController } from "../controllers/telegramController";
+import { fcmService } from "./fcm";
 
 const SERVICE_SOURCE = "transactionsService";
 
@@ -1148,11 +1149,27 @@ export async function createTransaction(
             productName,
             supplierName,
           });
+
+          const pushTitle = `${store.name}: ${notificationType.replace(/_/g, " ")}`;
+          const pushBody = productName
+            ? `${productName} x${quantity} • ${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`
+            : `${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`;
+
+          await fcmService.sendToOrganizationOwner(store.organization_id, {
+            title: pushTitle,
+            body: pushBody,
+            data: {
+              organizationId: store.organization_id,
+              storeName: store.name,
+              transactionId: transactionResult.id,
+              transactionType: notificationType,
+            },
+          });
         }
       }
     } catch (error) {
       // Log error but don't fail the transaction
-      logger.error("Failed to send Telegram notification", "transactions", {
+      logger.error("Failed to send transaction notifications", "transactions", {
         error: (error as Error).message,
         transactionId: transactionResult.id,
       });

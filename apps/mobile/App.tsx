@@ -11,16 +11,18 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./lib/i18n";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queries/queryClient";
+import { useFirebaseMessaging } from "./src/hooks/useFirebaseMessaging";
 
 // Polyfill for structuredClone (React Native does not support it natively)
 if (typeof global.structuredClone !== "function") {
   global.structuredClone = (obj) => JSON.parse(JSON.stringify(obj));
 }
-
-
+function NotificationBootstrap() {
+  useFirebaseMessaging();
+  return null;
+}
 
 const App = () => {
-
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -29,6 +31,7 @@ const App = () => {
             <ThemeProvider>
               <QueryClientProvider client={queryClient}>
                 <AuthProvider>
+                  <NotificationBootstrap />
                   <AppNavigator />
                 </AuthProvider>
               </QueryClientProvider>
