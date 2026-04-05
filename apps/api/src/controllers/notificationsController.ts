@@ -4,6 +4,17 @@ import { getTenantPrisma, prisma } from "../lib/prisma";
 import { AuthRequest } from "../middleware/auth";
 import { fcmService } from "../services/fcm";
 
+type NotificationDelegate = {
+  count: (args: { where?: { userId?: string; read?: boolean } }) => Promise<number>;
+};
+
+function hasNotificationModel(
+  client: unknown
+): client is { notification: NotificationDelegate } {
+  const maybe = client as { notification?: NotificationDelegate };
+  return typeof maybe.notification?.count === "function";
+}
+
 export class NotificationsController {
   async getUnreadCount(req: AuthRequest, res: Response) {
     try {
@@ -14,15 +25,19 @@ export class NotificationsController {
       }
 
       try {
-        // @ts-ignore - notification model may not exist in some environments yet
         const tenantPrisma = await getTenantPrisma(req.organizationId!);
-        const count = await tenantPrisma.notification.count({
-          where: {
-            userId,
-            read: false,
-          },
-        });
-        return res.json({ count });
+
+        if (hasNotificationModel(tenantPrisma)) {
+          const count = await tenantPrisma.notification.count({
+            where: {
+              userId,
+              read: false,
+            },
+          });
+          return res.json({ count });
+        }
+
+        return res.json({ count: 0 });
       } catch (_error) {
         return res.json({ count: 0 });
       }

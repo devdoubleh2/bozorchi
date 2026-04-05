@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodError, ZodSchema } from "zod";
+import { ZodError, ZodTypeAny, infer as zInfer } from "zod";
 import { AppError } from "../utils/AppError";
 
 const formatZodIssues = (issues: ZodError["issues"]) =>
@@ -11,12 +11,11 @@ const formatZodIssues = (issues: ZodError["issues"]) =>
     .join("; ");
 
 export const validateRequest =
-  (schema: ZodSchema) =>
+  <T extends ZodTypeAny>(schema: T) =>
     async (req: Request, _res: Response, next: NextFunction) => {
       try {
         const parsed = await schema.parseAsync(req.body);
-        // Apply coercions/stripping from schema back onto the request
-        req.body = parsed as typeof req.body;
+        req.body = parsed as unknown as Request["body"];
         return next();
       } catch (error) {
         if (error instanceof ZodError) {
@@ -28,11 +27,11 @@ export const validateRequest =
     };
 
 export const validateParams =
-  (schema: ZodSchema) =>
+  <T extends ZodTypeAny>(schema: T) =>
     async (req: Request, _res: Response, next: NextFunction) => {
       try {
         const parsed = await schema.parseAsync(req.params);
-        req.params = parsed as typeof req.params;
+        req.params = parsed as unknown as Request["params"];
         return next();
       } catch (error) {
         if (error instanceof ZodError) {
@@ -44,11 +43,11 @@ export const validateParams =
     };
 
 export const validateQuery =
-  (schema: ZodSchema) =>
+  <T extends ZodTypeAny>(schema: T) =>
     async (req: Request, _res: Response, next: NextFunction) => {
       try {
         const parsed = await schema.parseAsync(req.query);
-        req.query = parsed as typeof req.query;
+        req.query = parsed as unknown as Request["query"];
         return next();
       } catch (error) {
         if (error instanceof ZodError) {
@@ -60,7 +59,7 @@ export const validateQuery =
     };
 
 export const validate =
-  (schema: ZodSchema) =>
+  <T extends ZodTypeAny>(schema: T) =>
     async (req: Request, _res: Response, next: NextFunction) => {
       try {
         const parsed = await schema.parseAsync({
@@ -68,9 +67,15 @@ export const validate =
           query: req.query,
           params: req.params,
         });
-        req.body = parsed.body as typeof req.body;
-        req.query = parsed.query as typeof req.query;
-        req.params = parsed.params as typeof req.params;
+        const typed = parsed as zInfer<T> & {
+          body?: unknown;
+          query?: unknown;
+          params?: unknown;
+        };
+
+        if ("body" in typed) req.body = typed.body as unknown as Request["body"];
+        if ("query" in typed) req.query = typed.query as unknown as Request["query"];
+        if ("params" in typed) req.params = typed.params as unknown as Request["params"];
         return next();
       } catch (error) {
         if (error instanceof ZodError) {

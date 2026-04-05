@@ -142,7 +142,8 @@ class FcmService {
           code === "messaging/invalid-registration-token"
         );
       })
-      .map(({ token }) => token);
+      .map(({ token }) => token)
+      .filter((token): token is string => typeof token === "string");
 
     await this.deleteTokens(invalidTokens);
 
