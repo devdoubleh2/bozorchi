@@ -56,13 +56,12 @@ export default function UnitTagSelector({
   }
 
   const createUnitMutation = useMutation({
-    mutationFn: async (data: { name: string; category_id: string }) => {
+    mutationFn: async (data: { name: string }) => {
       if (!units) {
         throw new Error("No unit selected");
       }
       const res = await api.post<{ unit: Unit }>("/api/units", {
         name: data.name,
-        category_id: data.category_id,
       });
       return res.unit;
     },
@@ -103,7 +102,6 @@ export default function UnitTagSelector({
     }
     createUnitMutation.mutate({
       name: newUnitValueTitle,
-      category_id: storeData.store.category_id ?? "",
     });
   }, [newUnitValueTitle, createUnitMutation, t]);
 

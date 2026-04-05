@@ -1,3 +1,5 @@
+import type { Store, TransactionWithDetails } from "@bozorchi/shared";
+
 // Re-export all types from shared package
 export * from "@bozorchi/shared";
 

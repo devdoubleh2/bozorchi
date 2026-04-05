@@ -10,13 +10,16 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "@bozorchi/shared": ["../../packages/@bozorchi/shared/src"],
+      "@bozorchi/shared/*": ["../../packages/@bozorchi/shared/src/*"]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js"
+    "**/*.js",
+    "../../packages/@bozorchi/shared/src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

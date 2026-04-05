@@ -195,6 +195,17 @@ export default function EditProductScreen() {
   const [variations, setVariations] = useState<ProductVariation[]>([]);
   const [errors, setErrors] = useState(initialErrors);
 
+  useEffect(() => {
+    log.info("EditProductScreen", "mounted", {
+      productId,
+      userId: user?.id,
+      currency,
+    });
+    return () => {
+      log.info("EditProductScreen", "unmounted", { productId, userId: user?.id });
+    };
+  }, [productId, user?.id, currency]);
+
   const isI18nKey = useCallback((value?: string) => {
     return (
       typeof value === "string" &&
@@ -212,7 +223,7 @@ export default function EditProductScreen() {
   );
 
   const issuesToErrors = useCallback(
-    (issues: Array<{ path: Array<string | number>; message?: string }>) => {
+    (issues: Array<{ path: Array<string | number | symbol>; message?: string }>) => {
       const nextErrors = createEmptyErrors();
       const fieldMap: Record<
         string,
@@ -305,7 +316,11 @@ export default function EditProductScreen() {
     name: string;
   };
 
-  const { data: units, isLoading: unitsLoading } = useQuery({
+  const {
+    data: units,
+    isLoading: unitsLoading,
+    error: unitsError,
+  } = useQuery({
     queryKey: ["units"],
     queryFn: async () => {
       const response = await api.get<{ units: UnitResponse[] }>("/api/units");
@@ -334,9 +349,36 @@ export default function EditProductScreen() {
             image_url: variation.image_url || "",
           }))
         );
+        log.debug("EditProductScreen", "hydrated form from product", {
+          variations: product.product_variations.length,
+          hasImage: Boolean(product.image_url),
+        });
       }
     }
   }, [product]);
+
+  useEffect(() => {
+    if (productError) {
+      log.error("EditProductScreen", "product query failed", {
+        productId,
+        error: productError instanceof Error ? productError.message : String(productError),
+      });
+    }
+  }, [productError, productId]);
+
+  useEffect(() => {
+    if (units) {
+      log.debug("EditProductScreen", "units loaded", { count: units.length });
+    }
+  }, [units]);
+
+  useEffect(() => {
+    if (unitsError) {
+      log.error("EditProductScreen", "units query failed", {
+        error: unitsError instanceof Error ? unitsError.message : String(unitsError),
+      });
+    }
+  }, [unitsError]);
 
   const isService = product?.type === "service";
   const formSchema = useMemo(
@@ -374,6 +416,10 @@ export default function EditProductScreen() {
       if (!productId) {
         throw new Error("Product ID is required");
       }
+      log.info("EditProductScreen", "submit product update", {
+        productId,
+        variationCount: data.variations.length,
+      });
 
       let imageUrl = data.image_url;
 
@@ -515,12 +561,12 @@ export default function EditProductScreen() {
       return res;
     },
     onSuccess: () => {
+      log.info("EditProductScreen", "Product updated successfully");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", productId] });
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["store"] });
-      log.info("EditProductScreen", "Product updated successfully");
       Alert.alert(
         t("common.success"),
         t("products.productUpdatedSuccessfully"),
@@ -557,10 +603,14 @@ export default function EditProductScreen() {
     });
 
     if (!result.success) {
+      log.warn("EditProductScreen", "form validation failed", {
+        issues: result.error.issues?.length ?? 0,
+      });
       setErrors(issuesToErrors(result.error.issues));
       return false;
     }
 
+    log.debug("EditProductScreen", "form validation passed");
     setErrors(createEmptyErrors());
     return true;
   }, [formSchema, formData.name, formData.product_category_id, variations, issuesToErrors]);

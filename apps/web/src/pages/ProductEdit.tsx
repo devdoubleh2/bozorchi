@@ -164,6 +164,8 @@ const generateRandomEanBarcode = () => {
 const generateRandomSku = () =>
     `SKU-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
+const LOG_TAG = "[ProductEdit]";
+
 const presetColors = [
     "#F87171",
     "#FB923C",
@@ -210,6 +212,10 @@ export default function ProductEditPage() {
 
     const [isHeaderFixed, setIsHeaderFixed] = useState(false);
 
+    useEffect(() => {
+        console.info(`${LOG_TAG} mount`, { productId, storeId: userStore?.store?.id });
+        return () => console.info(`${LOG_TAG} unmount`, { productId });
+    }, [productId, userStore?.store?.id]);
 
     // Fixed scroll detection using Motion hooks
     const { scrollY } = useScroll();
@@ -226,7 +232,6 @@ export default function ProductEditPage() {
     });
 
     const storeId = storeQuery.data?.store?.id;
-    // Category ID removed from Store model
     const storeCurrency = storeQuery.data?.store?.currency || "UZS";
 
     const unitsQuery = useQuery({
@@ -263,6 +268,11 @@ export default function ProductEditPage() {
     useEffect(() => {
         if (productQuery.data) {
             const product = productQuery.data;
+            console.debug(`${LOG_TAG} product loaded`, {
+                productId: product.id,
+                variations: product.product_variations?.length ?? 0,
+                hasImage: Boolean(product.image_url),
+            });
             setFormData({
                 name: product.name,
                 description: product.description || "",
@@ -289,12 +299,43 @@ export default function ProductEditPage() {
         }
     }, [productQuery.data]);
 
+    useEffect(() => {
+        if (productQuery.error) {
+            console.error(`${LOG_TAG} product query failed`, productQuery.error);
+        }
+    }, [productQuery.error]);
+
+    useEffect(() => {
+        if (unitsQuery.data) {
+            console.debug(`${LOG_TAG} units loaded`, { count: unitsQuery.data.length });
+        }
+    }, [unitsQuery.data]);
+
+    useEffect(() => {
+        if (unitsQuery.error) {
+            console.error(`${LOG_TAG} units query failed`, unitsQuery.error);
+        }
+    }, [unitsQuery.error]);
+
+    useEffect(() => {
+        if (suppliersQuery.data) {
+            console.debug(`${LOG_TAG} suppliers loaded`, { count: suppliersQuery.data.length });
+        }
+    }, [suppliersQuery.data]);
+
+    useEffect(() => {
+        if (suppliersQuery.error) {
+            console.error(`${LOG_TAG} suppliers query failed`, suppliersQuery.error);
+        }
+    }, [suppliersQuery.error]);
+
     const updateFormData = useCallback(
         (
             field: keyof ProductFormData,
             value: string | ProductVariationFormData[]
         ) => {
             setFormData((prev) => ({ ...prev, [field]: value }));
+            console.debug(`${LOG_TAG} form change`, { field, value });
         },
         []
     );
@@ -312,10 +353,14 @@ export default function ProductEditPage() {
     );
 
     const toggleVariationCollapse = (index: number) => {
-        setCollapsedVariations((prev) => {
-            const newCollapsed = [...prev];
-            newCollapsed[index] = !newCollapsed[index];
-            return newCollapsed;
+            setCollapsedVariations((prev) => {
+                const newCollapsed = [...prev];
+                newCollapsed[index] = !newCollapsed[index];
+                return newCollapsed;
+            });
+        console.debug(`${LOG_TAG} toggle variation`, {
+            index,
+            collapsed: collapsedVariations[index],
         });
     };
 
@@ -332,6 +377,7 @@ export default function ProductEditPage() {
                 variations: [...prev.variations, newVariation],
             };
         });
+        console.info(`${LOG_TAG} add variation`);
     }, [units]);
 
     const removeVariation = useCallback(
@@ -342,12 +388,16 @@ export default function ProductEditPage() {
                     variations: prev.variations.filter((_, i) => i !== index),
                 }));
                 setCollapsedVariations((prev) => prev.filter((_, i) => i !== index));
+                console.info(`${LOG_TAG} remove variation`, { index });
             }
         },
         [formData.variations.length]
     );
 
     const validateForm = useCallback(() => {
+        console.debug(`${LOG_TAG} validate form start`, {
+            variationCount: formData.variations.length,
+        });
         const newErrors: FormErrors = { variations: {} };
         let isValid = true;
 
@@ -407,6 +457,11 @@ export default function ProductEditPage() {
         });
 
         setErrors(newErrors);
+        if (!isValid) {
+            console.warn(`${LOG_TAG} validation failed`, { errors: newErrors });
+        } else {
+            console.debug(`${LOG_TAG} validation passed`);
+        }
         return isValid;
     }, [formData, t]);
 
@@ -454,6 +509,10 @@ export default function ProductEditPage() {
 
     const updateProductMutation = useMutation({
         mutationFn: async (payload: UpdateProductPayload) => {
+            console.info(`${LOG_TAG} submit update`, {
+                productId,
+                variations: payload.variations.length,
+            });
             await api.put(`/api/products/${productId}`, payload);
         },
         onSuccess: async () => {
@@ -464,10 +523,11 @@ export default function ProductEditPage() {
                 queryClient.invalidateQueries({ queryKey: ["pos-inventory", storeId] }),
             ]);
             toast.success(t("products.productUpdatedSuccessfully", { defaultValue: "Product updated successfully" }));
+            console.info(`${LOG_TAG} update success`, { productId });
             navigate("/inventory");
         },
         onError: (error: unknown) => {
-            console.error("Product update failed", error);
+            console.error(`${LOG_TAG} update failed`, error);
             const parsedError = parseApiError(error);
             toast.error(parsedError.message || t("errors.productUpdateFailed", { defaultValue: "Failed to update product" }));
         },
@@ -504,7 +564,7 @@ export default function ProductEditPage() {
         variationIndex: number,
         field: "sellingPrice" | "deliveryCost" | "unitCost" | "costPrice"
     ) => {
-        const currentText = priceInputTexts[variationIndex]?.[field];
+        const currentText = priceInputTexts[variationIndex][field];
         if (currentText !== undefined) {
             const numericValue = parseFloat(currentText) || 0;
             updateVariation(variationIndex, field, numericValue.toString());

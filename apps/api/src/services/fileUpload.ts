@@ -1,14 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import { Client } from "minio";
+import * as Minio from "minio";
 import logger from "../../logs/log";
 import multer from "multer";
 
 class FileUploadService {
-  static minioClient: Client;
+  private static minioClient: Minio.Client;
   static bucketName = "uploads";
   static publicEndpoint = "https://minio.bozorchi.store";
 
-  private static initialized = false;
 
   static ALLOWED_MIME_TYPES = [
     "image/jpeg",
@@ -30,41 +29,13 @@ class FileUploadService {
   };
 
   constructor() {
-    if (FileUploadService.initialized) return;
+    const rawPort = process.env["MINIO_PORT"] || "9000";
+    const rawPublicUrl = process.env["MINIO_PUBLIC_URL"] || "https://minio.bozorchi.store";
 
-    // Read config from environment at runtime (not at module load time)
-    const rawEndpoint = process.env["MINIO_ENDPOINT"]?.trim() || "";
-    const rawPort = process.env["MINIO_PORT"]?.trim() || "";
-    const rawUseSSL = process.env["MINIO_USE_SSL"]?.trim() || "";
-    const rawPublicUrl = process.env["MINIO_PUBLIC_URL"]?.trim() || "https://minio.bozorchi.store";
 
-    let derivedEndpoint = rawEndpoint;
-    let derivedPort: number | undefined;
-    let derivedUseSSL = rawUseSSL === "true";
-
-    const shouldDeriveFromPublicUrl =
-      !derivedEndpoint || derivedEndpoint === "minio";
-
-    if (shouldDeriveFromPublicUrl) {
-      try {
-        const urlObj = new URL(rawPublicUrl);
-        derivedEndpoint = urlObj.hostname || derivedEndpoint;
-        if (urlObj.port) {
-          const parsed = parseInt(urlObj.port, 10);
-          if (!Number.isNaN(parsed)) derivedPort = parsed;
-        } else {
-          derivedPort = urlObj.protocol === "https:" ? 443 : 80;
-        }
-        if (!rawUseSSL) derivedUseSSL = urlObj.protocol === "https:";
-      } catch {
-        // Ignore URL parsing errors and fall back to defaults below
-      }
-    }
-
-    const parsedPort = rawPort ? parseInt(rawPort, 10) : undefined;
-    const port = !Number.isNaN(parsedPort) && parsedPort ? parsedPort : derivedPort ?? 9000;
-    const endpoint = derivedEndpoint || "minio";
-    const useSSL = derivedUseSSL;
+    const port = rawPort;
+    const endpoint = process.env["MINIO_ENDPOINT"] || "minio";
+    const useSSL = process.env["MINIO_USE_SSL"] === "true";
     const accessKey = process.env["MINIO_ACCESS_KEY"] || "minioadmin";
     const secretKey = process.env["MINIO_SECRET_KEY"] || "xhzjs55iu6sqxg7x";
 
@@ -92,58 +63,15 @@ class FileUploadService {
     });
     logger.info("[MinIO] ==========================================", "fileUpload");
 
-    FileUploadService.minioClient = new Client({
+    FileUploadService.minioClient = new Minio.Client({
       endPoint: endpoint,
-      port: port,
+      port: Number(rawPort),
       useSSL: useSSL,
       accessKey: accessKey,
       secretKey: secretKey,
     });
 
-    FileUploadService.initialized = true;
 
-    // Fire and forget bucket initialization
-    void this.initializeBucket();
-  }
-
-  private async initializeBucket(): Promise<void> {
-    try {
-      const exists = await FileUploadService.minioClient.bucketExists(
-        FileUploadService.bucketName
-      );
-
-      if (!exists) {
-        await FileUploadService.minioClient.makeBucket(
-          FileUploadService.bucketName,
-          "" // default region
-        );
-
-      }
-
-      // Set public read policy
-      const policy = {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Principal: { AWS: ["*"] },
-            Action: ["s3:GetObject"],
-            Resource: [`arn:aws:s3:::${FileUploadService.bucketName}/*`],
-          },
-        ],
-      };
-
-      await FileUploadService.minioClient.setBucketPolicy(
-        FileUploadService.bucketName,
-        JSON.stringify(policy)
-      );
-
-    } catch (error: any) {
-      logger.warn("Bucket initialization failed or already set", "fileUpload", {
-        error: error?.message || error,
-      });
-      // Don't throw — it's okay if bucket already exists or policy is already set
-    }
   }
 
   static sanitizeFileName(fileName: string): string {
@@ -173,7 +101,6 @@ class FileUploadService {
     fileBuffer: Buffer,
     originalName?: string
   ): Promise<string> {
-    FileUploadService.ensureClient();
 
     if (fileBuffer.length > FileUploadService.MAX_FILE_SIZE) {
       throw new Error(
@@ -211,7 +138,7 @@ class FileUploadService {
         objectName,
         fileBuffer,
         fileBuffer.length,
-        { "Content-Type": contentType }
+        { "Content-Type": contentType, }
       );
       logger.info("[MinIO] Upload SUCCESS:", "fileUpload", { objectName });
     } catch (uploadError: any) {
@@ -235,7 +162,7 @@ class FileUploadService {
   }
 
   static async deleteFile(objectName: string): Promise<void> {
-    FileUploadService.ensureClient();
+
     const sanitizedName = FileUploadService.sanitizeFileName(objectName);
     await FileUploadService.minioClient.removeObject(
       FileUploadService.bucketName,
@@ -244,7 +171,7 @@ class FileUploadService {
   }
 
   static async fileExists(objectName: string): Promise<boolean> {
-    FileUploadService.ensureClient();
+
     try {
       await FileUploadService.minioClient.statObject(
         FileUploadService.bucketName,
@@ -259,11 +186,6 @@ class FileUploadService {
     }
   }
 
-  private static ensureClient(): void {
-    if (!FileUploadService.minioClient) {
-      new FileUploadService();
-    }
-  }
 
   /**
    * Extracts the object name from a MinIO URL
@@ -287,4 +209,4 @@ class FileUploadService {
   }
 }
 
-export default FileUploadService;
+export default FileUploadService

@@ -2,9 +2,13 @@ import React from "react";
 import * as DropdownMenu from "zeego/dropdown-menu";
 import { View } from "react-native";
 
-export const DropdownMenuRoot = DropdownMenu.Root;
+export const DropdownMenuRoot: typeof DropdownMenu.Root = DropdownMenu.Root;
 
-export const DropdownMenuTrigger = DropdownMenu.create(
+type TriggerComponent = React.ComponentType<
+  React.ComponentProps<typeof DropdownMenu.Trigger>
+>;
+
+export const DropdownMenuTrigger: TriggerComponent = DropdownMenu.create(
   (props: React.ComponentProps<typeof DropdownMenu.Trigger>) => (
     <DropdownMenu.Trigger {...props} asChild>
       <View aria-role="button">{props.children}</View>
@@ -13,9 +17,14 @@ export const DropdownMenuTrigger = DropdownMenu.create(
   "Trigger"
 );
 
-export const DropdownMenuContent = DropdownMenu.Content;
+export const DropdownMenuContent: typeof DropdownMenu.Content =
+  DropdownMenu.Content;
 
-export const DropdownMenuItem = DropdownMenu.create(
+type ItemComponent = React.ComponentType<
+  React.ComponentProps<typeof DropdownMenu.Item>
+>;
+
+export const DropdownMenuItem: ItemComponent = DropdownMenu.create(
   (props: React.ComponentProps<typeof DropdownMenu.Item>) => (
     <DropdownMenu.Item {...props} style={{ height: 44 }} />
   ),
@@ -36,14 +45,22 @@ export const DropdownMenuLabel = DropdownMenu.create(
   "Label"
 );
 
-export const DropdownMenuSeparator = DropdownMenu.create(
+type SeparatorComponent = React.ComponentType<
+  React.ComponentProps<typeof DropdownMenu.Separator>
+>;
+
+export const DropdownMenuSeparator: SeparatorComponent = DropdownMenu.create(
   (props: React.ComponentProps<typeof DropdownMenu.Separator>) => (
     <DropdownMenu.Separator {...props} />
   ),
   "Separator"
 );
 
-export const DropdownMenuGroup = DropdownMenu.create(
+type GroupComponent = React.ComponentType<
+  React.ComponentProps<typeof DropdownMenu.Group>
+>;
+
+export const DropdownMenuGroup: GroupComponent = DropdownMenu.create(
   (props: React.ComponentProps<typeof DropdownMenu.Group>) => (
     <DropdownMenu.Group {...props} />
   ),

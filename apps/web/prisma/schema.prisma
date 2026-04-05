@@ -12,12 +12,10 @@ model Order {
   user_id                String
   status                 String   @default("pending")
   checkout_id            String?
-  checkout_client_secret String?
   polar_customer_id      String?
   amount_cents           Int?
   currency               String?  @default("usd")
   created_at             DateTime @default(now())
-  updated_at             DateTime @updatedAt
 
   @@map("polar_orders")
 }
