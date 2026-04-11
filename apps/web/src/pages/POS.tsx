@@ -300,6 +300,7 @@ export default function POSPage() {
   });
 
   const storeId = storeQuery.data?.store?.id;
+  const organizationId = storeQuery.data?.store?.organization_id;
   const storeCurrency = storeQuery.data?.store?.currency ?? "UZS";
 
   // Pagination response type
@@ -327,11 +328,9 @@ export default function POSPage() {
         },
       };
 
-      if (!storeId) return emptyResponse;
+      if (!organizationId) return emptyResponse;
 
       const params = new URLSearchParams({
-        storeId,
-        stock_level: "in_stock",
         limit: "50",
       });
 
@@ -343,12 +342,8 @@ export default function POSPage() {
         params.set("search", debouncedSearchQuery.trim());
       }
 
-      if (activeCategory && activeCategory !== "all") {
-        params.set("category", activeCategory);
-      }
-
       const response = await api.get<InventoryResponse>(
-        `/api/inventory?${params.toString()}`
+        `/api/organizations/${organizationId}/products?${params.toString()}`
       );
 
       // Ensure we always return a properly structured response
@@ -359,7 +354,7 @@ export default function POSPage() {
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage?.pagination?.nextCursor ?? null,
-    enabled: Boolean(storeId),
+    enabled: Boolean(organizationId),
     refetchInterval: 1000 * 60 * 2,
     staleTime: 1000 * 30,
     retry: 3,
