@@ -15,8 +15,10 @@ const router: Router = Router();
 const authController = new AuthController();
 
 // Register endpoint
-router.post("/register", validateRequest(registerSchema), (req, res) =>
-  authController.register(req, res)
+router.post(
+  "/register",
+  validateRequest(registerSchema),
+  createAuthHandler((req, res) => authController.register(req, res))
 );
 
 // Get profile endpoint
@@ -27,8 +29,10 @@ router.get(
 );
 
 // Login endpoint
-router.post("/login", validateRequest(loginSchema), (req, res) =>
-  authController.login(req, res)
+router.post(
+  "/login",
+  validateRequest(loginSchema),
+  createAuthHandler((req, res) => authController.login(req, res))
 );
 
 // Logout endpoint - clears the HttpOnly auth cookie
@@ -71,13 +75,13 @@ router.delete(
 router.post(
   "/forgot-password",
   validateRequest(forgotPasswordSchema),
-  (req, res) => authController.forgotPassword(req, res)
+  createAuthHandler((req, res) => authController.forgotPassword(req, res))
 );
 
 router.post(
   "/reset-password",
   validateRequest(resetPasswordSchema),
-  (req, res) => authController.resetPassword(req, res)
+  createAuthHandler((req, res) => authController.resetPassword(req, res))
 );
 
 export default router;

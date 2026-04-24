@@ -2,19 +2,18 @@ import { Request, Response } from "express";
 import authService from "../services/auth";
 import logger from "../../logs/log"
 import { AuthRequest } from "../middleware/auth";
+import { AppError } from "../utils/AppError";
+import { sendSuccess, sendFail, sendError } from "../utils/responseHelpers";
 
 export class AuthController {
   async register(req: Request, res: Response) {
-
-
     try {
       const result = await authService.register(req.body);
       if (!result) {
-        return res.status(400).json({ error: "Registration failed" });
+        return sendFail(res, "Registration failed", 400);
       }
 
       const { user, token } = result;
-
 
       // Set token in HttpOnly cookie
       const isProduction = process.env["NODE_ENV"] === "production";
@@ -26,7 +25,7 @@ export class AuthController {
         path: "/",
       });
 
-      return res.status(201).json({
+      return sendSuccess(res, {
         user: {
           id: user.id,
           email: user.email,
@@ -34,10 +33,10 @@ export class AuthController {
           created_at: user.created_at,
           updated_at: user.updated_at,
         },
-      });
+      }, 201);
     } catch (error) {
       logger.error("Registration error", "authController");
-      return res.status(400).json({ error: (error as Error).message });
+      return sendFail(res, (error as Error).message, 400);
     }
   }
 
@@ -46,9 +45,7 @@ export class AuthController {
 
     try {
       if (!email || !password) {
-        return res
-          .status(400)
-          .json({ error: "Email and password are required" });
+        return sendFail(res, "Email and password are required", 400);
       }
 
       const { user, token } = await authService.login({
@@ -74,7 +71,7 @@ export class AuthController {
         path: "/",
       });
 
-      return res.json({
+      return sendSuccess(res, {
         message: "Login successful",
         user: {
           id: user.id,
@@ -91,10 +88,7 @@ export class AuthController {
         email,
         error: (error as Error).message,
       });
-      return res.status(401).json({
-        error: "Invalid credentials",
-        message: (error as Error).message,
-      });
+      return sendFail(res, "Invalid credentials", 401);
     }
   }
 
@@ -103,7 +97,7 @@ export class AuthController {
       logger.warn("Profile retrieval failed - user not found", "authController", {
         userId: req.userId,
       });
-      return res.status(404).json({ error: "User not found" });
+      throw new AppError("User not found", 404);
     }
 
     logger.info("Profile retrieved", "authController", {
@@ -113,7 +107,7 @@ export class AuthController {
 
     const { password_hash, ...user } = req.user;
     // Include membership and owned_organization for frontend permission checks
-    return res.json({
+    return sendSuccess(res, {
       ...user,
       membership: user.membership,
       owned_organization: user.owned_organization,
@@ -121,18 +115,29 @@ export class AuthController {
   }
 
   async updatePassword(req: AuthRequest, res: Response) {
-    logger.info("Password update attempt", "authController", { userId: req.userId });
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      logger.warn("Password update failed - missing fields", "authController", {
+        userId: req.userId,
+      });
+      throw new AppError("Current and new password required", 400);
+    }
+    if (newPassword.length < 6) {
+      logger.warn("Password update failed - password too short", "authController", {
+        userId: req.userId,
+      });
+      throw new AppError("Password must be at least 6 characters", 400);
+    }
 
-    try {
-      const { currentPassword, newPassword } = req.body;
-      if (!currentPassword || !newPassword) {
-        logger.warn("Password update failed - missing fields", "authController", {
-          userId: req.userId,
-        });
-        return res
-          .status(400)
-          .json({ error: "Current and new password required" });
-      }
+    await authService.changePassword(
+      req.userId!,
+      currentPassword,
+      newPassword
+    );
+
+    logger.info("Password updated successfully", "authController", { userId: req.userId });
+    return sendSuccess(res, { message: "Password updated successfully" });
+  }
       if (newPassword.length < 6) {
         logger.warn("Password update failed - password too short", "authController", {
           userId: req.userId,
@@ -166,39 +171,27 @@ export class AuthController {
       name,
     });
 
-    try {
-      if (!email) {
-        logger.warn("Profile update failed - email required", "authController", {
-          userId: req.userId,
-        });
-        return res.status(400).json({ error: "Email is required" });
-      }
-
-      const user = await authService.updateProfile({
-        userId: req.userId!,
-        email,
-        name,
-        storeId: req.store?.id,
-        organizationId: req.organizationId,
-      });
-
-      logger.info("Profile updated successfully", "authController", {
+    if (!email) {
+      logger.warn("Profile update failed - email required", "authController", {
         userId: req.userId,
-        email,
       });
-
-      return res.json({ message: "Profile updated", user });
-    } catch (error) {
-      const msg = (error as Error).message;
-      logger.error("Profile update error", "authController", {
-        userId: req.userId,
-        email,
-        error: msg,
-      });
-      return res
-        .status(msg === "Email is already taken" ? 409 : 400)
-        .json({ error: msg });
+      throw new AppError("Email is required", 400);
     }
+
+    const user = await authService.updateProfile({
+      userId: req.userId!,
+      email,
+      name,
+      storeId: req.store?.id,
+      organizationId: req.organizationId,
+    });
+
+    logger.info("Profile updated successfully", "authController", {
+      userId: req.userId,
+      email,
+    });
+
+    return sendSuccess(res, { message: "Profile updated", user });
   }
 
   async deleteMe(req: AuthRequest, res: Response) {
@@ -207,51 +200,32 @@ export class AuthController {
       email: req.user?.email,
     });
 
-    try {
-      await authService.deleteUser(req);
-      logger.info("Account deleted successfully", "authController", {
-        userId: req.userId,
-      });
-      return res.json({ message: "Account deleted" });
-    } catch (error) {
-      logger.error("Account deletion error", "authController", {
-        userId: req.userId,
-        error: (error as Error).message,
-      });
-      return res.status(400).json({ error: (error as Error).message });
-    }
+    await authService.deleteUser(req);
+    logger.info("Account deleted successfully", "authController", {
+      userId: req.userId,
+    });
+    return sendSuccess(res, { message: "Account deleted" });
   }
 
   async forgotPassword(req: Request, res: Response) {
     const successMsg = "If an account exists, a reset link has been sent.";
-    try {
-      const result = await authService.requestPasswordReset(req.body.email);
-      if (result) {
-        // TODO: Send email with reset link in production
-        logger.info("Reset URL:", "authController", {
-          url: `${process.env["FRONTEND_URL"] || "http://localhost:5173"
-            }/reset-password?token=${result.token}`,
-        });
-      }
-      return res.json({ message: successMsg });
-    } catch {
-      return res.json({ message: successMsg });
+    const result = await authService.requestPasswordReset(req.body.email);
+    if (result) {
+      // TODO: Send email with reset link in production
+      logger.info("Reset URL:", "authController", {
+        url: `${process.env["FRONTEND_URL"] || "http://localhost:5173"
+          }/reset-password?token=${result.token}`,
+      });
     }
+    return sendSuccess(res, { message: successMsg });
   }
 
   async resetPassword(req: Request, res: Response) {
     logger.info("Password reset attempt", "authController");
 
-    try {
-      await authService.resetPassword(req.body.token, req.body.password);
-      logger.info("Password reset successfully", "authController");
-      return res.json({ message: "Password reset successfully" });
-    } catch (error) {
-      logger.error("Password reset error", "authController", {
-        error: (error as Error).message,
-      });
-      return res.status(400).json({ error: (error as Error).message });
-    }
+    await authService.resetPassword(req.body.token, req.body.password);
+    logger.info("Password reset successfully", "authController");
+    return sendSuccess(res, { message: "Password reset successfully" });
   }
 
   async assignStore(req: AuthRequest, res: Response) {
@@ -263,99 +237,77 @@ export class AuthController {
       organizationId: req.organizationId,
     });
 
-    try {
-      if (!req.userId || !req.organizationId) {
-        logger.warn("Assign store failed - missing context", "authController", {
-          userId: req.userId,
-          organizationId: req.organizationId,
-        });
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
-
-      if (!storeId) {
-        logger.warn("Assign store failed - no store ID", "authController", {
-          userId: req.userId,
-        });
-        return res.status(400).json({
-          error: "Store ID is required",
-        });
-      }
-
-      if (!req.tenantPrisma) {
-        logger.error("Assign store failed - tenant database not initialized", "authController", {
-          userId: req.userId,
-          storeId,
-        });
-        return res.status(500).json({
-          error: "Tenant database not initialized",
-        });
-      }
-
-      // Verify store exists and belongs to organization
-      const store = await req.tenantPrisma.store.findUnique({
-        where: { id: storeId },
+    if (!req.userId || !req.organizationId) {
+      logger.warn("Assign store failed - missing context", "authController", {
+        userId: req.userId,
+        organizationId: req.organizationId,
       });
+      throw new AppError("Authentication required", 401);
+    }
 
-      if (!store || store.organization_id !== req.organizationId) {
-        logger.warn("Assign store failed - store not found or unauthorized", "authController", {
-          userId: req.userId,
-          storeId,
-          organizationId: req.organizationId,
-        });
-        return res.status(404).json({
-          error: "Store not found",
-        });
-      }
-
-      // Security check: Only allow store assignment if:
-      // 1. User is owner/admin (can manage assignments), OR
-      // 2. User has NO current store assignment (first-time onboarding)
-      const isOwner = !!req.user?.owned_organization;
-      const isAdmin = req.userRole === "admin";
-      const hasExistingAssignment = !!req.user?.membership?.store_id;
-
-      if (!isOwner && !isAdmin && hasExistingAssignment) {
-        logger.warn("Assign store failed - user cannot reassign themselves", "authController", {
-          userId: req.userId,
-          targetStoreId: storeId,
-          currentStoreId: req.user?.membership?.store_id,
-          role: req.userRole,
-        });
-        return res.status(403).json({
-          error: "Cannot change store assignment. Contact your administrator.",
-        });
-      }
-
-      // Update user's store assignment in public schema
-      const updatedMembership = await req.prisma.userOrganization.update({
-        where: { user_id: req.userId },
-        data: { store_id: storeId },
-        select: { approved: true },
+    if (!storeId) {
+      logger.warn("Assign store failed - no store ID", "authController", {
+        userId: req.userId,
       });
+      throw new AppError("Store ID is required", 400);
+    }
 
-      logger.info("Store assigned successfully", "authController", {
+    if (!req.tenantPrisma) {
+      logger.error("Assign store failed - tenant database not initialized", "authController", {
+        userId: req.userId,
+        storeId,
+      });
+      throw new AppError("Tenant database not initialized", 500);
+    }
+
+    // Verify store exists and belongs to organization
+    const store = await req.tenantPrisma.store.findUnique({
+      where: { id: storeId },
+    });
+
+    if (!store || store.organization_id !== req.organizationId) {
+      logger.warn("Assign store failed - store not found or unauthorized", "authController", {
         userId: req.userId,
         storeId,
         organizationId: req.organizationId,
       });
-
-      return res.json({
-        message: "Store assigned successfully",
-        store,
-        approved: updatedMembership.approved,
-      });
-    } catch (error) {
-      logger.error("Assign store error", "authController", {
-        error: (error as Error).message,
-        userId: req.userId,
-        storeId,
-      });
-      return res.status(500).json({
-        error: "Failed to assign store",
-        message: (error as Error).message,
-      });
+      throw new AppError("Store not found", 404);
     }
+
+    // Security check: Only allow store assignment if:
+    // 1. User is owner/admin (can manage assignments), OR
+    // 2. User has NO current store assignment (first-time onboarding)
+    const isOwner = !!req.user?.owned_organization;
+    const isAdmin = req.userRole === "admin";
+    const hasExistingAssignment = !!req.user?.membership?.store_id;
+
+    if (!isOwner && !isAdmin && hasExistingAssignment) {
+      logger.warn("Assign store failed - user cannot reassign themselves", "authController", {
+        userId: req.userId,
+        targetStoreId: storeId,
+        currentStoreId: req.user?.membership?.store_id,
+        role: req.userRole,
+      });
+      throw new AppError("Cannot change store assignment. Contact your administrator.", 403);
+    }
+
+    // Update user's store assignment in public schema
+    const updatedMembership = await req.prisma.userOrganization.update({
+      where: { user_id: req.userId },
+      data: { store_id: storeId },
+      select: { approved: true },
+    });
+
+    logger.info("Store assigned successfully", "authController", {
+      userId: req.userId,
+      storeId,
+      organizationId: req.organizationId,
+    });
+
+    return sendSuccess(res, {
+      message: "Store assigned successfully",
+      store,
+      approved: updatedMembership.approved,
+    });
   }
 }
