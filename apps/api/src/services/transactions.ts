@@ -10,7 +10,7 @@ import {
   getBaseCurrency,
 } from "./currencyService";
 import { logger } from "../lib/logger";
-import { TelegramController } from "../controllers/telegramController";
+import { notificationService } from "./notificationService";
 import { fcmService } from "./fcm";
 
 const SERVICE_SOURCE = "transactionsService";
@@ -1103,8 +1103,6 @@ export async function createTransaction(
       });
 
       if (store && store.organization_id) {
-        const telegramController = new TelegramController();
-
         // Map transaction types to notification types
         const notificationTypeMap: Record<
           string,
@@ -1129,26 +1127,19 @@ export async function createTransaction(
           supplier_return: "supplier_return",
         };
 
-        const notificationType = notificationTypeMap[transaction_type];
+        const notificationType = notificationTypeMap[parsedData.type] || "sale";
 
-        // Notify for all important transaction types
-        if (notificationType) {
-          // Get additional details for richer notifications
-          const productName = transactionResult.product_name || undefined;
-          const supplierName = transactionResult.supplier?.name || undefined;
-
-          await telegramController.notifyTransactionToOwner({
-            organizationId: store.organization_id,
-            storeName: store.name,
-            transactionAmount: parsedData.total_amount.toNumber(),
-            transactionType: notificationType,
-            remarks: parsedData.remarks,
-            itemCount: quantity,
-            currency: parsedData.currency || "UZS",
-            transactionId: transactionResult.id,
-            productName,
-            supplierName,
-          });
+        await notificationService.notifyTransactionToOwner({
+          organizationId: store.organization_id,
+          storeName: store.name,
+          transactionAmount: parsedData.total_amount,
+          transactionType: notificationType,
+          description: parsedData.description,
+          remarks: parsedData.remarks,
+          itemCount: parsedData.items?.length,
+          currency: parsedData.currency,
+          transactionId: transactionResult.id,
+        });
 
           const pushTitle = `${store.name}: ${notificationType.replace(/_/g, " ")}`;
           const pushBody = productName

@@ -6,12 +6,11 @@ import { validate } from "../middleware/validation";
 import { z } from "zod";
 import { getTenantPrisma, prisma } from "../lib/prisma";
 import { logger as log } from "../lib/logger";
-import { TelegramController } from "../controllers/telegramController";
+import { notificationService } from "../services/notificationService";
 import { createPendingOrder } from "../services/ecommerceOrders";
 
 const router: Router = Router();
 const organizationsController = new OrganizationsController();
-const telegramController = new TelegramController();
 
 /**
  * Wraps public handlers with proper error handling and type safety.
@@ -207,7 +206,7 @@ router.post(
 
         // Wrap notification with error handling and retry fallback
         try {
-            await telegramController.notifyEcommerceOrderPending({
+            await notificationService.notifyEcommerceOrderPending({
                 orderId: order.id,
                 organizationId: organization.id,
                 storeName: store.name,
