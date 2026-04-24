@@ -79,7 +79,7 @@ export const createAuthHandler = (
     try {
       return await handler(req as AuthRequest, res, next);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   };
 };
@@ -305,13 +305,13 @@ export const createAuthMiddleware =
 
         // Return specific error code based on error type
         if (isPrismaError) {
-          res.status(503).json({
+          return res.status(503).json({
             error: "Tenant database not available. Please contact support.",
             code: AuthErrorCode.TENANT_ERROR,
             details: errorMessage,
           });
         } else {
-          res.status(500).json({
+          return res.status(500).json({
             error: "Authentication failed",
             code: AuthErrorCode.TOKEN_INVALID,
           });
