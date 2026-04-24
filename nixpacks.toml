@@ -6,13 +6,14 @@ nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
-  "bun install --no-save"
+  "bun install --frozen-lockfile"
 ]
 
 [phases.build]
 cmds = [
   "bun run --filter @bozorchi/shared build",
-  "bun run --filter @bozorchi/web build"
+  "bun run --filter @bozorchi/web generate:types",
+  "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=2048' bun run --filter @bozorchi/web build"
 ]
 
 [start]

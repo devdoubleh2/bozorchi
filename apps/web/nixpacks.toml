@@ -6,7 +6,7 @@ nixPkgs = ["bun"]
 
 [phases.install]
 cmds = [
-  "bun i --no-save --ignore-scripts"
+  "bun install --frozen-lockfile"
 ]
 
 [phases.build]
