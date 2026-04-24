@@ -40,6 +40,8 @@ import { sanitizeInput } from "./src/middleware/sanitization";
 import { log } from "./logs/log";
 import { initializeBackupScheduler } from "./src/lib/backupScheduler";
 import { closeImportQueue, initializeImportQueue } from "./src/lib/importQueue";
+import { AppError } from "./src/utils/AppError";
+import { ZodError } from "zod";
 
 
 const app: express.Application = express();
@@ -345,6 +347,89 @@ app.get("/api", (_req, res) => {
   });
 });
 
+// 404 handler for unmatched routes
+app.use((_req, res) => {
+  res.status(404).json({
+    status: "fail",
+    message: "Resource not found",
+  });
+});
+
+// Global error handler
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _next: express.NextFunction
+  ) => {
+    const isDev = process.env["NODE_ENV"] === "development";
+
+    // Log the error
+    void log.error("errorHandler", err.message, {
+      method: req.method,
+      path: req.originalUrl,
+      ip: req.ip,
+      errorName: err.name,
+      stack: isDev ? err.stack : undefined,
+    });
+
+    // Handle known operational errors (AppError)
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+        ...(isDev && { stack: err.stack }),
+      });
+    }
+
+    // Handle Zod validation errors
+    if (err instanceof ZodError) {
+      const issues = err.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      }));
+      return res.status(400).json({
+        status: "fail",
+        message: "Validation failed",
+        errors: issues,
+      });
+    }
+
+    // Handle Prisma errors — don't leak internals in production
+    if (err.name?.startsWith("Prisma")) {
+      return res.status(500).json({
+        status: "error",
+        message: isDev ? err.message : "Database error",
+        ...(isDev && { stack: err.stack }),
+      });
+    }
+
+    // Handle CORS errors
+    if (err.message?.includes("Not allowed by CORS")) {
+      return res.status(403).json({
+        status: "fail",
+        message: err.message,
+      });
+    }
+
+    // Handle timeout errors
+    if (err.message?.includes("timeout")) {
+      return res.status(408).json({
+        status: "fail",
+        message: "Request timeout",
+      });
+    }
+
+    // Handle generic errors — never leak stack in production
+    return res.status(500).json({
+      status: "error",
+      message: isDev ? err.message : "Something went wrong",
+      ...(isDev && { stack: err.stack }),
+    });
+  }
+);
 
 async function startServer() {
   try {
