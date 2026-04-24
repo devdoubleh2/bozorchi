@@ -1,55 +1,8 @@
-# Ignore git files
 .git
-.gitignore
-
-# Ignore CI/CD
-.github
-
-# Ignore documentation
-*.md
-!README.md
-
-# Keep all source code, configs, and package files
-!**/*.json
-!**/*.ts
-!**/*.tsx
-!**/*.js
-!**/*.jsx
-!**/src/**
-!**/prisma/**
-!**/package.json
-!**/tsconfig.json
-!bun.lock
-!bun.lockb
-
-# Ignore build outputs and dependencies (will be rebuilt in Docker)
+node_modules
 **/node_modules
 **/dist
 **/build
 **/.next
 **/out
-
-# Ignore local environment files
-.env.local
-.env.*.local
-
-# Ignore IDE files
-.vscode
-.idea
-*.swp
-*.swo
-
-# Ignore logs
-**/*.log
-**/logs
-
-# Ignore test files
-**/__tests__
-**/*.test.ts
-**/*.test.tsx
-**/*.spec.ts
-
-# Ignore mobile specific
-**/android
-**/ios
-**/Pods
+*.log
