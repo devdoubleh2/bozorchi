@@ -1147,7 +1147,6 @@ export async function createTransaction(
         const pushBody = productName
           ? `${productName} x${quantity} • ${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`
           : `${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`;
-
         await fcmService.sendToOrganizationOwner(store.organization_id, {
           title: pushTitle,
           body: pushBody,

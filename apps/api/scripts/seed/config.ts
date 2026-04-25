@@ -8,21 +8,21 @@
 export const SEED_CONFIG = {
     // Organization and Store
     organization: {
-        name: "Elegant Fashion",
-        slug: "elegant-fashion",
+        name: "Bozorchi Demo",
+        slug: "bozorchi-demo",
     },
     store: {
-        name: "Elegant Fashion - Main Store",
+        name: "Bozorchi Main Store",
         currency: "UZS",
-        address: "Tashkent, Mirzo Ulugbek district, Amir Temur street 12",
-        phone: "+998 71 234 5678",
+        address: "Tashkent, Uzbekistan",
+        phone: "+998 90 123 4567",
     },
 
     // User credentials
     admin: {
-        name: "Sardor Rustamov",
-        email: "admin@elegantfashion.uz",
-        password: "SecurePass123!",
+        name: "Asadbek",
+        email: "asadbek.sh220721@gmail.com",
+        password: "Asadbek1877",
     },
 
     // Employee configuration
