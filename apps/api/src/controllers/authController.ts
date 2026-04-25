@@ -3,7 +3,7 @@ import authService from "../services/auth";
 import logger from "../../logs/log"
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../utils/AppError";
-import { sendSuccess, sendFail, sendError } from "../utils/responseHelpers";
+import { sendSuccess, sendFail } from "../utils/responseHelpers";
 
 export class AuthController {
   async register(req: Request, res: Response) {
@@ -137,30 +137,6 @@ export class AuthController {
 
     logger.info("Password updated successfully", "authController", { userId: req.userId });
     return sendSuccess(res, { message: "Password updated successfully" });
-  }
-      if (newPassword.length < 6) {
-        logger.warn("Password update failed - password too short", "authController", {
-          userId: req.userId,
-        });
-        return res
-          .status(400)
-          .json({ error: "Password must be at least 6 characters" });
-      }
-      await authService.changePassword(
-        req.userId!,
-        currentPassword,
-        newPassword
-      );
-
-      logger.info("Password updated successfully", "authController", { userId: req.userId });
-      return res.json({ message: "Password updated successfully" });
-    } catch (error) {
-      logger.error("Password update error", "authController", {
-        userId: req.userId,
-        error: (error as Error).message,
-      });
-      return res.status(500).json({ error: (error as Error).message });
-    }
   }
 
   async updateProfile(req: AuthRequest, res: Response) {

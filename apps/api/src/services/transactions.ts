@@ -1127,36 +1127,37 @@ export async function createTransaction(
           supplier_return: "supplier_return",
         };
 
-        const notificationType = notificationTypeMap[parsedData.type] || "sale";
+        const notificationType = notificationTypeMap[parsedData.transaction_type] || "sale";
+        const productName = transactionResult.product_name || undefined;
+        const quantity = parsedData.quantity;
 
         await notificationService.notifyTransactionToOwner({
           organizationId: store.organization_id,
           storeName: store.name,
-          transactionAmount: parsedData.total_amount,
+          transactionAmount: parsedData.total_amount.toNumber(),
           transactionType: notificationType,
-          description: parsedData.description,
           remarks: parsedData.remarks,
-          itemCount: parsedData.items?.length,
+          itemCount: quantity,
           currency: parsedData.currency,
           transactionId: transactionResult.id,
+          productName,
         });
 
-          const pushTitle = `${store.name}: ${notificationType.replace(/_/g, " ")}`;
-          const pushBody = productName
-            ? `${productName} x${quantity} • ${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`
-            : `${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`;
+        const pushTitle = `${store.name}: ${notificationType.replace(/_/g, " ")}`;
+        const pushBody = productName
+          ? `${productName} x${quantity} • ${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`
+          : `${parsedData.total_amount.toNumber()} ${parsedData.currency || "UZS"}`;
 
-          await fcmService.sendToOrganizationOwner(store.organization_id, {
-            title: pushTitle,
-            body: pushBody,
-            data: {
-              organizationId: store.organization_id,
-              storeName: store.name,
-              transactionId: transactionResult.id,
-              transactionType: notificationType,
-            },
-          });
-        }
+        await fcmService.sendToOrganizationOwner(store.organization_id, {
+          title: pushTitle,
+          body: pushBody,
+          data: {
+            organizationId: store.organization_id,
+            storeName: store.name,
+            transactionId: transactionResult.id,
+            transactionType: notificationType,
+          },
+        });
       }
     } catch (error) {
       // Log error but don't fail the transaction

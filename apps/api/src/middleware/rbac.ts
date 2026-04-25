@@ -45,10 +45,11 @@ export const requireAdmin = async (
 
     next();
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       error: "Authorization check failed",
       message: (error as Error).message,
     });
+    return;
   }
 };
 
@@ -113,9 +114,10 @@ export const requirePermission =
 
         next();
       } catch (error) {
-        return res.status(500).json({
+        res.status(500).json({
           error: "Authorization check failed",
           message: (error as Error).message,
         });
+        return;
       }
     };
