@@ -27,7 +27,7 @@ COPY --from=builder /app/packages/@bozorchi/shared ./packages/@bozorchi/shared
 COPY --from=builder /app/bun.lock ./
 
 # Install minimal dependencies for preview
-RUN bun install --frozen-lockfile --ignore-scripts
+RUN bun install --ignore-scripts
 
 EXPOSE 3000
 
