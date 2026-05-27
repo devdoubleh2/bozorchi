@@ -94,7 +94,9 @@ jobs:
             docker push $LATEST_TAG
 
   deploy-web:
-    executor: bun-executor
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
     steps:
       - run:
           name: Trigger Dokploy Web deployment
@@ -102,7 +104,9 @@ jobs:
             curl -X POST "https://bozorchi.store/api/deploy/LfBvB-YTs7xdscpTBpx9q"
 
   deploy-api:
-    executor: bun-executor
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
     steps:
       - run:
           name: Trigger Dokploy API deployment

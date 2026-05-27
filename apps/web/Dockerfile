@@ -23,6 +23,7 @@ WORKDIR /app
 # Copy package.json for vite preview
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/apps/web ./apps/web
+COPY --from=builder /app/packages/@bozorchi/shared ./packages/@bozorchi/shared
 COPY --from=builder /app/bun.lock ./
 
 # Install minimal dependencies for preview
