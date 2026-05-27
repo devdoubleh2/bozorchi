@@ -3,14 +3,14 @@ FROM oven/bun:latest AS builder
 WORKDIR /app
 
 # Copy root package files and lock
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Copy all apps and packages
 COPY apps ./apps
 COPY packages ./packages
 
 # Install dependencies for the web app only
-RUN bun install --filter @bozorchi/web
+RUN bun install --frozen-lockfile
 
 # Build the web app
 RUN cd apps/web && bun run build
@@ -23,10 +23,10 @@ WORKDIR /app
 # Copy package.json for vite preview
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/apps/web ./apps/web
-COPY --from=builder /app/bun.lockb ./
+COPY --from=builder /app/bun.lock ./
 
 # Install minimal dependencies for preview
-RUN bun install --filter @bozorchi/web --no-save --ignore-scripts
+RUN bun install --frozen-lockfile --ignore-scripts
 
 EXPOSE 3000
 

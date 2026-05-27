@@ -8,14 +8,14 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy root package files and lock
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Copy all apps and packages
 COPY apps ./apps
 COPY packages ./packages
 
 # Install dependencies for the API only
-RUN bun install --filter @bozorchi/api
+RUN bun install --frozen-lockfile
 
 # Build the API
 RUN cd apps/api && bun run build

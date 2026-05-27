@@ -1,0 +1,142 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.1.0
+
+executors:
+  bun-executor:
+    docker:
+      - image: oven/bun:1-debian
+    working_directory: ~/project
+
+jobs:
+  install-deps:
+    executor: bun-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-bun-deps-{{ checksum "bun.lock" }}
+            - v1-bun-deps-
+      - run:
+          name: Install dependencies
+          command: bun install --frozen-lockfile
+      - save_cache:
+          key: v1-bun-deps-{{ checksum "bun.lock" }}
+          paths:
+            - node_modules
+            - apps/*/node_modules
+            - packages/*/node_modules
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  lint:
+    executor: bun-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Run linter
+          command: bun run lint
+
+  test:
+    executor: bun-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Run tests
+          command: bun run test
+
+  build-api-image:
+    executor: bun-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to GHCR
+          command: echo $GHCR_TOKEN | docker login ghcr.io -u $CIRCLE_PROJECT_USERNAME --password-stdin
+      - run:
+          name: Build and push API image
+          command: |
+            IMAGE_TAG="ghcr.io/${CIRCLE_PROJECT_USERNAME}/bozorchi-api:${CIRCLE_SHA1}"
+            LATEST_TAG="ghcr.io/${CIRCLE_PROJECT_USERNAME}/bozorchi-api:latest"
+            docker build -t $IMAGE_TAG -t $LATEST_TAG -f apps/api/Dockerfile .
+            docker push $IMAGE_TAG
+            docker push $LATEST_TAG
+
+  build-web-image:
+    executor: bun-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login to GHCR
+          command: echo $GHCR_TOKEN | docker login ghcr.io -u $CIRCLE_PROJECT_USERNAME --password-stdin
+      - run:
+          name: Build and push Web image
+          command: |
+            IMAGE_TAG="ghcr.io/${CIRCLE_PROJECT_USERNAME}/bozorchi-web:${CIRCLE_SHA1}"
+            LATEST_TAG="ghcr.io/${CIRCLE_PROJECT_USERNAME}/bozorchi-web:latest"
+            docker build -t $IMAGE_TAG -t $LATEST_TAG -f apps/web/Dockerfile .
+            docker push $IMAGE_TAG
+            docker push $LATEST_TAG
+
+  deploy-web:
+    executor: bun-executor
+    steps:
+      - run:
+          name: Trigger Dokploy Web deployment
+          command: |
+            curl -X POST "https://bozorchi.store/api/deploy/LfBvB-YTs7xdscpTBpx9q"
+
+  deploy-api:
+    executor: bun-executor
+    steps:
+      - run:
+          name: Trigger Dokploy API deployment
+          command: |
+            curl -X POST "https://bozorchi.store/api/deploy/a7bHEMccQ_1VCDjQAcpyQ"
+
+workflows:
+  build-test-deploy:
+    jobs:
+      - install-deps
+      - lint:
+          requires:
+            - install-deps
+      - test:
+          requires:
+            - install-deps
+      - build-api-image:
+          filters:
+            branches:
+              only: main
+          requires:
+            - lint
+            - test
+      - build-web-image:
+          filters:
+            branches:
+              only: main
+          requires:
+            - lint
+            - test
+      - deploy-api:
+          filters:
+            branches:
+              only: main
+          requires:
+            - build-api-image
+      - deploy-web:
+          filters:
+            branches:
+              only: main
+          requires:
+            - build-web-image
