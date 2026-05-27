@@ -56,6 +56,8 @@ jobs:
     executor: bun-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/project
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -74,6 +76,8 @@ jobs:
     executor: bun-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/project
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -119,15 +123,13 @@ workflows:
             branches:
               only: main
           requires:
-            - lint
-            - test
+            - install-deps
       - build-web-image:
           filters:
             branches:
               only: main
           requires:
-            - lint
-            - test
+            - install-deps
       - deploy-api:
           filters:
             branches:
