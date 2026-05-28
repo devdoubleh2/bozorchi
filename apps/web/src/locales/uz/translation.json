@@ -2084,15 +2084,19 @@
     "nav": {
       "platform": "Platforma",
       "solutions": "Yechimlar",
+      "philosophy": "Falsafa",
+      "resources": "Resurslar",
       "signin": "Kirish",
       "get_started": "Boshlash"
     },
     "hero": {
       "badge": "Bozorchi 2.0 ishga tushdi",
+      "title": "Jamoangiz haqiqatan ham foydalanmoqchi bo'lgan dastur.",
       "title_start": "Operatsion tizim",
       "title_end": "zamonaviy savdo uchun.",
-      "subtitle": "Ombordan kassagacha barcha jarayonlarni boshqaring. Tezlik va o'sish uchun chiroyli dastur.",
-      "cta": "Bepul sinab ko'rish"
+      "subtitle": "Bozorchi zamonaviy savdo uchun operatsion tizim. Ortiqcha narsa yo'q, qiyin o'rganish yo'q — faqat ko'proq sotish va kamroq xavotirlanish uchun kerakli vositalar.",
+      "cta": "Bepul sinab ko'rish",
+      "cta_secondary": "Inson bilan gaplashish"
     },
     "trusted_by": "Yetakchilar ishonchi",
     "features": {
@@ -2110,9 +2114,23 @@
       }
     },
     "showcase": {
+      "title": "Kerakli hammasi. Ortiqcha narsa yo'q.",
       "title_1": "Tarmoqlar uchun kuchli.",
       "title_2": "Har qanday do'kon uchun oddiy.",
-      "subtitle": "Eng qulay savdo interfeysini his qiling."
+      "subtitle": "Toza, aniq interfeys, jamoangiz bir necha daqiqada tushunadi — haftalar emas."
+    },
+    "philosophy": {
+      "label": "Nima uchun yaratamiz",
+      "title": "Biz faxrlanadigan dastur yaratamiz."
+    },
+    "compare": {
+      "label": "Farq",
+      "title": "Nima uchun jamoalar Bozorchi ga o'tadi.",
+      "col": {
+        "feature": "Xususiyat",
+        "spreadsheets": "Jadvallar",
+        "big_erp": "Katta ERP"
+      }
     },
     "split": {
       "fast": {
@@ -2127,12 +2145,24 @@
     },
     "inventory": {
       "badge": "Logistika",
+      "title": "Ombor boshqaruvi osonlashdi.",
       "title_start": "Ombor boshqaruvi",
       "title_end": "osonlashdi.",
       "desc": "Jismoniy omborni raqamli savdo bilan bog'lang. Bizning tizim avtomatik to'ldirishni amalga oshiradi."
     },
+    "testimonials": {
+      "label": "Sotuvchilar ishonchi",
+      "title": "Tafsilotlarga e'tibor beradigan odamlar."
+    },
+    "newsletter": {
+      "title": "Xabardor bo'ling.",
+      "subtitle": "Spam va haftalik xulosa yo'q. Yiliga bir necha marta, biz biror narsa chiqarganimizda xat yuboramiz.",
+      "placeholder": "siz@dokon.uz",
+      "cta": "Obuna bo'lish"
+    },
     "footer": {
       "title": "Biznesingizni yangilashga tayyormisiz?",
+      "subtitle": "Allaqachon o'tgan do'konlarga qo'shiling. Bepul sinov, karta talab etilmaydi.",
       "cta_primary": "Hozir Boshlash",
       "cta_secondary": "Sotuv bo'limi",
       "description": "Zamonaviy chakana savdo uchun yagona operatsion tizim. Tezlik va o'sish uchun yaratilgan.",
@@ -2141,6 +2171,40 @@
         "company": "Kompaniya",
         "legal": "Huquqiy"
       }
+    }
+  },
+  "resources": {
+    "seo": {
+      "title": "Chakana savdo uchun o'sish resurslari va qo'llanmalar",
+      "description": "Ombor, kassa optimallashtirish va savdo o'sishi bo'yicha amaliy qo'llanmalar.",
+      "jsonld_name": "Bozorchi Resurslari"
+    },
+    "hero": {
+      "badge": "Kontent Markazi",
+      "title": "Sizning jamoangiz tezroq sotish va kamroq inventar sarflashiga yordam beradigan savdo resurslari.",
+      "subtitle": "Amaliy qo'llanmalar kerak bo'lgan do'kon egalari va operatorlar uchun. Ushbu qo'llanmalardan bu hafta savdo operatsiyalarini yaxshilash uchun foydalaning."
+    },
+    "guides": {
+      "inventory_turnover": {
+        "title": "Chakana do'konlar uchun inventar aylanmasi qo'llanmasi",
+        "description": "O'lgan zaxiralarni kamaytirish, naqd pul oqimini yaxshilash va ishonch bilan qayta buyurtma berish uchun amaliy uslubiy qo'llanma.",
+        "readTime": "8 daqiqa o'qish"
+      },
+      "faster_checkout": {
+        "title": "Tezroq kassa tajribasini qanday qurish",
+        "description": "O'rtacha buyurtma qiymatini sog'lom saqlab, kassa navbatlarini tezlashtirish operatsion taktiklari.",
+        "readTime": "6 daqiqa o'qish"
+      },
+      "kpi_dashboard": {
+        "title": "Haqiqatan ishlaydigan haftalik savdo KPI boshqaruv paneli",
+        "description": "Do'kon egalari har hafta ko'rib chiqishi kerak bo'lgan asosiy ko'rsatkichlar va ularga tezda qanday javob berish.",
+        "readTime": "7 daqiqa o'qish"
+      }
+    },
+    "cta": {
+      "title": "Ushbu qo'llanmalarni boshidan oxirigacha bajaradigan tizim kerakmi?",
+      "subtitle": "Kassani, omborni va hisobotlarni bitta ish jarayonida birlashtirish uchun Bozorchi dan boshlang.",
+      "button": "Bepul boshlash"
     }
   },
   "currencies": {

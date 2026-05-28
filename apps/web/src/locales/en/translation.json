@@ -1297,15 +1297,19 @@
         "nav": {
             "platform": "Platform",
             "solutions": "Solutions",
+            "philosophy": "Philosophy",
+            "resources": "Resources",
             "signin": "Sign in",
             "get_started": "Get Started"
         },
         "hero": {
             "badge": "Bozorchi 2.0 is live",
+            "title": "Software your retail team will actually want to use.",
             "title_start": "The operating system for",
             "title_end": "modern retail businesses.",
-            "subtitle": "Streamline your entire operation from inventory to checkout. Beautiful software designed for speed, reliability, and growth.",
-            "cta": "Start your free trial"
+            "subtitle": "Bozorchi is the operating system for modern retail. No fluff, no steep learning curve — just the tools you need to sell more and worry less.",
+            "cta": "Start your free trial",
+            "cta_secondary": "Talk to a human"
         },
         "features": {
             "cloud": {
@@ -1322,9 +1326,23 @@
             }
         },
         "showcase": {
+            "title": "Everything you need. Nothing you don't.",
             "title_1": "Powerful enough for chains.",
             "title_2": "Simple enough for every store.",
-            "subtitle": "Experience the most intuitive retail interface ever built."
+            "subtitle": "A clean, focused interface that your team will understand in minutes — not weeks."
+        },
+        "philosophy": {
+            "label": "Why we build",
+            "title": "We make software we're proud of."
+        },
+        "compare": {
+            "label": "The difference",
+            "title": "Why teams switch to Bozorchi.",
+            "col": {
+                "feature": "Feature",
+                "spreadsheets": "Spreadsheets",
+                "big_erp": "Big ERP"
+            }
         },
         "split": {
             "fast": {
@@ -1339,12 +1357,24 @@
         },
         "inventory": {
             "badge": "Smart Logistics",
+            "title": "Warehousing made effortless.",
             "title_start": "Warehousing made",
             "title_end": "effortless.",
             "desc": "Connect your physical inventory to your digital sales channels. Our predictive engine handles restocking automatically so you never miss a sale."
         },
+        "testimonials": {
+            "label": "Trusted by retailers",
+            "title": "People who notice the details."
+        },
+        "newsletter": {
+            "title": "Stay in the loop.",
+            "subtitle": "No spam, no weekly roundups. Just a few emails a year when we ship something worth sharing.",
+            "placeholder": "you@store.com",
+            "cta": "Subscribe"
+        },
         "footer": {
             "title": "Ready to modernize your retail business?",
+            "subtitle": "Join the stores that have already made the switch. Free trial, no credit card required.",
             "cta_primary": "Get Started Now",
             "cta_secondary": "Contact Sales",
             "description": "The all-in-one operating system for modern retail. Built for speed, designed for growth.",
@@ -1353,6 +1383,40 @@
                 "company": "Company",
                 "legal": "Legal"
             }
+        }
+    },
+    "resources": {
+        "seo": {
+            "title": "Retail Growth Resources and Guides",
+            "description": "Actionable guides for store owners on inventory, checkout optimization, and retail growth.",
+            "jsonld_name": "Bozorchi Resources"
+        },
+        "hero": {
+            "badge": "Content Hub",
+            "title": "Retail resources that help your team sell faster and waste less inventory.",
+            "subtitle": "Built for store owners and operators who want practical playbooks, not theory. Use these guides to improve sales operations this week."
+        },
+        "guides": {
+            "inventory_turnover": {
+                "title": "Inventory Turnover Playbook for Retail Stores",
+                "description": "A practical framework to reduce dead stock, improve cash flow, and reorder with confidence.",
+                "readTime": "8 min read"
+            },
+            "faster_checkout": {
+                "title": "How to Build a Faster Checkout Experience",
+                "description": "Operational tactics to speed up POS queues while keeping average order value healthy.",
+                "readTime": "6 min read"
+            },
+            "kpi_dashboard": {
+                "title": "Weekly Retail KPI Dashboard That Actually Works",
+                "description": "The key metrics store owners should review every week and how to act on them quickly.",
+                "readTime": "7 min read"
+            }
+        },
+        "cta": {
+            "title": "Need a system that executes these playbooks end to end?",
+            "subtitle": "Start with Bozorchi to connect POS, inventory, and reporting in one workflow.",
+            "button": "Start Free Trial"
         }
     },
     "currencies": {
