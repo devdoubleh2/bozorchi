@@ -3426,12 +3426,10 @@ export namespace Prisma {
     user_id: string | null
     status: string | null
     checkout_id: string | null
-    checkout_client_secret: string | null
     polar_customer_id: string | null
     amount_cents: number | null
     currency: string | null
     created_at: Date | null
-    updated_at: Date | null
   }
 
   export type OrderMaxAggregateOutputType = {
@@ -3439,12 +3437,10 @@ export namespace Prisma {
     user_id: string | null
     status: string | null
     checkout_id: string | null
-    checkout_client_secret: string | null
     polar_customer_id: string | null
     amount_cents: number | null
     currency: string | null
     created_at: Date | null
-    updated_at: Date | null
   }
 
   export type OrderCountAggregateOutputType = {
@@ -3452,12 +3448,10 @@ export namespace Prisma {
     user_id: number
     status: number
     checkout_id: number
-    checkout_client_secret: number
     polar_customer_id: number
     amount_cents: number
     currency: number
     created_at: number
-    updated_at: number
     _all: number
   }
 
@@ -3475,12 +3469,10 @@ export namespace Prisma {
     user_id?: true
     status?: true
     checkout_id?: true
-    checkout_client_secret?: true
     polar_customer_id?: true
     amount_cents?: true
     currency?: true
     created_at?: true
-    updated_at?: true
   }
 
   export type OrderMaxAggregateInputType = {
@@ -3488,12 +3480,10 @@ export namespace Prisma {
     user_id?: true
     status?: true
     checkout_id?: true
-    checkout_client_secret?: true
     polar_customer_id?: true
     amount_cents?: true
     currency?: true
     created_at?: true
-    updated_at?: true
   }
 
   export type OrderCountAggregateInputType = {
@@ -3501,12 +3491,10 @@ export namespace Prisma {
     user_id?: true
     status?: true
     checkout_id?: true
-    checkout_client_secret?: true
     polar_customer_id?: true
     amount_cents?: true
     currency?: true
     created_at?: true
-    updated_at?: true
     _all?: true
   }
 
@@ -3601,12 +3589,10 @@ export namespace Prisma {
     user_id: string
     status: string
     checkout_id: string | null
-    checkout_client_secret: string | null
     polar_customer_id: string | null
     amount_cents: number | null
     currency: string | null
     created_at: Date
-    updated_at: Date
     _count: OrderCountAggregateOutputType | null
     _avg: OrderAvgAggregateOutputType | null
     _sum: OrderSumAggregateOutputType | null
@@ -3633,12 +3619,10 @@ export namespace Prisma {
     user_id?: boolean
     status?: boolean
     checkout_id?: boolean
-    checkout_client_secret?: boolean
     polar_customer_id?: boolean
     amount_cents?: boolean
     currency?: boolean
     created_at?: boolean
-    updated_at?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3646,12 +3630,10 @@ export namespace Prisma {
     user_id?: boolean
     status?: boolean
     checkout_id?: boolean
-    checkout_client_secret?: boolean
     polar_customer_id?: boolean
     amount_cents?: boolean
     currency?: boolean
     created_at?: boolean
-    updated_at?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3659,12 +3641,10 @@ export namespace Prisma {
     user_id?: boolean
     status?: boolean
     checkout_id?: boolean
-    checkout_client_secret?: boolean
     polar_customer_id?: boolean
     amount_cents?: boolean
     currency?: boolean
     created_at?: boolean
-    updated_at?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectScalar = {
@@ -3672,15 +3652,13 @@ export namespace Prisma {
     user_id?: boolean
     status?: boolean
     checkout_id?: boolean
-    checkout_client_secret?: boolean
     polar_customer_id?: boolean
     amount_cents?: boolean
     currency?: boolean
     created_at?: boolean
-    updated_at?: boolean
   }
 
-  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "status" | "checkout_id" | "checkout_client_secret" | "polar_customer_id" | "amount_cents" | "currency" | "created_at" | "updated_at", ExtArgs["result"]["order"]>
+  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "user_id" | "status" | "checkout_id" | "polar_customer_id" | "amount_cents" | "currency" | "created_at", ExtArgs["result"]["order"]>
 
   export type $OrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Order"
@@ -3690,12 +3668,10 @@ export namespace Prisma {
       user_id: string
       status: string
       checkout_id: string | null
-      checkout_client_secret: string | null
       polar_customer_id: string | null
       amount_cents: number | null
       currency: string | null
       created_at: Date
-      updated_at: Date
     }, ExtArgs["result"]["order"]>
     composites: {}
   }
@@ -4123,12 +4099,10 @@ export namespace Prisma {
     readonly user_id: FieldRef<"Order", 'String'>
     readonly status: FieldRef<"Order", 'String'>
     readonly checkout_id: FieldRef<"Order", 'String'>
-    readonly checkout_client_secret: FieldRef<"Order", 'String'>
     readonly polar_customer_id: FieldRef<"Order", 'String'>
     readonly amount_cents: FieldRef<"Order", 'Int'>
     readonly currency: FieldRef<"Order", 'String'>
     readonly created_at: FieldRef<"Order", 'DateTime'>
-    readonly updated_at: FieldRef<"Order", 'DateTime'>
   }
     
 
@@ -30711,12 +30685,10 @@ export namespace Prisma {
     user_id: 'user_id',
     status: 'status',
     checkout_id: 'checkout_id',
-    checkout_client_secret: 'checkout_client_secret',
     polar_customer_id: 'polar_customer_id',
     amount_cents: 'amount_cents',
     currency: 'currency',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
+    created_at: 'created_at'
   };
 
   export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -31320,12 +31292,10 @@ export namespace Prisma {
     user_id?: StringFilter<"Order"> | string
     status?: StringFilter<"Order"> | string
     checkout_id?: StringNullableFilter<"Order"> | string | null
-    checkout_client_secret?: StringNullableFilter<"Order"> | string | null
     polar_customer_id?: StringNullableFilter<"Order"> | string | null
     amount_cents?: IntNullableFilter<"Order"> | number | null
     currency?: StringNullableFilter<"Order"> | string | null
     created_at?: DateTimeFilter<"Order"> | Date | string
-    updated_at?: DateTimeFilter<"Order"> | Date | string
   }
 
   export type OrderOrderByWithRelationInput = {
@@ -31333,12 +31303,10 @@ export namespace Prisma {
     user_id?: SortOrder
     status?: SortOrder
     checkout_id?: SortOrderInput | SortOrder
-    checkout_client_secret?: SortOrderInput | SortOrder
     polar_customer_id?: SortOrderInput | SortOrder
     amount_cents?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
   }
 
   export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -31349,12 +31317,10 @@ export namespace Prisma {
     user_id?: StringFilter<"Order"> | string
     status?: StringFilter<"Order"> | string
     checkout_id?: StringNullableFilter<"Order"> | string | null
-    checkout_client_secret?: StringNullableFilter<"Order"> | string | null
     polar_customer_id?: StringNullableFilter<"Order"> | string | null
     amount_cents?: IntNullableFilter<"Order"> | number | null
     currency?: StringNullableFilter<"Order"> | string | null
     created_at?: DateTimeFilter<"Order"> | Date | string
-    updated_at?: DateTimeFilter<"Order"> | Date | string
   }, "id">
 
   export type OrderOrderByWithAggregationInput = {
@@ -31362,12 +31328,10 @@ export namespace Prisma {
     user_id?: SortOrder
     status?: SortOrder
     checkout_id?: SortOrderInput | SortOrder
-    checkout_client_secret?: SortOrderInput | SortOrder
     polar_customer_id?: SortOrderInput | SortOrder
     amount_cents?: SortOrderInput | SortOrder
     currency?: SortOrderInput | SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
     _count?: OrderCountOrderByAggregateInput
     _avg?: OrderAvgOrderByAggregateInput
     _max?: OrderMaxOrderByAggregateInput
@@ -31383,12 +31347,10 @@ export namespace Prisma {
     user_id?: StringWithAggregatesFilter<"Order"> | string
     status?: StringWithAggregatesFilter<"Order"> | string
     checkout_id?: StringNullableWithAggregatesFilter<"Order"> | string | null
-    checkout_client_secret?: StringNullableWithAggregatesFilter<"Order"> | string | null
     polar_customer_id?: StringNullableWithAggregatesFilter<"Order"> | string | null
     amount_cents?: IntNullableWithAggregatesFilter<"Order"> | number | null
     currency?: StringNullableWithAggregatesFilter<"Order"> | string | null
     created_at?: DateTimeWithAggregatesFilter<"Order"> | Date | string
-    updated_at?: DateTimeWithAggregatesFilter<"Order"> | Date | string
   }
 
   export type UnitWhereInput = {
@@ -33331,12 +33293,10 @@ export namespace Prisma {
     user_id: string
     status?: string
     checkout_id?: string | null
-    checkout_client_secret?: string | null
     polar_customer_id?: string | null
     amount_cents?: number | null
     currency?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
   }
 
   export type OrderUncheckedCreateInput = {
@@ -33344,12 +33304,10 @@ export namespace Prisma {
     user_id: string
     status?: string
     checkout_id?: string | null
-    checkout_client_secret?: string | null
     polar_customer_id?: string | null
     amount_cents?: number | null
     currency?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
   }
 
   export type OrderUpdateInput = {
@@ -33357,12 +33315,10 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     checkout_id?: NullableStringFieldUpdateOperationsInput | string | null
-    checkout_client_secret?: NullableStringFieldUpdateOperationsInput | string | null
     polar_customer_id?: NullableStringFieldUpdateOperationsInput | string | null
     amount_cents?: NullableIntFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderUncheckedUpdateInput = {
@@ -33370,12 +33326,10 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     checkout_id?: NullableStringFieldUpdateOperationsInput | string | null
-    checkout_client_secret?: NullableStringFieldUpdateOperationsInput | string | null
     polar_customer_id?: NullableStringFieldUpdateOperationsInput | string | null
     amount_cents?: NullableIntFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderCreateManyInput = {
@@ -33383,12 +33337,10 @@ export namespace Prisma {
     user_id: string
     status?: string
     checkout_id?: string | null
-    checkout_client_secret?: string | null
     polar_customer_id?: string | null
     amount_cents?: number | null
     currency?: string | null
     created_at?: Date | string
-    updated_at?: Date | string
   }
 
   export type OrderUpdateManyMutationInput = {
@@ -33396,12 +33348,10 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     checkout_id?: NullableStringFieldUpdateOperationsInput | string | null
-    checkout_client_secret?: NullableStringFieldUpdateOperationsInput | string | null
     polar_customer_id?: NullableStringFieldUpdateOperationsInput | string | null
     amount_cents?: NullableIntFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderUncheckedUpdateManyInput = {
@@ -33409,12 +33359,10 @@ export namespace Prisma {
     user_id?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     checkout_id?: NullableStringFieldUpdateOperationsInput | string | null
-    checkout_client_secret?: NullableStringFieldUpdateOperationsInput | string | null
     polar_customer_id?: NullableStringFieldUpdateOperationsInput | string | null
     amount_cents?: NullableIntFieldUpdateOperationsInput | number | null
     currency?: NullableStringFieldUpdateOperationsInput | string | null
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UnitCreateInput = {
@@ -35648,12 +35596,10 @@ export namespace Prisma {
     user_id?: SortOrder
     status?: SortOrder
     checkout_id?: SortOrder
-    checkout_client_secret?: SortOrder
     polar_customer_id?: SortOrder
     amount_cents?: SortOrder
     currency?: SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
   }
 
   export type OrderAvgOrderByAggregateInput = {
@@ -35665,12 +35611,10 @@ export namespace Prisma {
     user_id?: SortOrder
     status?: SortOrder
     checkout_id?: SortOrder
-    checkout_client_secret?: SortOrder
     polar_customer_id?: SortOrder
     amount_cents?: SortOrder
     currency?: SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
   }
 
   export type OrderMinOrderByAggregateInput = {
@@ -35678,12 +35622,10 @@ export namespace Prisma {
     user_id?: SortOrder
     status?: SortOrder
     checkout_id?: SortOrder
-    checkout_client_secret?: SortOrder
     polar_customer_id?: SortOrder
     amount_cents?: SortOrder
     currency?: SortOrder
     created_at?: SortOrder
-    updated_at?: SortOrder
   }
 
   export type OrderSumOrderByAggregateInput = {

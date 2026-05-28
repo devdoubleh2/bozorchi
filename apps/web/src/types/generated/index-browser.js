@@ -125,12 +125,10 @@ exports.Prisma.OrderScalarFieldEnum = {
   user_id: 'user_id',
   status: 'status',
   checkout_id: 'checkout_id',
-  checkout_client_secret: 'checkout_client_secret',
   polar_customer_id: 'polar_customer_id',
   amount_cents: 'amount_cents',
   currency: 'currency',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
+  created_at: 'created_at'
 };
 
 exports.Prisma.UnitScalarFieldEnum = {
