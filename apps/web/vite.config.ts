@@ -21,6 +21,7 @@ export default defineConfig({
     alias: {
       "@": "/src",
     },
+    dedupe: ["react", "react-dom"],
   },
   preview: {
     allowedHosts: ["pos.bozorchi.store"],
