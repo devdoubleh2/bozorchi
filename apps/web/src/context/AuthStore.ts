@@ -98,7 +98,8 @@ export const useAuthStore = create<AuthState>()(
         // Fetch profile from API
         fetchProfile: async () => {
           try {
-            const user = await api.get<AuthUser>("/api/auth/profile");
+            const response = await api.get<{ data: AuthUser }>("/api/auth/profile");
+            const user = response.data;
             set({ user, organization: extractOrganization(user), isAuthenticated: true });
             return user;
           } catch {
@@ -119,7 +120,8 @@ export const useAuthStore = create<AuthState>()(
             // Refresh profile first so role/permissions stay in sync with backend assignments.
             let effectiveUser = existingUser;
             try {
-              const refreshedUser = await api.get<AuthUser>("/api/auth/profile");
+              const refreshedResponse = await api.get<{ data: AuthUser }>("/api/auth/profile");
+              const refreshedUser = refreshedResponse.data;
               effectiveUser = refreshedUser;
               set({
                 user: refreshedUser,
@@ -206,10 +208,12 @@ export const useAuthStore = create<AuthState>()(
         // Sign in - cookie is set by backend
         signIn: async (email, password) => {
           try {
-            const result = await api.post<AuthResponse>("/api/auth/login", {
+            const response = await api.post<{ data: AuthResponse }>("/api/auth/login", {
               email,
               password,
             });
+
+            const result = response.data;
 
             set({
               user: result.user,
@@ -229,10 +233,12 @@ export const useAuthStore = create<AuthState>()(
         // Sign up - cookie is set by backend
         signUp: async (data) => {
           try {
-            const result = await api.post<AuthResponse>(
+            const response = await api.post<{ data: AuthResponse }>(
               "/api/auth/register",
               data
             );
+
+            const result = response.data;
 
             set({
               user: result.user,
@@ -308,10 +314,14 @@ export const useAuthStore = create<AuthState>()(
             }
 
             // Call session-based endpoint - cookie will be updated by backend
-            const result = await api.post<{
-              store: Store;
-              message: string;
+            const response = await api.post<{
+              data: {
+                store: Store;
+                message: string;
+              };
             }>("/api/stores/switch", { storeId });
+
+            const result = response.data;
 
             if (!result.store) {
               const error = new Error(
