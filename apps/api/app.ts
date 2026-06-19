@@ -8,6 +8,7 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import timeout from "connect-timeout";
 import cookie from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
 import { prisma } from "./src/lib/prisma";
 import authRouter from "./src/routes/auth";
 import storesRouter from "./src/routes/stores";
@@ -42,12 +43,17 @@ import { initializeBackupScheduler } from "./src/lib/backupScheduler";
 import { closeImportQueue, initializeImportQueue } from "./src/lib/importQueue";
 import { AppError } from "./src/utils/AppError";
 import { ZodError } from "zod";
+import { openApiDocument } from "./src/docs/openapi";
 
 
 const app: express.Application = express();
 const PORT = Number(process.env["PORT"] ?? 4000);
 let server: Server | null = null;
 let shuttingDown = false;
+const isApiDocsEnabled =
+  process.env["ENABLE_API_DOCS"] === "true" ||
+  process.env["NODE_ENV"] !== "production";
+const isOpenApiJsonEnabled = process.env["ENABLE_OPENAPI_JSON"] === "true";
 
 // Validate required environment variables in production
 if (process.env["NODE_ENV"] === "production") {
@@ -73,7 +79,7 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: isApiDocsEnabled ? ["'self'", "'unsafe-inline'"] : ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: ["'self'"],
         fontSrc: ["'self'"],
@@ -343,9 +349,31 @@ app.get("/api", (_req, res) => {
       print: "/api/print",
       reservations: "/api/reservations",
     },
-    documentation: "https://github.com/your-repo/docs",
+    documentation: "/api/docs",
+    openapi: "/api/openapi.json",
   });
 });
+
+if (isApiDocsEnabled) {
+  app.use(
+    "/api/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(openApiDocument, {
+      explorer: true,
+      customSiteTitle: "Bozorchi API Docs",
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+      },
+    })
+  );
+}
+
+if (isOpenApiJsonEnabled) {
+  app.get("/api/openapi.json", (_req, res) => {
+    res.json(openApiDocument);
+  });
+}
 
 // 404 handler for unmatched routes
 app.use((_req, res) => {

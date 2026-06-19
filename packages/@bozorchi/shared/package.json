@@ -15,11 +15,8 @@
       "default": "./dist/index.js"
     }
   },
-  "dependencies": {
-    "@prisma/client": "^7.1.0"
-  },
   "scripts": {
-    "build": "tsc && cp -r src/generated dist/generated",
+    "build": "tsc",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist"
   },

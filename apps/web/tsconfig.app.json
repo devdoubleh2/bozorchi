@@ -20,9 +20,6 @@
       "@/*": [
         "./src/*"
       ],
-      "@generated": [
-        "./src/types/generated"
-      ],
       "@bozorchi/shared": [
         "../packages/@bozorchi/shared/src/index.ts"
       ]

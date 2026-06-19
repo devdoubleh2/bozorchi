@@ -54,14 +54,14 @@ export default function SeoManager() {
 
   if (pathname === "/") {
     const landingTitleStart = t("landing.hero.title_start", {
-      defaultValue: "The operating system for",
+      defaultValue: "POS and inventory software for",
     });
     const landingTitleEnd = t("landing.hero.title_end", {
-      defaultValue: "modern retail businesses.",
+      defaultValue: "retail stores in Uzbekistan.",
     });
     const landingDescription = t("landing.hero.subtitle", {
       defaultValue:
-        "Streamline your entire operation from inventory to checkout. Beautiful software designed for speed, reliability, and growth.",
+        "Bozorchi helps store owners sell faster, track products, manage inventory, staff, suppliers, customers, and reports from web and mobile.",
     });
 
     return (

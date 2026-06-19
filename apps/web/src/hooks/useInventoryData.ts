@@ -3,42 +3,59 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
-import type {
-  Prisma,
-  ProductCategory,
-  Unit,
-} from "@/types/generated";
 
 const LOW_STOCK_THRESHOLD = 10;
 const DEFAULT_CATEGORY = "Uncategorized";
 
 export type StockStatus = "good" | "low" | "out";
 
-export type PrismaProductCategory = ProductCategory;
-export type PrismaUnit = Unit;
+type ApiDecimal = number | string;
 
-export type PrismaProductVariation = Prisma.ProductVariationGetPayload<{
-  include: {
-    inventory: true;
-    unit: true;
-    supplier: true;
-  };
-}>;
+export interface InventoryApiUnit {
+  id: string;
+  name: string;
+}
 
-export type PrismaProduct = Prisma.ProductGetPayload<{
-  include: {
-    product_variations: {
-      include: {
-        inventory: true;
-        unit: true;
-        supplier: true;
-      };
-    };
-    product_category: true;
-  };
-}>;
+export interface InventoryApiProductCategory {
+  id: string;
+  name: string;
+  color: string | null;
+}
 
-export type InventoryProductVariation = PrismaProductVariation;
+export interface InventoryApiSupplier {
+  id: string;
+  name: string;
+}
+
+export interface InventoryApiStock {
+  quantity_in_stock: number;
+}
+
+export interface InventoryApiProductVariation {
+  id: string;
+  name: string | null;
+  barcode: string | null;
+  sku: string | null;
+  price: ApiDecimal;
+  selling_price: ApiDecimal;
+  delivery_cost: ApiDecimal | null;
+  unit_id: string;
+  image_url: string | null;
+  color: string | null;
+  inventory: InventoryApiStock[];
+  unit: InventoryApiUnit | null;
+  supplier: InventoryApiSupplier | null;
+}
+
+export interface InventoryApiProduct {
+  id: string;
+  name: string;
+  image_url: string | null;
+  product_category: InventoryApiProductCategory | null;
+  product_variations: InventoryApiProductVariation[];
+}
+
+export type InventoryProductVariation = InventoryApiProductVariation;
 
 export interface InventoryItem {
   id: string;
@@ -115,7 +132,7 @@ export function useInventoryData(): UseInventoryDataResult {
   } = useQuery({
     queryKey: ["products", storeId],
     queryFn: async () => {
-      const response = await api.get<{ products: PrismaProduct[] }>(
+      const response = await api.get<{ products: InventoryApiProduct[] }>(
         "/api/products/list"
       );
       return response.products ?? [];
@@ -170,7 +187,7 @@ export function useInventoryData(): UseInventoryDataResult {
 
       const productVariationsWithUnit = product.product_variations;
 
-      productVariationsWithUnit.forEach((variation: PrismaProductVariation) => {
+      productVariationsWithUnit.forEach((variation: InventoryApiProductVariation) => {
         const stockQuantity = (variation.inventory ?? []).reduce(
           (sum, inv) => sum + inv.quantity_in_stock,
           0
@@ -243,7 +260,7 @@ export function useInventoryData(): UseInventoryDataResult {
       }
 
       (product.product_variations ?? []).forEach(
-        (variation: PrismaProductVariation) => {
+        (variation: InventoryApiProductVariation) => {
           if (variation.supplier?.name) {
             supplierNames.add(variation.supplier.name);
           }
@@ -467,7 +484,7 @@ export function useFlattenedInventoryData(): UseFlattenedInventoryDataResult {
   } = useQuery({
     queryKey: ["products", storeId],
     queryFn: async () => {
-      const response = await api.get<{ products: PrismaProduct[] }>(
+      const response = await api.get<{ products: InventoryApiProduct[] }>(
         "/api/products/list"
       );
       return response.products ?? [];
@@ -522,7 +539,7 @@ export function useFlattenedInventoryData(): UseFlattenedInventoryDataResult {
       const productCategoryColor = category?.color || "#6FCF97";
 
       product.product_variations.forEach(
-        (variation: PrismaProductVariation) => {
+        (variation: InventoryApiProductVariation) => {
           const stockQuantity = (variation.inventory ?? []).reduce(
             (sum, inv) => sum + inv.quantity_in_stock,
             0

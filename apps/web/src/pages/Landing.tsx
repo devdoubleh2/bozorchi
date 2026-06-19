@@ -1,16 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  BarChart3,
   Box,
   CheckCircle2,
+  Clock,
   Laptop,
   Menu,
+  Receipt,
+  Store,
   Smartphone,
   X,
   Zap,
-  Star,
   Mail,
   ArrowUpRight,
+  Users,
+  WifiOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -25,75 +30,130 @@ import { useState } from "react";
 // DATA
 // =============================================================================
 
-const TESTIMONIALS = [
+const HERO_PROOFS = [
   {
-    quote:
-      "We switched from spreadsheets and never looked back. Bozorchi just works the way our team actually thinks.",
-    author: "Dilshod K.",
-    role: "Owner, Home Goods Store",
-    rating: 5,
+    icon: WifiOff,
+    key: "landing.hero.proofs.offline",
+    fallback: "Offline-ready POS",
   },
   {
-    quote:
-      "I needed something my staff could learn in an afternoon. By day two they were processing sales faster than our old system.",
-    author: "Nodira T.",
-    role: "Manager, Fashion Boutique",
-    rating: 5,
+    icon: Box,
+    key: "landing.hero.proofs.inventory",
+    fallback: "Live inventory",
   },
   {
-    quote:
-      "The inventory alerts alone saved us from two stockouts last month. It pays for itself.",
-    author: "Rustam B.",
-    role: "Operations, Electronics Chain",
-    rating: 5,
+    icon: Users,
+    key: "landing.hero.proofs.staff",
+    fallback: "Staff roles",
+  },
+  {
+    icon: BarChart3,
+    key: "landing.hero.proofs.reports",
+    fallback: "Sales reports",
   },
 ];
 
 const COMPARISON_ROWS = [
   {
-    label: "Time to first sale",
-    bozorchi: "Under 10 minutes",
-    old: "Days of setup",
-    big: "Months of onboarding",
+    labelKey: "landing.compare.rows.setup.label",
+    label: "First sale",
+    bozorchiKey: "landing.compare.rows.setup.bozorchi",
+    bozorchi: "Ready the same day",
+    oldKey: "landing.compare.rows.setup.old",
+    old: "Manual setup",
+    bigKey: "landing.compare.rows.setup.big",
+    big: "Consultant onboarding",
   },
   {
-    label: "Works offline",
-    bozorchi: "Yes",
-    old: "No",
-    big: "Sometimes",
+    labelKey: "landing.compare.rows.offline.label",
+    label: "Internet outage",
+    bozorchiKey: "landing.compare.rows.offline.bozorchi",
+    bozorchi: "Keep selling offline",
+    oldKey: "landing.compare.rows.offline.old",
+    old: "Write it down later",
+    bigKey: "landing.compare.rows.offline.big",
+    big: "Depends on hardware",
   },
   {
-    label: "Staff training",
-    bozorchi: "Self-explanatory",
-    old: "None (chaos)",
-    big: "Expensive courses",
+    labelKey: "landing.compare.rows.inventory.label",
+    label: "Inventory control",
+    bozorchiKey: "landing.compare.rows.inventory.bozorchi",
+    bozorchi: "Barcode, alerts, audits",
+    oldKey: "landing.compare.rows.inventory.old",
+    old: "Manual counts",
+    bigKey: "landing.compare.rows.inventory.big",
+    big: "Complex workflows",
   },
   {
-    label: "Monthly cost",
-    bozorchi: "Transparent",
-    old: "Hidden mistakes",
-    big: "Locked contracts",
+    labelKey: "landing.compare.rows.staff.label",
+    label: "Staff access",
+    bozorchiKey: "landing.compare.rows.staff.bozorchi",
+    bozorchi: "Role-based controls",
+    oldKey: "landing.compare.rows.staff.old",
+    old: "Shared passwords",
+    bigKey: "landing.compare.rows.staff.big",
+    big: "Admin-heavy",
   },
   {
-    label: "Support",
-    bozorchi: "Real humans",
-    old: "YouTube tutorials",
-    big: "Tickets & queues",
+    labelKey: "landing.compare.rows.owner.label",
+    label: "Owner view",
+    bozorchiKey: "landing.compare.rows.owner.bozorchi",
+    bozorchi: "Web and mobile dashboard",
+    oldKey: "landing.compare.rows.owner.old",
+    old: "End-of-day totals",
+    bigKey: "landing.compare.rows.owner.big",
+    big: "Desktop reports",
   },
 ];
 
 const VALUES = [
   {
-    title: "Built for the floor, not the boardroom.",
-    desc: "We design every screen for people who are standing, moving, and multitasking. If it doesn't work on a busy Saturday, we don't ship it.",
+    titleKey: "landing.values.floor.title",
+    title: "Built for the sales floor.",
+    descKey: "landing.values.floor.desc",
+    desc: "Cashiers can scan, search, discount, return, and checkout without fighting the interface during a busy shift.",
   },
   {
-    title: "Your data is yours.",
-    desc: "No lock-in, no mysterious black boxes. Export anything, anytime. We believe tools should serve you, not trap you.",
+    titleKey: "landing.values.local.title",
+    title: "Made for local retail realities.",
+    descKey: "landing.values.local.desc",
+    desc: "Uzbek, Russian, and English teams can manage products, suppliers, customers, debt, and reports in one place.",
   },
   {
-    title: "Small teams deserve great software.",
-    desc: "You don't need an IT department to run a modern store. We built Bozorchi so one person can set it up and a team can run it.",
+    titleKey: "landing.values.growth.title",
+    title: "Simple now, useful as you grow.",
+    descKey: "landing.values.growth.desc",
+    desc: "Start with one shop and POS. Add staff permissions, audits, restocks, customer history, and multi-store operations later.",
+  },
+];
+
+const USE_CASES = [
+  {
+    icon: Store,
+    titleKey: "landing.use_cases.boutiques.title",
+    title: "Boutiques and fashion stores",
+    descKey: "landing.use_cases.boutiques.desc",
+    desc: "Track sizes, colors, suppliers, returns, and stock movement across the shop floor and online orders.",
+    angleKey: "landing.use_cases.boutiques.angle",
+    angle: "Keep Instagram sales and store inventory aligned.",
+  },
+  {
+    icon: Receipt,
+    titleKey: "landing.use_cases.grocery.title",
+    title: "Grocery and convenience shops",
+    descKey: "landing.use_cases.grocery.desc",
+    desc: "Use barcode search, quick checkout, low-stock alerts, and daily reports to keep queues short.",
+    angleKey: "landing.use_cases.grocery.angle",
+    angle: "Sell through rush hour even when the connection drops.",
+  },
+  {
+    icon: Clock,
+    titleKey: "landing.use_cases.electronics.title",
+    title: "Electronics and home goods",
+    descKey: "landing.use_cases.electronics.desc",
+    desc: "Control high-value inventory, supplier costs, customer debt, staff actions, and product-level margin.",
+    angleKey: "landing.use_cases.electronics.angle",
+    angle: "Know where every item and every sum went.",
   },
 ];
 
@@ -377,15 +437,29 @@ export default function LandingPage() {
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-tight text-zinc-900 mb-6 md:mb-8 leading-[1.1]">
             {t(
               "landing.hero.title",
-              "Software your retail team will actually want to use."
+              "POS and inventory software for shops in Uzbekistan."
             )}
           </h1>
           <p className="text-lg md:text-xl text-zinc-500 max-w-2xl mb-10 md:mb-14 leading-relaxed">
             {t(
               "landing.hero.subtitle",
-              "Bozorchi is the operating system for modern retail. No fluff, no steep learning curve — just the tools you need to sell more and worry less."
+              "Bozorchi helps store owners sell faster, track every product, and see what is happening across POS, inventory, staff, suppliers, customers, and reports."
             )}
           </p>
+          <div className="mb-10 grid grid-cols-2 gap-3 text-sm font-medium text-zinc-700 sm:flex sm:flex-wrap">
+            {HERO_PROOFS.map((proof) => {
+              const Icon = proof.icon;
+              return (
+                <div
+                  key={proof.key}
+                  className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-4 py-2 shadow-sm shadow-zinc-200/50"
+                >
+                  <Icon className="h-4 w-4 text-zinc-900" />
+                  <span>{t(proof.key, proof.fallback)}</span>
+                </div>
+              );
+            })}
+          </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <button
               onClick={() => navigate("/register")}
@@ -441,13 +515,13 @@ export default function LandingPage() {
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight mb-4 md:mb-6">
               {t(
                 "landing.showcase.title",
-                "Everything you need. Nothing you don't."
+                "Run the whole store from one clean workspace."
               )}
             </h2>
             <p className="text-base md:text-lg text-zinc-500 leading-relaxed">
               {t(
                 "landing.showcase.subtitle",
-                "A clean, focused interface that your team will understand in minutes — not weeks."
+                "Bozorchi connects checkout, stock, customers, suppliers, write-offs, audits, staff permissions, and sales reports so owners stop switching between notebooks and spreadsheets."
               )}
             </p>
           </div>
@@ -521,7 +595,7 @@ export default function LandingPage() {
             <div className="bg-zinc-50 rounded-2xl p-5">
               <div className="flex justify-between items-center mb-4">
                 <span className="font-semibold text-zinc-900 text-sm">
-                  Sales Analytics
+                  {t("landing.mobile.analytics", "Sales Analytics")}
                 </span>
                 <span className="text-xs bg-white px-2 py-1 rounded-full text-zinc-500">
                   Weekly
@@ -566,7 +640,7 @@ export default function LandingPage() {
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight leading-[1.15]">
               {t(
                 "landing.philosophy.title",
-                "We make software we're proud of."
+                "Made for stores where every minute and every item matters."
               )}
             </h2>
           </motion.div>
@@ -582,10 +656,10 @@ export default function LandingPage() {
                 className="border-t border-zinc-700 pt-6"
               >
                 <h3 className="text-lg md:text-xl font-semibold mb-3">
-                  {val.title}
+                  {t(val.titleKey, val.title)}
                 </h3>
                 <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-                  {val.desc}
+                  {t(val.descKey, val.desc)}
                 </p>
               </motion.div>
             ))}
@@ -604,7 +678,7 @@ export default function LandingPage() {
               title: t("landing.features.cloud.title", "Cloud Dashboard"),
               desc: t(
                 "landing.features.cloud.desc",
-                "Real-time analytics and management from any device, anywhere in the world."
+                "See sales, inventory, customers, staff activity, and reports from the browser wherever the owner is."
               ),
             },
             {
@@ -612,7 +686,7 @@ export default function LandingPage() {
               title: t("landing.features.mobile.title", "Mobile POS"),
               desc: t(
                 "landing.features.mobile.desc",
-                "Process sales on the floor. Scan barcodes and take payments instantly."
+                "Sell from a phone, scan barcodes, build carts quickly, and keep moving when the internet is unreliable."
               ),
             },
             {
@@ -620,7 +694,7 @@ export default function LandingPage() {
               title: t("landing.features.inventory.title", "Smart Inventory"),
               desc: t(
                 "landing.features.inventory.desc",
-                "Automated tracking, low-stock alerts, and predictive reordering."
+                "Track variations, stock transfers, supplier costs, restocks, write-offs, and low-stock alerts."
               ),
             },
           ].map((card, i) => (
@@ -660,7 +734,7 @@ export default function LandingPage() {
               {t("landing.compare.label", "The difference")}
             </p>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight">
-              {t("landing.compare.title", "Why teams switch to Bozorchi.")}
+              {t("landing.compare.title", "Built for the gap between spreadsheets and heavy ERP.")}
             </h2>
           </div>
 
@@ -686,14 +760,18 @@ export default function LandingPage() {
                 {COMPARISON_ROWS.map((row) => (
                   <tr key={row.label} className="border-b border-zinc-100">
                     <td className="py-5 text-sm font-medium text-zinc-900">
-                      {row.label}
+                      {t(row.labelKey, row.label)}
                     </td>
                     <td className="py-5 text-sm font-semibold text-zinc-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                      {row.bozorchi}
+                      {t(row.bozorchiKey, row.bozorchi)}
                     </td>
-                    <td className="py-5 text-sm text-zinc-400">{row.old}</td>
-                    <td className="py-5 text-sm text-zinc-400">{row.big}</td>
+                    <td className="py-5 text-sm text-zinc-400">
+                      {t(row.oldKey, row.old)}
+                    </td>
+                    <td className="py-5 text-sm text-zinc-400">
+                      {t(row.bigKey, row.big)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -718,19 +796,19 @@ export default function LandingPage() {
               <Zap className="w-6 h-6" />
             </div>
             <h3 className="text-2xl md:text-3xl font-semibold mb-4">
-              {t("landing.split.fast.title", "Lightning fast transactions.")}
+              {t("landing.split.fast.title", "Checkout that keeps the line moving.")}
             </h3>
             <p className="text-zinc-500 leading-relaxed mb-8">
               {t(
                 "landing.split.fast.desc",
-                "Designed for high-volume retail. Process transactions in milliseconds, offline or online. Keep your lines moving."
+                "Designed for busy retail counters. Search products fast, scan barcodes, accept common payment methods, print receipts, and sync sales back to inventory."
               )}
             </p>
             <ul className="space-y-3">
               {[
-                t("landing.split.fast.list.search", "Sub-second search"),
-                t("landing.split.fast.list.offline", "Offline mode"),
-                t("landing.split.fast.list.sync", "Instant receipt sync"),
+                t("landing.split.fast.list.search", "Fast product and barcode search"),
+                t("landing.split.fast.list.offline", "Offline-ready selling"),
+                t("landing.split.fast.list.sync", "Receipts, debt, and stock synced"),
               ].map((item, i) => (
                 <motion.li
                   key={item}
@@ -772,15 +850,15 @@ export default function LandingPage() {
             className="flex-1 order-2 md:order-1"
           >
             <div className="inline-block px-3 py-1 rounded-full bg-zinc-100 text-zinc-900 text-xs font-bold uppercase tracking-wide mb-6">
-              {t("landing.inventory.badge", "Smart Logistics")}
+              {t("landing.inventory.badge", "Inventory control")}
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-6">
-              {t("landing.inventory.title", "Warehousing made effortless.")}
+              {t("landing.inventory.title", "Know what is in stock before customers ask.")}
             </h2>
             <p className="text-zinc-500 leading-relaxed mb-8">
               {t(
                 "landing.inventory.desc",
-                "Connect your physical inventory to your digital sales channels. Our predictive engine handles restocking automatically so you never miss a sale."
+                "Track each product variation, supplier cost, selling price, restock, transfer, audit, and write-off. Owners can see low stock early instead of discovering it at checkout."
               )}
             </p>
             <div className="grid grid-cols-2 gap-4">
@@ -814,7 +892,7 @@ export default function LandingPage() {
       </section>
 
       {/* =====================================================================
-          TESTIMONIALS
+          USE CASES
           ===================================================================== */}
       <section className="px-4 sm:px-6 md:px-12 max-w-[1440px] mx-auto mb-4">
         <motion.div
@@ -826,45 +904,43 @@ export default function LandingPage() {
         >
           <div className="max-w-3xl mb-12 md:mb-16">
             <p className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4">
-              {t("landing.testimonials.label", "Trusted by retailers")}
+              {t("landing.use_cases.label", "Who it is for")}
             </p>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight">
               {t(
-                "landing.testimonials.title",
-                "People who notice the details."
+                "landing.use_cases.title",
+                "For stores that need faster checkout and tighter stock control."
               )}
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            {TESTIMONIALS.map((tmo, i) => (
+            {USE_CASES.map((useCase, i) => {
+              const Icon = useCase.icon;
+              return (
               <motion.div
-                key={i}
+                key={useCase.titleKey}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * i }}
-                className="border border-zinc-100 rounded-3xl p-6 md:p-8 flex flex-col"
+                className="border border-zinc-100 rounded-3xl p-6 md:p-8 flex flex-col bg-zinc-50/50"
               >
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: tmo.rating }).map((_, ri) => (
-                    <Star
-                      key={ri}
-                      className="w-4 h-4 fill-zinc-900 text-zinc-900"
-                    />
-                  ))}
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-zinc-900 shadow-sm">
+                  <Icon className="h-6 w-6" />
                 </div>
-                <p className="text-zinc-700 text-sm md:text-base leading-relaxed flex-1 mb-6">
-                  "{tmo.quote}"
+                <h3 className="mb-3 text-lg font-semibold text-zinc-900">
+                  {t(useCase.titleKey, useCase.title)}
+                </h3>
+                <p className="text-zinc-600 text-sm md:text-base leading-relaxed flex-1 mb-5">
+                  {t(useCase.descKey, useCase.desc)}
                 </p>
-                <div>
-                  <div className="font-semibold text-zinc-900 text-sm">
-                    {tmo.author}
-                  </div>
-                  <div className="text-xs text-zinc-400">{tmo.role}</div>
-                </div>
+                <p className="rounded-2xl bg-white px-4 py-3 text-xs font-medium leading-relaxed text-zinc-500">
+                  {t(useCase.angleKey, useCase.angle)}
+                </p>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </section>
@@ -883,18 +959,18 @@ export default function LandingPage() {
           <div className="max-w-xl mx-auto">
             <Mail className="w-8 h-8 text-zinc-900 mx-auto mb-6" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-              {t("landing.newsletter.title", "Stay in the loop.")}
+              {t("landing.newsletter.title", "Get a retail audit before you switch.")}
             </h2>
             <p className="text-zinc-500 mb-8">
               {t(
                 "landing.newsletter.subtitle",
-                "No spam, no weekly roundups. Just a few emails a year when we ship something worth sharing."
+                "Send your store type and current workflow. We will suggest the fastest way to move products, stock, staff, and reports into Bozorchi."
               )}
             </p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                window.location.href = `mailto:sales@bozorchi.store?subject=Keep me in the loop&body=Email: ${email}`;
+                window.location.href = `mailto:sales@bozorchi.store?subject=Retail audit request&body=Email: ${email}`;
               }}
               className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
             >
@@ -913,7 +989,7 @@ export default function LandingPage() {
                 type="submit"
                 className="px-6 py-3.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
               >
-                {t("landing.newsletter.cta", "Subscribe")}
+                {t("landing.newsletter.cta", "Request audit")}
                 <ArrowUpRight className="w-4 h-4" />
               </button>
             </form>
@@ -935,13 +1011,13 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight mb-6 md:mb-8 px-2">
             {t(
               "landing.footer.title",
-              "Ready to modernize your retail business?"
+              "Ready to replace notebooks, spreadsheets, and slow checkout?"
             )}
           </h2>
           <p className="text-zinc-500 max-w-xl mx-auto mb-8 md:mb-10">
             {t(
               "landing.footer.subtitle",
-              "Join the stores that have already made the switch. Free trial, no credit card required."
+              "Start with POS and inventory, then add customers, suppliers, staff permissions, reports, and mobile access when your team is ready."
             )}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
@@ -974,7 +1050,7 @@ export default function LandingPage() {
             <p className="text-zinc-500 text-sm leading-relaxed mb-6 max-w-xs">
               {t(
                 "landing.footer.description",
-                "The all-in-one operating system for modern retail. Built for speed, designed for growth."
+                "POS, inventory, customers, suppliers, staff, and reports for growing retail stores in Uzbekistan."
               )}
             </p>
             <div className="flex flex-row gap-3">

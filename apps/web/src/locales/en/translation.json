@@ -1304,80 +1304,151 @@
         },
         "hero": {
             "badge": "Bozorchi 2.0 is live",
-            "title": "Software your retail team will actually want to use.",
-            "title_start": "The operating system for",
-            "title_end": "modern retail businesses.",
-            "subtitle": "Bozorchi is the operating system for modern retail. No fluff, no steep learning curve — just the tools you need to sell more and worry less.",
+            "title": "POS and inventory software for shops in Uzbekistan.",
+            "title_start": "POS and inventory software for",
+            "title_end": "retail stores in Uzbekistan.",
+            "subtitle": "Bozorchi helps store owners sell faster, track every product, and see what is happening across POS, inventory, staff, suppliers, customers, and reports.",
             "cta": "Start your free trial",
-            "cta_secondary": "Talk to a human"
+            "cta_secondary": "Talk to a human",
+            "proofs": {
+                "offline": "Offline-ready POS",
+                "inventory": "Live inventory",
+                "staff": "Staff roles",
+                "reports": "Sales reports"
+            }
         },
         "features": {
             "cloud": {
                 "title": "Cloud Dashboard",
-                "desc": "Real-time analytics and management from any device, anywhere in the world."
+                "desc": "See sales, inventory, customers, staff activity, and reports from the browser wherever the owner is."
             },
             "mobile": {
                 "title": "Mobile POS",
-                "desc": "Process sales on the floor. Scan barcodes and take payments instantly."
+                "desc": "Sell from a phone, scan barcodes, build carts quickly, and keep moving when the internet is unreliable."
             },
             "inventory": {
                 "title": "Smart Inventory",
-                "desc": "Automated tracking, low-stock alerts, and predictive reordering."
+                "desc": "Track variations, stock transfers, supplier costs, restocks, write-offs, and low-stock alerts."
             }
         },
         "showcase": {
-            "title": "Everything you need. Nothing you don't.",
+            "title": "Run the whole store from one clean workspace.",
             "title_1": "Powerful enough for chains.",
             "title_2": "Simple enough for every store.",
-            "subtitle": "A clean, focused interface that your team will understand in minutes — not weeks."
+            "subtitle": "Bozorchi connects checkout, stock, customers, suppliers, write-offs, audits, staff permissions, and sales reports so owners stop switching between notebooks and spreadsheets."
         },
         "philosophy": {
             "label": "Why we build",
-            "title": "We make software we're proud of."
+            "title": "Made for stores where every minute and every item matters."
+        },
+        "values": {
+            "floor": {
+                "title": "Built for the sales floor.",
+                "desc": "Cashiers can scan, search, discount, return, and checkout without fighting the interface during a busy shift."
+            },
+            "local": {
+                "title": "Made for local retail realities.",
+                "desc": "Uzbek, Russian, and English teams can manage products, suppliers, customers, debt, and reports in one place."
+            },
+            "growth": {
+                "title": "Simple now, useful as you grow.",
+                "desc": "Start with one shop and POS. Add staff permissions, audits, restocks, customer history, and multi-store operations later."
+            }
         },
         "compare": {
             "label": "The difference",
-            "title": "Why teams switch to Bozorchi.",
+            "title": "Built for the gap between spreadsheets and heavy ERP.",
             "col": {
                 "feature": "Feature",
                 "spreadsheets": "Spreadsheets",
                 "big_erp": "Big ERP"
+            },
+            "rows": {
+                "setup": {
+                    "label": "First sale",
+                    "bozorchi": "Ready the same day",
+                    "old": "Manual setup",
+                    "big": "Consultant onboarding"
+                },
+                "offline": {
+                    "label": "Internet outage",
+                    "bozorchi": "Keep selling offline",
+                    "old": "Write it down later",
+                    "big": "Depends on hardware"
+                },
+                "inventory": {
+                    "label": "Inventory control",
+                    "bozorchi": "Barcode, alerts, audits",
+                    "old": "Manual counts",
+                    "big": "Complex workflows"
+                },
+                "staff": {
+                    "label": "Staff access",
+                    "bozorchi": "Role-based controls",
+                    "old": "Shared passwords",
+                    "big": "Admin-heavy"
+                },
+                "owner": {
+                    "label": "Owner view",
+                    "bozorchi": "Web and mobile dashboard",
+                    "old": "End-of-day totals",
+                    "big": "Desktop reports"
+                }
             }
         },
         "split": {
             "fast": {
-                "title": "Lightning fast transactions.",
-                "desc": "Designed for high-volume retail. Process transactions in milliseconds, offline or online. Keep your lines moving.",
+                "title": "Checkout that keeps the line moving.",
+                "desc": "Designed for busy retail counters. Search products fast, scan barcodes, accept common payment methods, print receipts, and sync sales back to inventory.",
                 "list": {
-                    "search": "Sub-second search",
-                    "offline": "Offline mode",
-                    "sync": "Instant receipt sync"
+                    "search": "Fast product and barcode search",
+                    "offline": "Offline-ready selling",
+                    "sync": "Receipts, debt, and stock synced"
                 }
             }
         },
         "inventory": {
-            "badge": "Smart Logistics",
-            "title": "Warehousing made effortless.",
+            "badge": "Inventory control",
+            "title": "Know what is in stock before customers ask.",
             "title_start": "Warehousing made",
             "title_end": "effortless.",
-            "desc": "Connect your physical inventory to your digital sales channels. Our predictive engine handles restocking automatically so you never miss a sale."
+            "desc": "Track each product variation, supplier cost, selling price, restock, transfer, audit, and write-off. Owners can see low stock early instead of discovering it at checkout."
+        },
+        "use_cases": {
+            "label": "Who it is for",
+            "title": "Marketing angles for the stores Bozorchi can win first.",
+            "boutiques": {
+                "title": "Boutiques and fashion stores",
+                "desc": "Track sizes, colors, suppliers, returns, and stock movement across the shop floor and online orders.",
+                "angle": "Campaign hook: stop losing inventory between Instagram sales and the store."
+            },
+            "grocery": {
+                "title": "Grocery and convenience shops",
+                "desc": "Use barcode search, quick checkout, low-stock alerts, and daily reports to keep queues short.",
+                "angle": "Campaign hook: sell through rush hour even when the connection drops."
+            },
+            "electronics": {
+                "title": "Electronics and home goods",
+                "desc": "Control high-value inventory, supplier costs, customer debt, staff actions, and product-level margin.",
+                "angle": "Campaign hook: know where every item and every sum went."
+            }
         },
         "testimonials": {
             "label": "Trusted by retailers",
             "title": "People who notice the details."
         },
         "newsletter": {
-            "title": "Stay in the loop.",
-            "subtitle": "No spam, no weekly roundups. Just a few emails a year when we ship something worth sharing.",
+            "title": "Get a retail audit before you switch.",
+            "subtitle": "Send your store type and current workflow. We will suggest the fastest way to move products, stock, staff, and reports into Bozorchi.",
             "placeholder": "you@store.com",
-            "cta": "Subscribe"
+            "cta": "Request audit"
         },
         "footer": {
-            "title": "Ready to modernize your retail business?",
-            "subtitle": "Join the stores that have already made the switch. Free trial, no credit card required.",
+            "title": "Ready to replace notebooks, spreadsheets, and slow checkout?",
+            "subtitle": "Start with POS and inventory, then add customers, suppliers, staff permissions, reports, and mobile access when your team is ready.",
             "cta_primary": "Get Started Now",
             "cta_secondary": "Contact Sales",
-            "description": "The all-in-one operating system for modern retail. Built for speed, designed for growth.",
+            "description": "POS, inventory, customers, suppliers, staff, and reports for growing retail stores in Uzbekistan.",
             "col": {
                 "platform": "Platform",
                 "company": "Company",

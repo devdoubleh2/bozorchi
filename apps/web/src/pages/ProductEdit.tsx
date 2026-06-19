@@ -22,7 +22,6 @@ import ProductCategoryTagSelector from "@/components/ui/product-category-tag-sel
 import UnitTagSelector from "@/components/ui/unit-tag-selector";
 import SupplierTagSelector from "@/components/ui/supplier-tag-selector";
 import ImageUpload from "@/components/ui/image-upload";
-import type { Prisma } from "@bozorchi/shared";
 
 interface ProductVariationFormData {
     id?: string;
@@ -65,25 +64,53 @@ interface FormErrors {
     variations: { [key: number]: VariationError };
 }
 
-// UI-friendly types that widen nullable/optional fields expected by selectors
-type UnitOption = Prisma.UnitGetPayload<{}> & { category_id?: string | null };
-type SupplierOption = Prisma.SupplierGetPayload<{}> & { store_id?: string | null };
-type ProductWithRelations = Prisma.ProductGetPayload<{
-    include: {
-        product_category: true;
-        product_variations: {
-            include: {
-                unit: true;
-                inventory: true;
-                supplier: true;
-            };
-        };
-    };
-}>;
-type ProductWithOptionalDescription = ProductWithRelations & {
-    description?: string | null;
+type UnitOption = {
+    id: string;
+    name: string;
+    category_id?: string | null;
 };
-type VariationApi = ProductWithRelations["product_variations"][number];
+
+type SupplierOption = {
+    id: string;
+    name: string;
+    contact?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    address?: string | null;
+    notes?: string | null;
+    store_id?: string | null;
+    created_at?: string | Date | null;
+    updated_at?: string | Date | null;
+};
+
+type ProductInventoryApi = {
+    quantity_in_stock: number;
+};
+
+type VariationApi = {
+    id: string;
+    name: string | null;
+    description?: string | null;
+    barcode?: string | null;
+    sku?: string | null;
+    selling_price?: number | string | null;
+    delivery_cost?: number | string | null;
+    price?: number | string | null;
+    unit_id: string;
+    supplier_id?: string | null;
+    inventory?: ProductInventoryApi[];
+    color?: string | null;
+    image_url?: string | null;
+};
+
+type ProductWithRelations = {
+    id: string;
+    name: string;
+    description?: string | null;
+    product_category_id?: string | null;
+    image_url?: string | null;
+    product_variations: VariationApi[];
+};
 
 
 type VariationPayload = {
@@ -284,6 +311,11 @@ export default function ProductEditPage() {
         () =>
             suppliers.map((s) => ({
                 ...s,
+                contact: s.contact ?? null,
+                phone: s.phone ?? null,
+                email: s.email ?? null,
+                address: s.address ?? null,
+                notes: s.notes ?? null,
                 store_id: s.store_id ?? "",
                 created_at: String(s.created_at ?? ""),
                 updated_at: String(s.updated_at ?? ""),
@@ -293,7 +325,7 @@ export default function ProductEditPage() {
 
     useEffect(() => {
         if (productQuery.data) {
-            const product = productQuery.data as ProductWithOptionalDescription;
+            const product = productQuery.data;
             console.debug(`${LOG_TAG} product loaded`, {
                 productId: product.id,
                 variations: product.product_variations?.length ?? 0,

@@ -2091,81 +2091,152 @@
     },
     "hero": {
       "badge": "Bozorchi 2.0 ishga tushdi",
-      "title": "Jamoangiz haqiqatan ham foydalanmoqchi bo'lgan dastur.",
-      "title_start": "Operatsion tizim",
-      "title_end": "zamonaviy savdo uchun.",
-      "subtitle": "Bozorchi zamonaviy savdo uchun operatsion tizim. Ortiqcha narsa yo'q, qiyin o'rganish yo'q — faqat ko'proq sotish va kamroq xavotirlanish uchun kerakli vositalar.",
+      "title": "O'zbekistondagi do'konlar uchun POS va ombor dasturi.",
+      "title_start": "POS va ombor dasturi",
+      "title_end": "O'zbekistondagi chakana do'konlar uchun.",
+      "subtitle": "Bozorchi do'kon egalariga tezroq sotish, har bir mahsulotni kuzatish va kassa, ombor, xodimlar, yetkazib beruvchilar, mijozlar hamda hisobotlarni bir joyda ko'rishga yordam beradi.",
       "cta": "Bepul sinab ko'rish",
-      "cta_secondary": "Inson bilan gaplashish"
+      "cta_secondary": "Inson bilan gaplashish",
+      "proofs": {
+        "offline": "Oflayn ishlaydigan kassa",
+        "inventory": "Jonli ombor",
+        "staff": "Xodim rollari",
+        "reports": "Savdo hisobotlari"
+      }
     },
     "trusted_by": "Yetakchilar ishonchi",
     "features": {
       "cloud": {
         "title": "Bulutli Panel",
-        "desc": "Real vaqtda tahlil va boshqaruv, dunyoning istalgan nuqtasidan."
+        "desc": "Egasi savdo, ombor, mijozlar, xodimlar harakati va hisobotlarni brauzerdan ko'ra oladi."
       },
       "mobile": {
         "title": "Mobil Kassa",
-        "desc": "Zalda savdo qiling. Shtrix-kodni skanerlang va to'lov oling."
+        "desc": "Telefondan soting, shtrix-kod skanerlang, savatni tez yig'ing va internet beqaror bo'lsa ham ishni davom ettiring."
       },
       "inventory": {
         "title": "Aqlli Ombor",
-        "desc": "Avtomatik kuzatuv, kam qolgan tovar haqida ogohlantirish va prognozlar."
+        "desc": "Variatsiyalar, ombor o'tkazmalari, yetkazib beruvchi narxlari, qayta to'ldirish, hisobdan chiqarish va kam qoldiqni kuzating."
       }
     },
     "showcase": {
-      "title": "Kerakli hammasi. Ortiqcha narsa yo'q.",
+      "title": "Butun do'konni bitta tushunarli ish joyidan boshqaring.",
       "title_1": "Tarmoqlar uchun kuchli.",
       "title_2": "Har qanday do'kon uchun oddiy.",
-      "subtitle": "Toza, aniq interfeys, jamoangiz bir necha daqiqada tushunadi — haftalar emas."
+      "subtitle": "Bozorchi kassa, ombor, mijozlar, yetkazib beruvchilar, hisobdan chiqarish, reviziya, xodim ruxsatlari va savdo hisobotlarini birlashtiradi. Egalar daftar va jadvallar orasida yurmaydi."
     },
     "philosophy": {
       "label": "Nima uchun yaratamiz",
-      "title": "Biz faxrlanadigan dastur yaratamiz."
+      "title": "Har bir daqiqa va har bir mahsulot muhim bo'lgan do'konlar uchun yaratilgan."
+    },
+    "values": {
+      "floor": {
+        "title": "Savdo zalidagi real ish uchun.",
+        "desc": "Kassirlar band smenada interfeys bilan kurashmasdan skanerlash, qidirish, chegirma berish, qaytarish va sotishni bajara oladi."
+      },
+      "local": {
+        "title": "Mahalliy chakana savdo uchun.",
+        "desc": "O'zbek, rus va ingliz tilli jamoalar mahsulotlar, yetkazib beruvchilar, mijozlar, qarzlar va hisobotlarni bir joyda yuritadi."
+      },
+      "growth": {
+        "title": "Boshlash oson, o'sishda foydali.",
+        "desc": "Bitta do'kon va kassadan boshlang. Keyin xodim ruxsatlari, reviziya, to'ldirish, mijoz tarixi va bir nechta do'konni qo'shing."
+      }
     },
     "compare": {
       "label": "Farq",
-      "title": "Nima uchun jamoalar Bozorchi ga o'tadi.",
+      "title": "Jadvallar kamlik qilgan, katta ERP esa og'ir bo'lgan do'konlar uchun.",
       "col": {
         "feature": "Xususiyat",
         "spreadsheets": "Jadvallar",
         "big_erp": "Katta ERP"
+      },
+      "rows": {
+        "setup": {
+          "label": "Birinchi savdo",
+          "bozorchi": "Shu kunning o'zida tayyor",
+          "old": "Qo'lda sozlash",
+          "big": "Maslahatchilar bilan joriy qilish"
+        },
+        "offline": {
+          "label": "Internet uzildi",
+          "bozorchi": "Oflayn sotish davom etadi",
+          "old": "Yozib olib, keyin kiritish",
+          "big": "Uskunaga bog'liq"
+        },
+        "inventory": {
+          "label": "Ombor nazorati",
+          "bozorchi": "Shtrix-kod, ogohlantirish, reviziya",
+          "old": "Qo'lda sanash",
+          "big": "Murakkab jarayonlar"
+        },
+        "staff": {
+          "label": "Xodim kirishi",
+          "bozorchi": "Rollar bo'yicha ruxsat",
+          "old": "Umumiy parollar",
+          "big": "Ko'p administratsiya"
+        },
+        "owner": {
+          "label": "Ega nazorati",
+          "bozorchi": "Veb va mobil panel",
+          "old": "Kun oxiri natijalari",
+          "big": "Kompyuterdagi hisobotlar"
+        }
       }
     },
     "split": {
       "fast": {
-        "title": "Yashin tezligida tranzaksiyalar.",
-        "desc": "Katta oqim uchun mo'ljallangan. Onlayn va oflayn rejimda soniyalik cheklar.",
+        "title": "Navbatni ushlab turmaydigan kassa.",
+        "desc": "Band savdo nuqtalari uchun mo'ljallangan. Mahsulotni tez qidirish, shtrix-kod skanerlash, asosiy to'lov usullari, chek chiqarish va savdoni ombor bilan sinxronlash.",
         "list": {
-          "search": "Tezkor qidiruv",
-          "offline": "Oflayn rejim",
-          "sync": "Tezkor sinxronizatsiya"
+          "search": "Mahsulot va shtrix-kodni tez qidirish",
+          "offline": "Oflayn sotish",
+          "sync": "Chek, qarz va ombor sinxronlashadi"
         }
       }
     },
     "inventory": {
-      "badge": "Logistika",
-      "title": "Ombor boshqaruvi osonlashdi.",
+      "badge": "Ombor nazorati",
+      "title": "Mijoz so'rashidan oldin qoldiqni biling.",
       "title_start": "Ombor boshqaruvi",
       "title_end": "osonlashdi.",
-      "desc": "Jismoniy omborni raqamli savdo bilan bog'lang. Bizning tizim avtomatik to'ldirishni amalga oshiradi."
+      "desc": "Har bir mahsulot variatsiyasi, tannarx, sotish narxi, to'ldirish, o'tkazma, reviziya va hisobdan chiqarishni kuzating. Ega kam qoldiqni kassada emas, oldindan ko'radi."
+    },
+    "use_cases": {
+      "label": "Kimlar uchun",
+      "title": "Bozorchi birinchi bo'lib yuta oladigan do'kon segmentlari.",
+      "boutiques": {
+        "title": "Butik va kiyim do'konlari",
+        "desc": "O'lchamlar, ranglar, yetkazib beruvchilar, qaytarishlar va do'kon zali hamda onlayn buyurtmalar orasidagi qoldiq harakatini kuzating.",
+        "angle": "Kampaniya g'oyasi: Instagram savdolari va do'kon orasida mahsulot yo'qolishini to'xtating."
+      },
+      "grocery": {
+        "title": "Minimarket va mahalla do'konlari",
+        "desc": "Shtrix-kod qidiruvi, tez kassa, kam qoldiq ogohlantirishlari va kunlik hisobotlar navbatni qisqa saqlaydi.",
+        "angle": "Kampaniya g'oyasi: internet yomon bo'lsa ham tig'iz paytda sotishni davom ettiring."
+      },
+      "electronics": {
+        "title": "Elektronika va uy-ro'zg'or tovarlari",
+        "desc": "Qimmat mahsulotlar, yetkazib beruvchi narxlari, mijoz qarzi, xodim harakatlari va mahsulot marjasini nazorat qiling.",
+        "angle": "Kampaniya g'oyasi: har bir mahsulot va har bir so'm qayerdaligini biling."
+      }
     },
     "testimonials": {
       "label": "Sotuvchilar ishonchi",
       "title": "Tafsilotlarga e'tibor beradigan odamlar."
     },
     "newsletter": {
-      "title": "Xabardor bo'ling.",
-      "subtitle": "Spam va haftalik xulosa yo'q. Yiliga bir necha marta, biz biror narsa chiqarganimizda xat yuboramiz.",
+      "title": "O'tishdan oldin do'kon auditi oling.",
+      "subtitle": "Do'kon turi va hozirgi ish jarayoningizni yuboring. Mahsulotlar, ombor, xodimlar va hisobotlarni Bozorchi ga eng tez ko'chirish yo'lini taklif qilamiz.",
       "placeholder": "siz@dokon.uz",
-      "cta": "Obuna bo'lish"
+      "cta": "Audit so'rash"
     },
     "footer": {
-      "title": "Biznesingizni yangilashga tayyormisiz?",
-      "subtitle": "Allaqachon o'tgan do'konlarga qo'shiling. Bepul sinov, karta talab etilmaydi.",
+      "title": "Daftar, jadval va sekin kassani almashtirishga tayyormisiz?",
+      "subtitle": "Kassa va ombordan boshlang, keyin mijozlar, yetkazib beruvchilar, xodim ruxsatlari, hisobotlar va mobil kirishni qo'shing.",
       "cta_primary": "Hozir Boshlash",
       "cta_secondary": "Sotuv bo'limi",
-      "description": "Zamonaviy chakana savdo uchun yagona operatsion tizim. Tezlik va o'sish uchun yaratilgan.",
+      "description": "O'zbekistondagi o'sayotgan chakana do'konlar uchun POS, ombor, mijozlar, yetkazib beruvchilar, xodimlar va hisobotlar.",
       "col": {
         "platform": "Platforma",
         "company": "Kompaniya",
