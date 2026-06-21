@@ -14,6 +14,7 @@ export type SeoProps = {
   locale?: string;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>> | null;
   includeSiteName?: boolean;
+  alternates?: Array<{ hrefLang: string; href: string }>;
 };
 
 const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
@@ -106,6 +107,7 @@ export default function Seo({
   locale = "en_US",
   jsonLd = null,
   includeSiteName = true,
+  alternates = [],
 }: SeoProps) {
   const pathname =
     path ?? (typeof window !== "undefined" ? window.location.pathname : "/");
@@ -121,6 +123,14 @@ export default function Seo({
       <meta name="description" content={description} />
       <meta name="robots" content={robots} />
       <link rel="canonical" href={canonicalUrl} />
+      {alternates.map((alternate) => (
+        <link
+          key={`${alternate.hrefLang}-${alternate.href}`}
+          rel="alternate"
+          hrefLang={alternate.hrefLang}
+          href={alternate.href}
+        />
+      ))}
 
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />

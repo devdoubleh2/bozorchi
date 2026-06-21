@@ -83,6 +83,7 @@ export interface AuthResponse {
     token: string;
     refreshToken: string;
     user: AuthUser;
+    needsOnboarding?: boolean;
 }
 
 /** Registration payload */

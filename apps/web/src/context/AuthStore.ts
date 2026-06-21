@@ -35,6 +35,7 @@ export interface AuthState {
   organization: Organization | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
 
   // Actions
   signIn: (
@@ -43,6 +44,12 @@ export interface AuthState {
   ) => Promise<{
     error: ParsedApiError | null;
     user: AuthUser | null;
+    needsOnboarding?: boolean;
+  }>;
+  signInWithGoogle: (idToken: string) => Promise<{
+    error: ParsedApiError | null;
+    user: AuthUser | null;
+    needsOnboarding?: boolean;
   }>;
   signUp: (data: RegisterData) => Promise<{
     error: ParsedApiError | null;
@@ -94,16 +101,27 @@ export const useAuthStore = create<AuthState>()(
         organization: null,
         isLoading: true,
         isAuthenticated: false,
+        needsOnboarding: false,
 
         // Fetch profile from API
         fetchProfile: async () => {
           try {
             const response = await api.get<{ data: AuthUser }>("/api/auth/profile");
             const user = response.data;
-            set({ user, organization: extractOrganization(user), isAuthenticated: true });
+            set({
+              user,
+              organization: extractOrganization(user),
+              isAuthenticated: true,
+              needsOnboarding: !user.membership && !user.owned_organization,
+            });
             return user;
           } catch {
-            set({ user: null, organization: null, isAuthenticated: false });
+            set({
+              user: null,
+              organization: null,
+              isAuthenticated: false,
+              needsOnboarding: false,
+            });
             return null;
           }
         },
@@ -199,6 +217,7 @@ export const useAuthStore = create<AuthState>()(
               userStore: null,
               organization: null,
               isAuthenticated: false,
+              needsOnboarding: false,
             });
           } finally {
             set({ isLoading: false });
@@ -219,6 +238,7 @@ export const useAuthStore = create<AuthState>()(
               user: result.user,
               organization: extractOrganization(result.user),
               isAuthenticated: true,
+              needsOnboarding: Boolean(result.needsOnboarding),
             });
 
             await get()
@@ -227,6 +247,43 @@ export const useAuthStore = create<AuthState>()(
             return { user: result.user, error: null };
           } catch (error) {
             return { user: null, error: parseApiError(error) };
+          }
+        },
+
+        signInWithGoogle: async (idToken) => {
+          try {
+            const response = await api.post<{ data: AuthResponse }>("/api/auth/google", {
+              idToken,
+            });
+
+            const result = response.data;
+
+            set({
+              user: result.user,
+              organization: extractOrganization(result.user),
+              isAuthenticated: true,
+              needsOnboarding: Boolean(result.needsOnboarding),
+            });
+
+            if (!result.needsOnboarding) {
+              await get()
+                .fetchUserStore()
+                .catch(() => set({ userStore: null, storeId: null }));
+            } else {
+              set({ userStore: null, storeId: null });
+            }
+
+            return {
+              user: result.user,
+              error: null,
+              needsOnboarding: Boolean(result.needsOnboarding),
+            };
+          } catch (error) {
+            return {
+              user: null,
+              error: parseApiError(error),
+              needsOnboarding: false,
+            };
           }
         },
 
@@ -244,6 +301,7 @@ export const useAuthStore = create<AuthState>()(
               user: result.user,
               organization: extractOrganization(result.user),
               isAuthenticated: true,
+              needsOnboarding: false,
             });
 
             await get()
@@ -270,6 +328,7 @@ export const useAuthStore = create<AuthState>()(
             userStore: null,
             organization: null,
             isAuthenticated: false,
+            needsOnboarding: false,
           });
         },
 

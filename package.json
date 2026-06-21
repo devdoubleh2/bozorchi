@@ -21,7 +21,8 @@
     "api:build": "bun run --filter '@bozorchi/api' build",
     "web:build": "bun run --filter '@bozorchi/web' build",
     "mobile:build": "bun run --filter '@bozorchi/mobile' build",
-    "generate": "bun run --filter '@bozorchi/api' generate:all"
+    "generate": "bun run --filter '@bozorchi/api' generate:all",
+    "search-console": "bun scripts/search-console.mjs"
   },
   "engines": {
     "bun": ">=1.0.0"

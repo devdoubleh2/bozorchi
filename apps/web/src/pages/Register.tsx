@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -45,8 +45,12 @@ const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
 
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signUp, getStore } = useAuth();
   const { t } = useTranslation();
+  const oauthPrefill = (location.state as {
+    oauthPrefill?: { name?: string; email?: string };
+  } | null)?.oauthPrefill;
 
   const [mode, setMode] = useState<"create" | "join">("create");
 
@@ -80,6 +84,15 @@ export default function Register() {
     message?: string;
     details?: string[];
   }>({});
+
+  useEffect(() => {
+    if (!oauthPrefill) {
+      return;
+    }
+
+    setName((current) => current || oauthPrefill.name || "");
+    setEmail((current) => current || oauthPrefill.email || "");
+  }, [oauthPrefill]);
 
 
   const validateForm = () => {

@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import type { UserStoreInfo } from "@/types/auth";
+import { Chrome } from "lucide-react";
 
 const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
   if (!userStore || userStore.role === "admin") return "/dashboard";
@@ -37,6 +38,7 @@ export default function Login() {
 
   const {
     signIn,
+    signInWithGoogle,
     getStore,
     isAuthenticated,
     userStore,
@@ -52,6 +54,7 @@ export default function Login() {
     details?: string[];
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
 
 
@@ -98,6 +101,77 @@ export default function Login() {
 
 
     setIsSubmitting(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+    if (!clientId || typeof window === "undefined" || !("google" in window)) {
+      setFormErrors({
+        message: "Google sign-in is not configured.",
+      });
+      return;
+    }
+
+    setIsGoogleSubmitting(true);
+    setFormErrors({});
+
+    try {
+      const google = (window as Window & {
+        google: {
+          accounts: {
+            id: {
+              initialize: (config: {
+                client_id: string;
+                callback: (response: { credential?: string }) => void;
+              }) => void;
+              prompt: () => void;
+            };
+          };
+        };
+      }).google;
+
+      const credential = await new Promise<string>((resolve, reject) => {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            if (response.credential) {
+              resolve(response.credential);
+              return;
+            }
+            reject(new Error("Google sign-in did not return a credential."));
+          },
+        });
+        google.accounts.id.prompt();
+      });
+
+      const result = await signInWithGoogle(credential);
+      if (result.error) {
+        setFormErrors({ message: result.error.message, details: result.error.details });
+        return;
+      }
+
+      if (result.needsOnboarding && result.user) {
+        navigate("/register", {
+          replace: true,
+          state: {
+            oauthPrefill: {
+              name: result.user.name ?? "",
+              email: result.user.email,
+            },
+          },
+        });
+        return;
+      }
+
+      const store = await getStore();
+      navigate(resolveDefaultRoute(store), { replace: true });
+    } catch (error) {
+      setFormErrors({
+        message: error instanceof Error ? error.message : "Google sign-in failed.",
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
   };
 
   return (
@@ -173,6 +247,16 @@ export default function Login() {
               disabled={isSubmitting || isAuthLoading}
             >
               {isSubmitting ? t("common.loading") : t("auth.signIn")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isGoogleSubmitting || isAuthLoading}
+              onClick={handleGoogleSignIn}
+            >
+              <Chrome className="h-4 w-4" />
+              {isGoogleSubmitting ? t("common.loading") : "Continue with Google"}
             </Button>
             <Link
               to="/forgot-password"

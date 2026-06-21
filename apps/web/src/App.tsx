@@ -59,8 +59,14 @@ import { RequireAccess } from "@/components/auth";
 import type { Permission, Role } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
+import LocaleRouteSync from "@/components/LocaleRouteSync";
 import SeoManager from "@/components/SeoManager";
 import Landing from "./pages/Landing";
+import {
+  getMarketingRoutePaths,
+  MARKETING_SLUGS,
+  MarketingRoutePage,
+} from "./pages/MarketingRoutes";
 
 // =============================================================================
 // TYPES
@@ -362,6 +368,24 @@ const PUBLIC_ROUTES: RouteConfig[] = [
   { path: "/login", component: Login },
   { path: "/", component: Landing },
   { path: "/resources", component: ResourcesPage },
+  { path: "/ru", component: Landing },
+  { path: "/uz", component: Landing },
+  { path: "/ru/resources", component: ResourcesPage },
+  { path: "/uz/resources", component: ResourcesPage },
+  ...getMarketingRoutePaths().map((path) => ({
+    path,
+    component: () => {
+      const locale =
+        path.startsWith("/ru/") ? "ru" : path.startsWith("/uz/") ? "uz" : "en";
+      const normalizedPath =
+        locale === "en" ? path : (path.replace(/^\/(ru|uz)/, "") as (typeof MARKETING_SLUGS)[number]);
+      return MARKETING_SLUGS.includes(normalizedPath) ? (
+        <MarketingRoutePage path={normalizedPath} language={locale} />
+      ) : (
+        <Navigate to="/" replace />
+      );
+    },
+  })),
   { path: "/register", component: Register },
   { path: "/forgot-password", component: ForgotPasswordPage },
   { path: "/reset-password", component: ResetPasswordPage },
@@ -852,6 +876,7 @@ export default function App() {
     <ThemeProvider>
       <Toaster />
       <Router>
+        <LocaleRouteSync />
         <SeoManager />
         <AppRoutes />
       </Router>

@@ -92,6 +92,48 @@ export class AuthController {
     }
   }
 
+  async googleLogin(req: Request, res: Response) {
+    const { idToken } = req.body;
+
+    try {
+      if (!idToken) {
+        return sendFail(res, "Google ID token is required", 400);
+      }
+
+      const { user, token, needsOnboarding } = await authService.loginWithGoogle({
+        idToken,
+      });
+
+      const isProduction = process.env["NODE_ENV"] === "production";
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+
+      return sendSuccess(res, {
+        message: "Google login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          membership: user.membership,
+          owned_organization: user.owned_organization,
+        },
+        needsOnboarding: Boolean(needsOnboarding),
+      });
+    } catch (error) {
+      logger.warn("Google login failed", "authController", {
+        error: (error as Error).message,
+      });
+      return sendFail(res, (error as Error).message, 401);
+    }
+  }
+
   async getProfile(req: AuthRequest, res: Response) {
     if (!req.user) {
       logger.warn("Profile retrieval failed - user not found", "authController", {

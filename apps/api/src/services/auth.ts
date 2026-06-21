@@ -7,6 +7,7 @@
 
 import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import { prisma, getTenantPrisma, createTenantSchema } from "../lib/prisma";
 import { AuthRequest } from "@/middleware/auth";
 import { Prisma } from "../generated/public/client";
@@ -41,6 +42,10 @@ interface LoginData {
   password: string;
 }
 
+interface GoogleLoginData {
+  idToken: string;
+}
+
 /** User data returned from auth operations (password_hash excluded) */
 export interface AuthUser {
   id: string;
@@ -64,6 +69,7 @@ export interface AuthUser {
 interface AuthResult {
   user: AuthUser;
   token: string;
+  needsOnboarding?: boolean;
 }
 
 class AuthService {
@@ -71,6 +77,8 @@ class AuthService {
 
   private readonly JWT_REFRESH_EXPIRES_IN: string;
   private readonly SALT_ROUNDS = 12;
+  private readonly googleClient: OAuth2Client;
+  private readonly googleAudiences: string[];
 
   constructor() {
     const secret = process.env["JWT_SECRET"];
@@ -80,6 +88,13 @@ class AuthService {
     this.JWT_SECRET = secret;
     this.JWT_REFRESH_EXPIRES_IN =
       process.env["JWT_REFRESH_EXPIRES_IN"] || "30d";
+
+    this.googleAudiences = [
+      process.env["GOOGLE_WEB_CLIENT_ID"],
+      process.env["GOOGLE_IOS_CLIENT_ID"],
+      process.env["GOOGLE_ANDROID_CLIENT_ID"],
+    ].filter((value): value is string => Boolean(value));
+    this.googleClient = new OAuth2Client();
   }
 
   /**
@@ -255,7 +270,11 @@ class AuthService {
       include: { owned_organization: true },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    if (!user?.password_hash) {
+      throw new Error("Invalid credentials");
+    }
+
+    if (!(await bcrypt.compare(password, user.password_hash))) {
       throw new Error("Invalid credentials");
     }
 
@@ -284,6 +303,106 @@ class AuthService {
     };
   }
 
+  async loginWithGoogle(data: GoogleLoginData): Promise<AuthResult> {
+    if (this.googleAudiences.length === 0) {
+      throw new Error("Google OAuth is not configured");
+    }
+
+    const ticket = await this.googleClient.verifyIdToken({
+      idToken: data.idToken,
+      audience: this.googleAudiences,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+      throw new Error("Invalid Google account");
+    }
+
+    const issuer = payload.iss;
+    if (issuer !== "https://accounts.google.com" && issuer !== "accounts.google.com") {
+      throw new Error("Invalid Google token issuer");
+    }
+
+    const existingIdentity = await prisma.userAuthIdentity.findUnique({
+      where: {
+        provider_provider_user_id: {
+          provider: "google",
+          provider_user_id: payload.sub,
+        },
+      },
+      include: {
+        user: {
+          include: {
+            owned_organization: true,
+          },
+        },
+      },
+    });
+
+    let user = existingIdentity?.user ?? null;
+
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email: payload.email },
+        include: { owned_organization: true },
+      });
+
+      if (user) {
+        await prisma.userAuthIdentity.create({
+          data: {
+            provider: "google",
+            provider_user_id: payload.sub,
+            user_id: user.id,
+          },
+        });
+      }
+    }
+
+    let needsOnboarding = false;
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: payload.email,
+          name: payload.name ?? payload.given_name ?? null,
+          password_hash: null,
+          auth_identities: {
+            create: {
+              provider: "google",
+              provider_user_id: payload.sub,
+            },
+          },
+        },
+        include: { owned_organization: true },
+      });
+      needsOnboarding = true;
+    }
+
+    const membership = await prisma.userOrganization.findUnique({
+      where: { user_id: user.id },
+      select: {
+        id: true,
+        user_id: true,
+        organization_id: true,
+        store_id: true,
+        role: true,
+        permissions: true,
+        approved: true,
+        organization: true,
+      },
+    });
+
+    const organizationId = user.owned_organization?.id ?? membership?.organization_id;
+    const activeStoreId = membership?.store_id ?? undefined;
+    const { password_hash: _, ...authUser } = user;
+
+    return {
+      user: { ...authUser, membership } as AuthUser,
+      token: this.generateToken(user.id, organizationId, activeStoreId),
+      needsOnboarding: !membership && !user.owned_organization ? true : needsOnboarding,
+    };
+  }
+
   async getUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },
@@ -298,6 +417,7 @@ class AuthService {
   ): Promise<boolean> {
     const user = await this.getUserById(userId);
     if (!user) throw new Error("User not found");
+    if (!user.password_hash) throw new Error("Password login is not configured for this account");
 
     const isValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isValid) throw new Error("Current password is incorrect");

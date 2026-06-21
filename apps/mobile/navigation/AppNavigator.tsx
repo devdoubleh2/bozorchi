@@ -436,6 +436,7 @@ const RootNavigator = () => {
   const { colors } = useTheme();
   const user = useAuthContext((state) => state.user);
   const userStore = useAuthContext((state) => state.userStore);
+  const needsOnboarding = useAuthContext((state) => state.needsOnboarding);
   const shouldShowStaffGate =
     !!userStore && userStore.role !== "admin" && userStore.approved === false;
 
@@ -478,26 +479,36 @@ const RootNavigator = () => {
     >
       {user ? (
         <>
-          <Stack.Screen
-            name="MainApp"
-            options={{
-              headerShown: false,
-            }}
-          >
-            {() => {
-              if (shouldShowStaffGate) {
-                return (
-                  <SafeAreaView
-                    style={{ flex: 1, backgroundColor: colors.background }}
-                  >
-                    <StaffScreen />
-                  </SafeAreaView>
-                );
-              }
+          {needsOnboarding ? (
+            <Stack.Screen
+              name="StoreTypeSelection"
+              component={StoreTypeSelectionScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+          ) : (
+            <Stack.Screen
+              name="MainApp"
+              options={{
+                headerShown: false,
+              }}
+            >
+              {() => {
+                if (shouldShowStaffGate) {
+                  return (
+                    <SafeAreaView
+                      style={{ flex: 1, backgroundColor: colors.background }}
+                    >
+                      <StaffScreen />
+                    </SafeAreaView>
+                  );
+                }
 
-              return <TabNavigator />;
-            }}
-          </Stack.Screen>
+                return <TabNavigator />;
+              }}
+            </Stack.Screen>
+          )}
           <Stack.Screen
             name="StoreSetup"
             component={StoreSetupScreen}
@@ -506,14 +517,16 @@ const RootNavigator = () => {
               headerShown: false,
             }}
           />
-          <Stack.Screen
-            name="StoreTypeSelection"
-            component={StoreTypeSelectionScreen}
-            options={{
-              headerBackVisible: false,
-              headerShown: false,
-            }}
-          />
+          {!needsOnboarding && (
+            <Stack.Screen
+              name="StoreTypeSelection"
+              component={StoreTypeSelectionScreen}
+              options={{
+                headerBackVisible: false,
+                headerShown: false,
+              }}
+            />
+          )}
 
           <Stack.Screen
             name="AddProduct"

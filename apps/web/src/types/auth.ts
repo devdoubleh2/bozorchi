@@ -104,6 +104,7 @@ export interface AuthResponse {
   token?: string;
   refreshToken?: string;
   user: AuthUser;
+  needsOnboarding?: boolean;
 }
 
 export interface UserStoreInfo {

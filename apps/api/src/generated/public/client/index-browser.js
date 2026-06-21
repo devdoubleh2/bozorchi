@@ -148,6 +148,15 @@ exports.Prisma.UserScalarFieldEnum = {
   push_token: 'push_token'
 };
 
+exports.Prisma.UserAuthIdentityScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  provider: 'provider',
+  provider_user_id: 'provider_user_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
 exports.Prisma.MobilePushTokenScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -224,6 +233,7 @@ exports.Permission = exports.$Enums.Permission = {
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
+  UserAuthIdentity: 'UserAuthIdentity',
   MobilePushToken: 'MobilePushToken',
   PasswordResetToken: 'PasswordResetToken',
   UserOrganization: 'UserOrganization'

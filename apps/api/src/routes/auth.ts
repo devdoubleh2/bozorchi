@@ -5,6 +5,7 @@ import { AuthController } from "../controllers/authController";
 import {
   registerSchema,
   loginSchema,
+  googleLoginSchema,
   changePasswordSchema,
   updateProfileSchema,
   forgotPasswordSchema,
@@ -33,6 +34,12 @@ router.post(
   "/login",
   validateRequest(loginSchema),
   createAuthHandler((req, res) => authController.login(req, res))
+);
+
+router.post(
+  "/google",
+  validateRequest(googleLoginSchema),
+  createAuthHandler((req, res) => authController.googleLogin(req, res))
 );
 
 // Logout endpoint - clears the HttpOnly auth cookie

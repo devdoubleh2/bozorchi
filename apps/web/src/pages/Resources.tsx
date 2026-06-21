@@ -1,7 +1,9 @@
 import { ArrowRight, BookOpen, ChartLine, ClipboardCheck, Store } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { useTranslation } from "react-i18next";
+import { detectLocaleFromPath, localizedPath } from "@/lib/marketing";
+import { toSeoLocale } from "@/components/Seo";
 
 type Guide = {
   key: string;
@@ -16,6 +18,15 @@ const GUIDES: Guide[] = [
 
 export default function ResourcesPage() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const routeLanguage = detectLocaleFromPath(location.pathname);
+  const pagePath = localizedPath("/resources", routeLanguage);
+  const alternates = [
+    { hrefLang: "en", href: "https://app.bozorchi.store/resources" },
+    { hrefLang: "ru", href: "https://app.bozorchi.store/ru/resources" },
+    { hrefLang: "uz", href: "https://app.bozorchi.store/uz/resources" },
+    { hrefLang: "x-default", href: "https://app.bozorchi.store/resources" },
+  ];
 
   return (
     <>
@@ -25,9 +36,11 @@ export default function ResourcesPage() {
           "resources.seo.description",
           "Actionable guides for store owners on inventory, checkout optimization, and retail growth."
         )}
-        path="/resources"
+        path={pagePath}
         robots="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
         type="website"
+        locale={toSeoLocale(routeLanguage)}
+        alternates={alternates}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
@@ -38,8 +51,8 @@ export default function ResourcesPage() {
           ),
           url:
             typeof window !== "undefined"
-              ? `${window.location.origin}/resources`
-              : "https://app.bozorchi.store/resources",
+              ? `${window.location.origin}${pagePath}`
+              : `https://app.bozorchi.store${pagePath}`,
           hasPart: GUIDES.map((guide, index) => ({
             "@type": "Article",
             position: index + 1,
@@ -113,13 +126,21 @@ export default function ResourcesPage() {
                 )}
               </p>
             </div>
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-zinc-800"
-            >
-              {t("resources.cta.button", "Start Free Trial")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                to={localizedPath("/register", routeLanguage)}
+                className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-zinc-800"
+              >
+                {t("resources.cta.button", "Start Free Trial")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to={localizedPath("/pricing", routeLanguage)}
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+              >
+                {t("resources.cta.pricing", "View Pricing")}
+              </Link>
+            </div>
           </div>
         </section>
       </div>

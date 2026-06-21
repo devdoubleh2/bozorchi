@@ -17,6 +17,7 @@ import { unregisterStoredFcmToken } from "@/src/lib/firebaseMessaging";
 interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
+  needsOnboarding: boolean;
   setUser: (user: AuthUser | null) => void;
   userStore: UserStoreInfo | null;
   getStore: () => Promise<UserStoreInfo | null>;
@@ -34,6 +35,14 @@ interface AuthState {
   ) => Promise<{
     error: Error | null;
     user: AuthUser | null;
+    needsOnboarding?: boolean;
+  }>;
+  signInWithGoogle: (
+    idToken: string
+  ) => Promise<{
+    error: Error | null;
+    user: AuthUser | null;
+    needsOnboarding?: boolean;
   }>;
   switchStore: (
     storeId: string
@@ -55,6 +64,7 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
         return {
           user: null,
           isLoading: true,
+          needsOnboarding: false,
           userStore: null,
           setUser: (user) => {
             log.debug("AuthContext", "Setting user", {
@@ -76,7 +86,7 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
             } catch (e) {
               log.warn("AuthContext", "Logout API call failed", e);
             }
-            set({ user: null, userStore: null });
+            set({ user: null, userStore: null, needsOnboarding: false });
             log.debug("AuthContext", "Sign out completed");
           },
           signUp: async (data: RegisterData) => {
@@ -90,7 +100,7 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
                 userId: result.user?.id,
               });
 
-              set({ user: result.user });
+              set({ user: result.user, needsOnboarding: false });
               log.debug("AuthContext", "Sign up completed successfully");
               return { user: result.user, error: null };
             } catch (error) {
@@ -111,19 +121,27 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
                 hasMembership: !!result.user?.membership,
               });
 
-              set({ user: result.user });
+              set({
+                user: result.user,
+                needsOnboarding: Boolean(result.needsOnboarding),
+              });
               log.debug("AuthContext", "User set in store");
 
-              try {
-                await get().getStore();
-              } catch (storeError) {
-                log.warn("AuthContext", "Failed to fetch store after sign-in, continuing anyway", storeError);
+              if (!result.needsOnboarding) {
+                try {
+                  await get().getStore();
+                } catch (storeError) {
+                  log.warn("AuthContext", "Failed to fetch store after sign-in, continuing anyway", storeError);
+                }
+              } else {
+                set({ userStore: null });
               }
 
               log.debug("AuthContext", "Sign in completed successfully");
               return {
                 user: result.user,
                 error: null,
+                needsOnboarding: Boolean(result.needsOnboarding),
               };
             } catch (error) {
               log.error("AuthContext", "Failed to sign in", error);
@@ -131,6 +149,42 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
                 user: null,
                 error: error as Error,
 
+              };
+            }
+          },
+          signInWithGoogle: async (idToken: string) => {
+            try {
+              log.debug("AuthContext", "Starting Google sign in");
+              const result = await api.post<AuthResponse>("/api/auth/google", {
+                idToken,
+              });
+
+              set({
+                user: result.user,
+                needsOnboarding: Boolean(result.needsOnboarding),
+              });
+
+              if (!result.needsOnboarding) {
+                try {
+                  await get().getStore();
+                } catch (storeError) {
+                  log.warn("AuthContext", "Failed to fetch store after Google sign-in", storeError);
+                }
+              } else {
+                set({ userStore: null });
+              }
+
+              return {
+                user: result.user,
+                error: null,
+                needsOnboarding: Boolean(result.needsOnboarding),
+              };
+            } catch (error) {
+              log.error("AuthContext", "Failed to sign in with Google", error);
+              return {
+                user: null,
+                error: error as Error,
+                needsOnboarding: false,
               };
             }
           },
@@ -268,6 +322,7 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
           // Only persist user object, not tokens (handled by cookies)
           user: state.user,
           userStore: state.userStore,
+          needsOnboarding: state.needsOnboarding,
         }),
       })
   );
@@ -302,6 +357,13 @@ export function AuthProvider({ children, initialState }: AuthProviderProps) {
             JSON.stringify(user, null, 2)
           );
           store.getState().setUser(user);
+          store.getState().setLoading(true);
+
+          const needsOnboarding = !user.membership && !user.owned_organization;
+          if (needsOnboarding) {
+            store.setState({ needsOnboarding: true, userStore: null });
+            return;
+          }
 
           // Also fetch store on session restore (matching web app pattern)
           try {
@@ -309,6 +371,7 @@ export function AuthProvider({ children, initialState }: AuthProviderProps) {
           } catch (storeError) {
             log.warn("AuthContext", "Failed to fetch store during session restore, continuing anyway", storeError);
           }
+          store.setState({ needsOnboarding: false });
         }
       } catch (err) {
         log.error("AuthContext", "Failed to restore session", err);

@@ -38,15 +38,30 @@ model User {
   id                    String               @id @default(cuid())
   name                  String?
   email                 String               @unique
-  password_hash         String
+  password_hash         String?
   created_at            DateTime             @default(now())
   updated_at            DateTime             @updatedAt
   push_token            String?
   owned_organization    Organization?        @relation("OrgOwner")
   mobile_push_tokens    MobilePushToken[]
   password_reset_tokens PasswordResetToken[]
+  auth_identities       UserAuthIdentity[]
 
   @@map("users")
+}
+
+model UserAuthIdentity {
+  id               String   @id @default(cuid())
+  user_id          String
+  provider         String
+  provider_user_id String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_user_id])
+  @@index([user_id])
+  @@map("user_auth_identities")
 }
 
 model MobilePushToken {

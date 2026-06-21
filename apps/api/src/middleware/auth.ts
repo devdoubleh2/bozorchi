@@ -29,7 +29,7 @@ interface UserWithRelations {
   id: string;
   email: string;
   name: string | null;
-  password_hash?: string;
+  password_hash?: string | null;
   created_at?: Date;
   updated_at?: Date;
   push_token?: string | null;
@@ -151,6 +151,19 @@ export const createAuthMiddleware =
         });
 
         if (!membership) {
+          if (!requireOrg) {
+            const normalizedUser: UserWithRelations = {
+              ...user,
+              membership: null,
+            };
+            authReq.user = normalizedUser;
+            authReq.userRole = isOwner(normalizedUser) ? "admin" : "user";
+            authReq.userStores = [];
+            authReq.userApproved = false;
+            authReq.prisma = prisma;
+            return next();
+          }
+
           return res.status(403).json({
             error: "User has no organization membership",
             code: AuthErrorCode.NO_ORG_ACCESS,

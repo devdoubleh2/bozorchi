@@ -21,6 +21,14 @@ const RESERVED_TOP_LEVEL_SEGMENTS = new Set([
   "mobile-paywall",
   "stores",
   "fiscal-settings",
+  "pricing",
+  "security",
+  "about",
+  "privacy",
+  "terms",
+  "contact",
+  "features",
+  "solutions",
 ]);
 
 const NOINDEX_ROUTE_TITLES: Record<string, string> = {
@@ -37,6 +45,11 @@ const normalizePathname = (pathname: string): string => {
   return pathname || "/";
 };
 
+const stripLocalePrefix = (pathname: string): string => {
+  if (pathname === "/ru" || pathname === "/uz") return "/";
+  return pathname.replace(/^\/(ru|uz)(?=\/|$)/, "") || "/";
+};
+
 const isCatalogRoute = (pathname: string): boolean => {
   if (pathname === "/") return false;
   const segments = pathname.replace(/^\/+|\/+$/g, "").split("/");
@@ -48,11 +61,12 @@ export default function SeoManager() {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const pathname = normalizePathname(location.pathname);
+  const normalizedForSeo = stripLocalePrefix(pathname);
   const seoLocale = toSeoLocale(i18n.resolvedLanguage ?? i18n.language ?? "en");
   const indexRobots =
     "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
 
-  if (pathname === "/") {
+  if (normalizedForSeo === "/") {
     const landingTitleStart = t("landing.hero.title_start", {
       defaultValue: "POS and inventory software for",
     });
@@ -77,7 +91,18 @@ export default function SeoManager() {
     );
   }
 
-  if (pathname === "/resources" || isCatalogRoute(pathname)) {
+  if (
+    normalizedForSeo === "/resources" ||
+    isCatalogRoute(normalizedForSeo) ||
+    normalizedForSeo === "/pricing" ||
+    normalizedForSeo === "/security" ||
+    normalizedForSeo === "/about" ||
+    normalizedForSeo === "/privacy" ||
+    normalizedForSeo === "/terms" ||
+    normalizedForSeo === "/contact" ||
+    normalizedForSeo.startsWith("/features/") ||
+    normalizedForSeo.startsWith("/solutions/")
+  ) {
     // Dedicated pages set their own SEO with richer metadata.
     return null;
   }

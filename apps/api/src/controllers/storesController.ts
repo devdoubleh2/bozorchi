@@ -1,6 +1,7 @@
 import { Response } from "express";
 import logger from "../../logs/log";
 import { AuthRequest } from "../middleware/auth";
+import { createTenantSchema, getTenantPrisma, prisma } from "../lib/prisma";
 
 export class StoresController {
   async getStores(req: AuthRequest, res: Response) {
@@ -63,15 +64,13 @@ export class StoresController {
     });
 
     try {
-      // SECURITY: Use authenticated user's organization context ONLY
-      if (!req.organization || !req.userId) {
+      if (!req.userId) {
         logger.warn("Create store failed - no organization context", "storesController", {
           userId: req.userId,
           hasOrganization: !!req.organization,
         });
-        return res.status(403).json({
-          error: "No organization context found",
-          details: "You must be authenticated and belong to an organization",
+        return res.status(401).json({
+          error: "Authentication required",
         });
       }
 
@@ -102,11 +101,39 @@ export class StoresController {
         });
       }
 
-      // Get tenant Prisma client from authenticated request
-      if (!req.tenantPrisma) {
+      let organizationId = req.organizationId;
+      let tenantPrisma = req.tenantPrisma;
+
+      if (!organizationId) {
+        const slugBase = (name as string)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40);
+        const slug = `${slugBase || "store"}-${Math.floor(Math.random() * 10000)}`;
+
+        const organization = await prisma.organization.create({
+          data: {
+            name,
+            slug,
+            owner: { connect: { id: req.userId } },
+          },
+        });
+
+        await createTenantSchema(organization.id);
+        tenantPrisma = await getTenantPrisma(organization.id, true);
+        organizationId = organization.id;
+
+        logger.info("Organization created during first store onboarding", "storesController", {
+          userId: req.userId,
+          organizationId,
+        });
+      }
+
+      if (!tenantPrisma || !organizationId) {
         logger.error("Create store failed - tenant database not initialized", "storesController", {
           userId: req.userId,
-          organizationId: req.organizationId,
+          organizationId,
         });
         return res.status(500).json({
           error: "Tenant database not initialized",
@@ -114,9 +141,9 @@ export class StoresController {
       }
 
       // Create the store in the tenant schema
-      const store = await req.tenantPrisma.store.create({
+      const store = await tenantPrisma.store.create({
         data: {
-          organization_id: req.organizationId!, // From authenticated context
+          organization_id: organizationId,
           name,
           address,
           currency: currency || "UZS",
@@ -128,9 +155,25 @@ export class StoresController {
       logger.info("Store created successfully", "storesController", {
         storeId: store.id,
         storeName: store.name,
-        organizationId: req.organizationId,
+        organizationId,
         userId: req.userId,
       });
+
+      const existingMembership = await prisma.userOrganization.findUnique({
+        where: { user_id: req.userId },
+      });
+
+      if (!existingMembership) {
+        await prisma.userOrganization.create({
+          data: {
+            user_id: req.userId,
+            organization_id: organizationId,
+            store_id: store.id,
+            role: "admin",
+            approved: true,
+          },
+        });
+      }
 
       return res.status(201).json({
         store,

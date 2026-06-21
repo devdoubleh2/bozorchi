@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -25,6 +26,7 @@ import {
 } from "@/components/LandingVisuals";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
+import { detectLocaleFromPath, localizedPath } from "@/lib/marketing";
 
 // =============================================================================
 // DATA
@@ -130,6 +132,7 @@ const VALUES = [
 const USE_CASES = [
   {
     icon: Store,
+    href: "/solutions/boutique-pos",
     titleKey: "landing.use_cases.boutiques.title",
     title: "Boutiques and fashion stores",
     descKey: "landing.use_cases.boutiques.desc",
@@ -139,6 +142,7 @@ const USE_CASES = [
   },
   {
     icon: Receipt,
+    href: "/solutions/grocery-pos",
     titleKey: "landing.use_cases.grocery.title",
     title: "Grocery and convenience shops",
     descKey: "landing.use_cases.grocery.desc",
@@ -148,6 +152,7 @@ const USE_CASES = [
   },
   {
     icon: Clock,
+    href: "/solutions/electronics-pos",
     titleKey: "landing.use_cases.electronics.title",
     title: "Electronics and home goods",
     descKey: "landing.use_cases.electronics.desc",
@@ -163,14 +168,18 @@ const USE_CASES = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const routeLanguage = detectLocaleFromPath(location.pathname);
 
   const handleLanguageChange = (lng: string) => {
     if (i18n.language !== lng) {
       i18n.changeLanguage(lng);
     }
+    const nextPath = localizedPath("/", lng === "ru" || lng === "uz" ? lng : "en");
+    navigate(nextPath);
   };
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -290,7 +299,7 @@ export default function LandingPage() {
               {t("landing.nav.solutions", "Solutions")}
             </button>
             <button
-              onClick={() => navigate("/resources")}
+              onClick={() => navigate(localizedPath("/resources", routeLanguage))}
               className="hover:text-zinc-900 transition-colors"
             >
               {t("landing.nav.resources", "Resources")}
@@ -314,13 +323,13 @@ export default function LandingPage() {
               ))}
             </div>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate(localizedPath("/login", routeLanguage))}
               className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
             >
               {t("landing.nav.signin", "Sign in")}
             </button>
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate(localizedPath("/register", routeLanguage))}
               className="px-5 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors"
             >
               {t("landing.nav.get_started", "Get Started")}
@@ -391,7 +400,7 @@ export default function LandingPage() {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/resources");
+                    navigate(localizedPath("/resources", routeLanguage));
                     closeMobileMenu();
                   }}
                   className="text-left py-3 px-4 rounded-xl text-zinc-600 hover:bg-zinc-50 font-medium transition-colors"
@@ -402,7 +411,7 @@ export default function LandingPage() {
               <div className="border-t border-zinc-100 pt-4 flex flex-col gap-3">
                 <button
                   onClick={() => {
-                    navigate("/login");
+                    navigate(localizedPath("/login", routeLanguage));
                     closeMobileMenu();
                   }}
                   className="w-full py-3 px-4 rounded-xl text-zinc-600 hover:bg-zinc-50 font-medium transition-colors text-center"
@@ -411,7 +420,7 @@ export default function LandingPage() {
                 </button>
                 <button
                   onClick={() => {
-                    navigate("/register");
+                    navigate(localizedPath("/register", routeLanguage));
                     closeMobileMenu();
                   }}
                   className="w-full py-3 px-4 rounded-xl bg-zinc-900 text-white font-medium hover:bg-zinc-800 transition-colors text-center"
@@ -462,7 +471,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate(localizedPath("/register", routeLanguage))}
               className="group px-8 py-4 rounded-full bg-zinc-900 text-white text-base font-medium hover:bg-zinc-800 transition-all duration-300 flex items-center gap-2 shadow-xl shadow-zinc-200"
             >
               {t("landing.hero.cta", "Start your free trial")}
@@ -675,6 +684,7 @@ export default function LandingPage() {
           {[
             {
               icon: Laptop,
+              href: "/features/sales-reports",
               title: t("landing.features.cloud.title", "Cloud Dashboard"),
               desc: t(
                 "landing.features.cloud.desc",
@@ -683,6 +693,7 @@ export default function LandingPage() {
             },
             {
               icon: Smartphone,
+              href: "/features/offline-pos",
               title: t("landing.features.mobile.title", "Mobile POS"),
               desc: t(
                 "landing.features.mobile.desc",
@@ -691,6 +702,7 @@ export default function LandingPage() {
             },
             {
               icon: Box,
+              href: "/features/inventory-management",
               title: t("landing.features.inventory.title", "Smart Inventory"),
               desc: t(
                 "landing.features.inventory.desc",
@@ -713,6 +725,12 @@ export default function LandingPage() {
               <p className="text-zinc-500 leading-relaxed text-sm">
                 {card.desc}
               </p>
+              <Link
+                to={localizedPath(card.href, routeLanguage)}
+                className="mt-5 text-sm font-medium text-zinc-900 underline underline-offset-4"
+              >
+                {t("common.learnMore", "Learn more")}
+              </Link>
             </motion.div>
           ))}
         </div>
@@ -938,6 +956,12 @@ export default function LandingPage() {
                 <p className="rounded-2xl bg-white px-4 py-3 text-xs font-medium leading-relaxed text-zinc-500">
                   {t(useCase.angleKey, useCase.angle)}
                 </p>
+                <Link
+                  to={localizedPath(useCase.href, routeLanguage)}
+                  className="mt-5 text-sm font-medium text-zinc-900 underline underline-offset-4"
+                >
+                  {t("common.learnMore", "Learn more")}
+                </Link>
               </motion.div>
               );
             })}
@@ -1022,7 +1046,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate(localizedPath("/register", routeLanguage))}
               className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-full bg-zinc-900 text-white text-base md:text-lg font-medium hover:bg-zinc-800 transition-colors shadow-xl shadow-zinc-200"
             >
               {t("landing.footer.cta_primary", "Get Started Now")}
@@ -1066,7 +1090,12 @@ export default function LandingPage() {
                   className="h-8 md:h-9 w-auto"
                 />
               </a>
-              <a href="#" className="w-fit hover:opacity-80 transition-opacity">
+            <a
+              href="https://play.google.com/store"
+              target="_blank"
+              rel="noreferrer"
+              className="w-fit hover:opacity-80 transition-opacity"
+            >
                 <img
                   src="/googleplay.png"
                   alt="Get it on Google Play"
@@ -1095,12 +1124,18 @@ export default function LandingPage() {
                 </button>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-900 transition-colors">
+                <a
+                  href={localizedPath("/pricing", routeLanguage)}
+                  className="hover:text-zinc-900 transition-colors"
+                >
                   {t("landing.footer.link.pricing", "Pricing")}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-900 transition-colors">
+                <a
+                  href={localizedPath("/security", routeLanguage)}
+                  className="hover:text-zinc-900 transition-colors"
+                >
                   {t("landing.footer.link.security", "Security")}
                 </a>
               </li>
@@ -1112,13 +1147,16 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-3 text-sm text-zinc-500">
               <li>
-                <a href="#" className="hover:text-zinc-900 transition-colors">
+                <a
+                  href={localizedPath("/about", routeLanguage)}
+                  className="hover:text-zinc-900 transition-colors"
+                >
                   {t("landing.footer.link.about", "About")}
                 </a>
               </li>
               <li>
                 <a
-                  href="/resources"
+                  href={localizedPath("/resources", routeLanguage)}
                   className="hover:text-zinc-900 transition-colors"
                 >
                   {t("landing.footer.link.resources", "Resources")}
@@ -1126,7 +1164,7 @@ export default function LandingPage() {
               </li>
               <li>
                 <a
-                  href="mailto:sales@bozorchi.store"
+                  href={localizedPath("/contact", routeLanguage)}
                   className="hover:text-zinc-900 transition-colors"
                 >
                   {t("landing.footer.link.contact", "Contact")}
@@ -1140,12 +1178,18 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-3 text-sm text-zinc-500">
               <li>
-                <a href="#" className="hover:text-zinc-900 transition-colors">
+                <a
+                  href={localizedPath("/privacy", routeLanguage)}
+                  className="hover:text-zinc-900 transition-colors"
+                >
                   {t("landing.footer.link.privacy", "Privacy")}
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-900 transition-colors">
+                <a
+                  href={localizedPath("/terms", routeLanguage)}
+                  className="hover:text-zinc-900 transition-colors"
+                >
                   {t("landing.footer.link.terms", "Terms")}
                 </a>
               </li>
