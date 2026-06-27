@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { NavUser } from "@/components/NavUser";
 import { InterfaceSizeToggle } from "@/components/InterfaceSizeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { SearchCommand, type SearchCommandItem } from "@/components/SearchCommand";
 import Toaster from "@/components/Toaster";
 import { StoreSwitcher } from "@/components/StoreSwitcher";
@@ -463,13 +464,15 @@ const RequireStaffApproval = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProtectedLayout = () => (
-  <RequireAuth>
-    <RequireStaffApproval>
-      <Paywall>
-        <AppLayout />
-      </Paywall>
-    </RequireStaffApproval>
-  </RequireAuth>
+  <ThemeProvider>
+    <RequireAuth>
+      <RequireStaffApproval>
+        <Paywall>
+          <AppLayout />
+        </Paywall>
+      </RequireStaffApproval>
+    </RequireAuth>
+  </ThemeProvider>
 );
 
 // =============================================================================
@@ -853,6 +856,7 @@ const AppLayout = () => {
 
           <div className="flex items-center gap-3 md:justify-end">
             <SearchCommand items={searchItems} className="hidden md:inline-flex h-10 min-w-[220px]" />
+            <ThemeToggle />
             <InterfaceSizeToggle />
             <CurrencyDropdown className="hidden md:flex" />
             <LanguageToggle className="hidden md:flex" />
@@ -873,13 +877,13 @@ const AppLayout = () => {
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <>
       <Toaster />
       <Router>
         <LocaleRouteSync />
         <SeoManager />
         <AppRoutes />
       </Router>
-    </ThemeProvider>
+    </>
   );
 }

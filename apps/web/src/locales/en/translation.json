@@ -36,6 +36,8 @@
         "unknownProduct": "Unknown product",
         "unknownVariation": "Unknown variation",
         "system": "System",
+        "light": "Light",
+        "dark": "Dark",
         "clearAll": "Clear all",
         "optional": "(optional)",
         "currency": "sum",

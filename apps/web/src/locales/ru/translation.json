@@ -36,6 +36,8 @@
     "unknownProduct": "Неизвестный товар",
     "unknownVariation": "Неизвестная вариация",
     "system": "Система",
+    "light": "Светлая",
+    "dark": "Темная",
     "clearAll": "Очистить все",
     "optional": "(необязательно)",
     "currency": "сум",
