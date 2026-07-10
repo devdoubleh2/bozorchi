@@ -13,7 +13,6 @@ import {
   Smartphone,
   X,
   Zap,
-  Mail,
   ArrowUpRight,
   Users,
   WifiOff,
@@ -27,6 +26,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { detectLocaleFromPath, localizedPath } from "@/lib/marketing";
+
+const TELEGRAM_URL = "https://t.me/d0ubleh";
 
 // =============================================================================
 // DATA
@@ -171,7 +172,6 @@ export default function LandingPage() {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [email, setEmail] = useState("");
   const routeLanguage = detectLocaleFromPath(location.pathname);
 
   const handleLanguageChange = (lng: string) => {
@@ -478,10 +478,12 @@ export default function LandingPage() {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <a
-              href="mailto:sales@bozorchi.store"
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
               className="px-8 py-4 rounded-full border border-zinc-300 text-zinc-700 text-base font-medium hover:bg-white hover:border-zinc-400 transition-all"
             >
-              {t("landing.hero.cta_secondary", "Talk to a human")}
+              {t("landing.hero.cta_secondary", "Talk on Telegram")}
             </a>
           </div>
         </motion.div>
@@ -981,42 +983,24 @@ export default function LandingPage() {
           className="bg-zinc-100 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-16 lg:p-20 text-center"
         >
           <div className="max-w-xl mx-auto">
-            <Mail className="w-8 h-8 text-zinc-900 mx-auto mb-6" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-              {t("landing.newsletter.title", "Get a retail audit before you switch.")}
+              {t("landing.newsletter.title", "Talk to us on Telegram.")}
             </h2>
             <p className="text-zinc-500 mb-8">
               {t(
                 "landing.newsletter.subtitle",
-                "Send your store type and current workflow. We will suggest the fastest way to move products, stock, staff, and reports into Bozorchi."
+                "Questions about setup, pricing, or rollout? Message @d0ubleh directly."
               )}
             </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                window.location.href = `mailto:sales@bozorchi.store?subject=Retail audit request&body=Email: ${email}`;
-              }}
-              className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
             >
-              <input
-                type="email"
-                required
-                placeholder={t(
-                  "landing.newsletter.placeholder",
-                  "you@store.com"
-                )}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-5 py-3.5 rounded-full bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
-              >
-                {t("landing.newsletter.cta", "Request audit")}
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
-            </form>
+              {t("landing.newsletter.cta", "Open Telegram")}
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
         </motion.div>
       </section>
@@ -1052,10 +1036,12 @@ export default function LandingPage() {
               {t("landing.footer.cta_primary", "Get Started Now")}
             </button>
             <a
-              href="mailto:sales@bozorchi.store"
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
               className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-full bg-transparent border border-zinc-200 text-zinc-900 text-base md:text-lg font-medium hover:bg-zinc-50 transition-colors inline-block text-center"
             >
-              {t("landing.footer.cta_secondary", "Contact Sales")}
+              {t("landing.footer.cta_secondary", "Message on Telegram")}
             </a>
           </div>
         </motion.div>

@@ -294,7 +294,7 @@ function useMarketingCopy(
           title: t("marketing.contact.sections.next.title", "Fastest next step"),
           body: t(
             "marketing.contact.sections.next.body",
-            "The current sales path is email-based. That is not ideal long term, but this page gives search and users a stable contact destination right now while preserving the current product and landing experience."
+            "The current sales path runs through Telegram. This page gives search and users a stable contact destination while preserving the current product and landing experience."
           ),
         },
       ],
@@ -303,8 +303,8 @@ function useMarketingCopy(
         "marketing.contact.ctaBody",
         "Reach the team directly or start a trial and configure the store yourself."
       ),
-      primaryCtaLabel: t("marketing.contact.primaryEmail", "Email Sales"),
-      primaryCtaTo: "mailto:sales@bozorchi.store",
+      primaryCtaLabel: t("marketing.contact.primaryTelegram", "Message on Telegram"),
+      primaryCtaTo: "https://t.me/d0ubleh",
       secondaryCtaLabel: t("marketing.primaryTrial", "Start Free Trial"),
       secondaryCtaTo: trialUrl,
     },
