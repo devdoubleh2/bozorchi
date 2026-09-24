@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import authService from "../services/auth";
+import authService, { InviteError } from "../services/auth";
 import logger from "../../logs/log"
 import { AuthRequest } from "../middleware/auth";
 import { AppError } from "../utils/AppError";
@@ -32,11 +32,14 @@ export class AuthController {
           name: user.name,
           created_at: user.created_at,
           updated_at: user.updated_at,
+          membership: user.membership ?? null,
+          owned_organization: user.owned_organization ?? null,
         },
       }, 201);
     } catch (error) {
       logger.error("Registration error", "authController");
-      return sendFail(res, (error as Error).message, 400);
+      const code = error instanceof InviteError ? error.code : undefined;
+      return sendFail(res, (error as Error).message, 400, undefined, code);
     }
   }
 

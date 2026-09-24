@@ -78,6 +78,14 @@ router.post(
   createAuthHandler(storesController.createStore)
 );
 
+// Identity read for the waiting UI: pending members are allowed through so
+// they can see their store while blocked from every other protected surface.
+router.get(
+  "/my-store",
+  createAuthMiddleware({ requireStore: false, allowPending: true }),
+  createAuthHandler(storesController.getStore)
+);
+
 // Auth middleware that doesn't require an active store (for store creation/listing)
 router.use(createAuthMiddleware());
 
@@ -106,12 +114,6 @@ router.get(
   "/",
   validateQuery(storeQuerySchema),
   createAuthHandler(storesController.getStores)
-);
-
-router.get(
-  "/my-store",
-  createAuthMiddleware({ requireStore: false }),
-  createAuthHandler(storesController.getStore)
 );
 
 router.get("/stats", createAuthHandler(storesController.getStoreStats));

@@ -20,6 +20,7 @@ model Organization {
   owner_id             String              @unique
   owner                User                @relation("OrgOwner", fields: [owner_id], references: [id], onDelete: Cascade)
   members              UserOrganization[]
+  invites              StoreInvite[]
 
   // Uzum FastPay Configuration
   uzum_fastpay_enabled                  Boolean @default(false)
@@ -114,6 +115,23 @@ model UserOrganization {
   @@index([organization_id])
   @@index([store_id])
   @@map("user_organizations")
+}
+
+model StoreInvite {
+  id              String       @id @default(cuid())
+  organization_id String
+  store_id        String
+  token_hash      String       @unique
+  expires_at      DateTime
+  used_at         DateTime?
+  revoked_at      DateTime?
+  created_by      String
+  created_at      DateTime     @default(now())
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@index([organization_id])
+  @@index([store_id])
+  @@map("store_invites")
 }
 
 enum Permission {

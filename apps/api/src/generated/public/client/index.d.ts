@@ -43,6 +43,11 @@ export type PasswordResetToken = $Result.DefaultSelection<Prisma.$PasswordResetT
  * 
  */
 export type UserOrganization = $Result.DefaultSelection<Prisma.$UserOrganizationPayload>
+/**
+ * Model StoreInvite
+ * 
+ */
+export type StoreInvite = $Result.DefaultSelection<Prisma.$StoreInvitePayload>
 
 /**
  * Enums
@@ -270,6 +275,16 @@ export class PrismaClient<
     * ```
     */
   get userOrganization(): Prisma.UserOrganizationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.storeInvite`: Exposes CRUD operations for the **StoreInvite** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StoreInvites
+    * const storeInvites = await prisma.storeInvite.findMany()
+    * ```
+    */
+  get storeInvite(): Prisma.StoreInviteDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -709,7 +724,8 @@ export namespace Prisma {
     UserAuthIdentity: 'UserAuthIdentity',
     MobilePushToken: 'MobilePushToken',
     PasswordResetToken: 'PasswordResetToken',
-    UserOrganization: 'UserOrganization'
+    UserOrganization: 'UserOrganization',
+    StoreInvite: 'StoreInvite'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -725,7 +741,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "userAuthIdentity" | "mobilePushToken" | "passwordResetToken" | "userOrganization"
+      modelProps: "organization" | "user" | "userAuthIdentity" | "mobilePushToken" | "passwordResetToken" | "userOrganization" | "storeInvite"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1173,6 +1189,80 @@ export namespace Prisma {
           }
         }
       }
+      StoreInvite: {
+        payload: Prisma.$StoreInvitePayload<ExtArgs>
+        fields: Prisma.StoreInviteFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StoreInviteFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StoreInviteFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          findFirst: {
+            args: Prisma.StoreInviteFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StoreInviteFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          findMany: {
+            args: Prisma.StoreInviteFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>[]
+          }
+          create: {
+            args: Prisma.StoreInviteCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          createMany: {
+            args: Prisma.StoreInviteCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StoreInviteCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>[]
+          }
+          delete: {
+            args: Prisma.StoreInviteDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          update: {
+            args: Prisma.StoreInviteUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          deleteMany: {
+            args: Prisma.StoreInviteDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StoreInviteUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StoreInviteUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>[]
+          }
+          upsert: {
+            args: Prisma.StoreInviteUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoreInvitePayload>
+          }
+          aggregate: {
+            args: Prisma.StoreInviteAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStoreInvite>
+          }
+          groupBy: {
+            args: Prisma.StoreInviteGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StoreInviteGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StoreInviteCountArgs<ExtArgs>
+            result: $Utils.Optional<StoreInviteCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1287,6 +1377,7 @@ export namespace Prisma {
     mobilePushToken?: MobilePushTokenOmit
     passwordResetToken?: PasswordResetTokenOmit
     userOrganization?: UserOrganizationOmit
+    storeInvite?: StoreInviteOmit
   }
 
   /* Types for Logging */
@@ -1368,10 +1459,12 @@ export namespace Prisma {
 
   export type OrganizationCountOutputType = {
     members: number
+    invites: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | OrganizationCountOutputTypeCountMembersArgs
+    invites?: boolean | OrganizationCountOutputTypeCountInvitesArgs
   }
 
   // Custom InputTypes
@@ -1390,6 +1483,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountMembersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserOrganizationWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountInvitesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoreInviteWhereInput
   }
 
 
@@ -1692,6 +1792,7 @@ export namespace Prisma {
     ecommerce_enabled?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Organization$membersArgs<ExtArgs>
+    invites?: boolean | Organization$invitesArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -1755,6 +1856,7 @@ export namespace Prisma {
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     owner?: boolean | UserDefaultArgs<ExtArgs>
     members?: boolean | Organization$membersArgs<ExtArgs>
+    invites?: boolean | Organization$invitesArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1769,6 +1871,7 @@ export namespace Prisma {
     objects: {
       owner: Prisma.$UserPayload<ExtArgs>
       members: Prisma.$UserOrganizationPayload<ExtArgs>[]
+      invites: Prisma.$StoreInvitePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2182,6 +2285,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     members<T extends Organization$membersArgs<ExtArgs> = {}>(args?: Subset<T, Organization$membersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    invites<T extends Organization$invitesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2643,6 +2747,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserOrganizationScalarFieldEnum | UserOrganizationScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.invites
+   */
+  export type Organization$invitesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    where?: StoreInviteWhereInput
+    orderBy?: StoreInviteOrderByWithRelationInput | StoreInviteOrderByWithRelationInput[]
+    cursor?: StoreInviteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StoreInviteScalarFieldEnum | StoreInviteScalarFieldEnum[]
   }
 
   /**
@@ -8224,6 +8352,1116 @@ export namespace Prisma {
 
 
   /**
+   * Model StoreInvite
+   */
+
+  export type AggregateStoreInvite = {
+    _count: StoreInviteCountAggregateOutputType | null
+    _min: StoreInviteMinAggregateOutputType | null
+    _max: StoreInviteMaxAggregateOutputType | null
+  }
+
+  export type StoreInviteMinAggregateOutputType = {
+    id: string | null
+    organization_id: string | null
+    store_id: string | null
+    token_hash: string | null
+    expires_at: Date | null
+    used_at: Date | null
+    revoked_at: Date | null
+    created_by: string | null
+    created_at: Date | null
+  }
+
+  export type StoreInviteMaxAggregateOutputType = {
+    id: string | null
+    organization_id: string | null
+    store_id: string | null
+    token_hash: string | null
+    expires_at: Date | null
+    used_at: Date | null
+    revoked_at: Date | null
+    created_by: string | null
+    created_at: Date | null
+  }
+
+  export type StoreInviteCountAggregateOutputType = {
+    id: number
+    organization_id: number
+    store_id: number
+    token_hash: number
+    expires_at: number
+    used_at: number
+    revoked_at: number
+    created_by: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type StoreInviteMinAggregateInputType = {
+    id?: true
+    organization_id?: true
+    store_id?: true
+    token_hash?: true
+    expires_at?: true
+    used_at?: true
+    revoked_at?: true
+    created_by?: true
+    created_at?: true
+  }
+
+  export type StoreInviteMaxAggregateInputType = {
+    id?: true
+    organization_id?: true
+    store_id?: true
+    token_hash?: true
+    expires_at?: true
+    used_at?: true
+    revoked_at?: true
+    created_by?: true
+    created_at?: true
+  }
+
+  export type StoreInviteCountAggregateInputType = {
+    id?: true
+    organization_id?: true
+    store_id?: true
+    token_hash?: true
+    expires_at?: true
+    used_at?: true
+    revoked_at?: true
+    created_by?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type StoreInviteAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoreInvite to aggregate.
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoreInvites to fetch.
+     */
+    orderBy?: StoreInviteOrderByWithRelationInput | StoreInviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StoreInviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoreInvites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoreInvites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StoreInvites
+    **/
+    _count?: true | StoreInviteCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StoreInviteMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StoreInviteMaxAggregateInputType
+  }
+
+  export type GetStoreInviteAggregateType<T extends StoreInviteAggregateArgs> = {
+        [P in keyof T & keyof AggregateStoreInvite]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStoreInvite[P]>
+      : GetScalarType<T[P], AggregateStoreInvite[P]>
+  }
+
+
+
+
+  export type StoreInviteGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoreInviteWhereInput
+    orderBy?: StoreInviteOrderByWithAggregationInput | StoreInviteOrderByWithAggregationInput[]
+    by: StoreInviteScalarFieldEnum[] | StoreInviteScalarFieldEnum
+    having?: StoreInviteScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StoreInviteCountAggregateInputType | true
+    _min?: StoreInviteMinAggregateInputType
+    _max?: StoreInviteMaxAggregateInputType
+  }
+
+  export type StoreInviteGroupByOutputType = {
+    id: string
+    organization_id: string
+    store_id: string
+    token_hash: string
+    expires_at: Date
+    used_at: Date | null
+    revoked_at: Date | null
+    created_by: string
+    created_at: Date
+    _count: StoreInviteCountAggregateOutputType | null
+    _min: StoreInviteMinAggregateOutputType | null
+    _max: StoreInviteMaxAggregateOutputType | null
+  }
+
+  type GetStoreInviteGroupByPayload<T extends StoreInviteGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StoreInviteGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StoreInviteGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StoreInviteGroupByOutputType[P]>
+            : GetScalarType<T[P], StoreInviteGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StoreInviteSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organization_id?: boolean
+    store_id?: boolean
+    token_hash?: boolean
+    expires_at?: boolean
+    used_at?: boolean
+    revoked_at?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["storeInvite"]>
+
+  export type StoreInviteSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organization_id?: boolean
+    store_id?: boolean
+    token_hash?: boolean
+    expires_at?: boolean
+    used_at?: boolean
+    revoked_at?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["storeInvite"]>
+
+  export type StoreInviteSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organization_id?: boolean
+    store_id?: boolean
+    token_hash?: boolean
+    expires_at?: boolean
+    used_at?: boolean
+    revoked_at?: boolean
+    created_by?: boolean
+    created_at?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["storeInvite"]>
+
+  export type StoreInviteSelectScalar = {
+    id?: boolean
+    organization_id?: boolean
+    store_id?: boolean
+    token_hash?: boolean
+    expires_at?: boolean
+    used_at?: boolean
+    revoked_at?: boolean
+    created_by?: boolean
+    created_at?: boolean
+  }
+
+  export type StoreInviteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organization_id" | "store_id" | "token_hash" | "expires_at" | "used_at" | "revoked_at" | "created_by" | "created_at", ExtArgs["result"]["storeInvite"]>
+  export type StoreInviteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type StoreInviteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type StoreInviteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $StoreInvitePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StoreInvite"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organization_id: string
+      store_id: string
+      token_hash: string
+      expires_at: Date
+      used_at: Date | null
+      revoked_at: Date | null
+      created_by: string
+      created_at: Date
+    }, ExtArgs["result"]["storeInvite"]>
+    composites: {}
+  }
+
+  type StoreInviteGetPayload<S extends boolean | null | undefined | StoreInviteDefaultArgs> = $Result.GetResult<Prisma.$StoreInvitePayload, S>
+
+  type StoreInviteCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StoreInviteFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StoreInviteCountAggregateInputType | true
+    }
+
+  export interface StoreInviteDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StoreInvite'], meta: { name: 'StoreInvite' } }
+    /**
+     * Find zero or one StoreInvite that matches the filter.
+     * @param {StoreInviteFindUniqueArgs} args - Arguments to find a StoreInvite
+     * @example
+     * // Get one StoreInvite
+     * const storeInvite = await prisma.storeInvite.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StoreInviteFindUniqueArgs>(args: SelectSubset<T, StoreInviteFindUniqueArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StoreInvite that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StoreInviteFindUniqueOrThrowArgs} args - Arguments to find a StoreInvite
+     * @example
+     * // Get one StoreInvite
+     * const storeInvite = await prisma.storeInvite.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StoreInviteFindUniqueOrThrowArgs>(args: SelectSubset<T, StoreInviteFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoreInvite that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteFindFirstArgs} args - Arguments to find a StoreInvite
+     * @example
+     * // Get one StoreInvite
+     * const storeInvite = await prisma.storeInvite.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StoreInviteFindFirstArgs>(args?: SelectSubset<T, StoreInviteFindFirstArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoreInvite that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteFindFirstOrThrowArgs} args - Arguments to find a StoreInvite
+     * @example
+     * // Get one StoreInvite
+     * const storeInvite = await prisma.storeInvite.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StoreInviteFindFirstOrThrowArgs>(args?: SelectSubset<T, StoreInviteFindFirstOrThrowArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StoreInvites that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StoreInvites
+     * const storeInvites = await prisma.storeInvite.findMany()
+     * 
+     * // Get first 10 StoreInvites
+     * const storeInvites = await prisma.storeInvite.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const storeInviteWithIdOnly = await prisma.storeInvite.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StoreInviteFindManyArgs>(args?: SelectSubset<T, StoreInviteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StoreInvite.
+     * @param {StoreInviteCreateArgs} args - Arguments to create a StoreInvite.
+     * @example
+     * // Create one StoreInvite
+     * const StoreInvite = await prisma.storeInvite.create({
+     *   data: {
+     *     // ... data to create a StoreInvite
+     *   }
+     * })
+     * 
+     */
+    create<T extends StoreInviteCreateArgs>(args: SelectSubset<T, StoreInviteCreateArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StoreInvites.
+     * @param {StoreInviteCreateManyArgs} args - Arguments to create many StoreInvites.
+     * @example
+     * // Create many StoreInvites
+     * const storeInvite = await prisma.storeInvite.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StoreInviteCreateManyArgs>(args?: SelectSubset<T, StoreInviteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StoreInvites and returns the data saved in the database.
+     * @param {StoreInviteCreateManyAndReturnArgs} args - Arguments to create many StoreInvites.
+     * @example
+     * // Create many StoreInvites
+     * const storeInvite = await prisma.storeInvite.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StoreInvites and only return the `id`
+     * const storeInviteWithIdOnly = await prisma.storeInvite.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StoreInviteCreateManyAndReturnArgs>(args?: SelectSubset<T, StoreInviteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a StoreInvite.
+     * @param {StoreInviteDeleteArgs} args - Arguments to delete one StoreInvite.
+     * @example
+     * // Delete one StoreInvite
+     * const StoreInvite = await prisma.storeInvite.delete({
+     *   where: {
+     *     // ... filter to delete one StoreInvite
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StoreInviteDeleteArgs>(args: SelectSubset<T, StoreInviteDeleteArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StoreInvite.
+     * @param {StoreInviteUpdateArgs} args - Arguments to update one StoreInvite.
+     * @example
+     * // Update one StoreInvite
+     * const storeInvite = await prisma.storeInvite.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StoreInviteUpdateArgs>(args: SelectSubset<T, StoreInviteUpdateArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StoreInvites.
+     * @param {StoreInviteDeleteManyArgs} args - Arguments to filter StoreInvites to delete.
+     * @example
+     * // Delete a few StoreInvites
+     * const { count } = await prisma.storeInvite.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StoreInviteDeleteManyArgs>(args?: SelectSubset<T, StoreInviteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoreInvites.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StoreInvites
+     * const storeInvite = await prisma.storeInvite.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StoreInviteUpdateManyArgs>(args: SelectSubset<T, StoreInviteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoreInvites and returns the data updated in the database.
+     * @param {StoreInviteUpdateManyAndReturnArgs} args - Arguments to update many StoreInvites.
+     * @example
+     * // Update many StoreInvites
+     * const storeInvite = await prisma.storeInvite.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more StoreInvites and only return the `id`
+     * const storeInviteWithIdOnly = await prisma.storeInvite.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StoreInviteUpdateManyAndReturnArgs>(args: SelectSubset<T, StoreInviteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one StoreInvite.
+     * @param {StoreInviteUpsertArgs} args - Arguments to update or create a StoreInvite.
+     * @example
+     * // Update or create a StoreInvite
+     * const storeInvite = await prisma.storeInvite.upsert({
+     *   create: {
+     *     // ... data to create a StoreInvite
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StoreInvite we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StoreInviteUpsertArgs>(args: SelectSubset<T, StoreInviteUpsertArgs<ExtArgs>>): Prisma__StoreInviteClient<$Result.GetResult<Prisma.$StoreInvitePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StoreInvites.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteCountArgs} args - Arguments to filter StoreInvites to count.
+     * @example
+     * // Count the number of StoreInvites
+     * const count = await prisma.storeInvite.count({
+     *   where: {
+     *     // ... the filter for the StoreInvites we want to count
+     *   }
+     * })
+    **/
+    count<T extends StoreInviteCountArgs>(
+      args?: Subset<T, StoreInviteCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StoreInviteCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StoreInvite.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StoreInviteAggregateArgs>(args: Subset<T, StoreInviteAggregateArgs>): Prisma.PrismaPromise<GetStoreInviteAggregateType<T>>
+
+    /**
+     * Group by StoreInvite.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoreInviteGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StoreInviteGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StoreInviteGroupByArgs['orderBy'] }
+        : { orderBy?: StoreInviteGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StoreInviteGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStoreInviteGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StoreInvite model
+   */
+  readonly fields: StoreInviteFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StoreInvite.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StoreInviteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StoreInvite model
+   */
+  interface StoreInviteFieldRefs {
+    readonly id: FieldRef<"StoreInvite", 'String'>
+    readonly organization_id: FieldRef<"StoreInvite", 'String'>
+    readonly store_id: FieldRef<"StoreInvite", 'String'>
+    readonly token_hash: FieldRef<"StoreInvite", 'String'>
+    readonly expires_at: FieldRef<"StoreInvite", 'DateTime'>
+    readonly used_at: FieldRef<"StoreInvite", 'DateTime'>
+    readonly revoked_at: FieldRef<"StoreInvite", 'DateTime'>
+    readonly created_by: FieldRef<"StoreInvite", 'String'>
+    readonly created_at: FieldRef<"StoreInvite", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StoreInvite findUnique
+   */
+  export type StoreInviteFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter, which StoreInvite to fetch.
+     */
+    where: StoreInviteWhereUniqueInput
+  }
+
+  /**
+   * StoreInvite findUniqueOrThrow
+   */
+  export type StoreInviteFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter, which StoreInvite to fetch.
+     */
+    where: StoreInviteWhereUniqueInput
+  }
+
+  /**
+   * StoreInvite findFirst
+   */
+  export type StoreInviteFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter, which StoreInvite to fetch.
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoreInvites to fetch.
+     */
+    orderBy?: StoreInviteOrderByWithRelationInput | StoreInviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoreInvites.
+     */
+    cursor?: StoreInviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoreInvites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoreInvites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoreInvites.
+     */
+    distinct?: StoreInviteScalarFieldEnum | StoreInviteScalarFieldEnum[]
+  }
+
+  /**
+   * StoreInvite findFirstOrThrow
+   */
+  export type StoreInviteFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter, which StoreInvite to fetch.
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoreInvites to fetch.
+     */
+    orderBy?: StoreInviteOrderByWithRelationInput | StoreInviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoreInvites.
+     */
+    cursor?: StoreInviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoreInvites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoreInvites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoreInvites.
+     */
+    distinct?: StoreInviteScalarFieldEnum | StoreInviteScalarFieldEnum[]
+  }
+
+  /**
+   * StoreInvite findMany
+   */
+  export type StoreInviteFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter, which StoreInvites to fetch.
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoreInvites to fetch.
+     */
+    orderBy?: StoreInviteOrderByWithRelationInput | StoreInviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StoreInvites.
+     */
+    cursor?: StoreInviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoreInvites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoreInvites.
+     */
+    skip?: number
+    distinct?: StoreInviteScalarFieldEnum | StoreInviteScalarFieldEnum[]
+  }
+
+  /**
+   * StoreInvite create
+   */
+  export type StoreInviteCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StoreInvite.
+     */
+    data: XOR<StoreInviteCreateInput, StoreInviteUncheckedCreateInput>
+  }
+
+  /**
+   * StoreInvite createMany
+   */
+  export type StoreInviteCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StoreInvites.
+     */
+    data: StoreInviteCreateManyInput | StoreInviteCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StoreInvite createManyAndReturn
+   */
+  export type StoreInviteCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * The data used to create many StoreInvites.
+     */
+    data: StoreInviteCreateManyInput | StoreInviteCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StoreInvite update
+   */
+  export type StoreInviteUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StoreInvite.
+     */
+    data: XOR<StoreInviteUpdateInput, StoreInviteUncheckedUpdateInput>
+    /**
+     * Choose, which StoreInvite to update.
+     */
+    where: StoreInviteWhereUniqueInput
+  }
+
+  /**
+   * StoreInvite updateMany
+   */
+  export type StoreInviteUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StoreInvites.
+     */
+    data: XOR<StoreInviteUpdateManyMutationInput, StoreInviteUncheckedUpdateManyInput>
+    /**
+     * Filter which StoreInvites to update
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * Limit how many StoreInvites to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoreInvite updateManyAndReturn
+   */
+  export type StoreInviteUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * The data used to update StoreInvites.
+     */
+    data: XOR<StoreInviteUpdateManyMutationInput, StoreInviteUncheckedUpdateManyInput>
+    /**
+     * Filter which StoreInvites to update
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * Limit how many StoreInvites to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StoreInvite upsert
+   */
+  export type StoreInviteUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StoreInvite to update in case it exists.
+     */
+    where: StoreInviteWhereUniqueInput
+    /**
+     * In case the StoreInvite found by the `where` argument doesn't exist, create a new StoreInvite with this data.
+     */
+    create: XOR<StoreInviteCreateInput, StoreInviteUncheckedCreateInput>
+    /**
+     * In case the StoreInvite was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StoreInviteUpdateInput, StoreInviteUncheckedUpdateInput>
+  }
+
+  /**
+   * StoreInvite delete
+   */
+  export type StoreInviteDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+    /**
+     * Filter which StoreInvite to delete.
+     */
+    where: StoreInviteWhereUniqueInput
+  }
+
+  /**
+   * StoreInvite deleteMany
+   */
+  export type StoreInviteDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoreInvites to delete
+     */
+    where?: StoreInviteWhereInput
+    /**
+     * Limit how many StoreInvites to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoreInvite without action
+   */
+  export type StoreInviteDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoreInvite
+     */
+    select?: StoreInviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoreInvite
+     */
+    omit?: StoreInviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoreInviteInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -8325,6 +9563,21 @@ export namespace Prisma {
   };
 
   export type UserOrganizationScalarFieldEnum = (typeof UserOrganizationScalarFieldEnum)[keyof typeof UserOrganizationScalarFieldEnum]
+
+
+  export const StoreInviteScalarFieldEnum: {
+    id: 'id',
+    organization_id: 'organization_id',
+    store_id: 'store_id',
+    token_hash: 'token_hash',
+    expires_at: 'expires_at',
+    used_at: 'used_at',
+    revoked_at: 'revoked_at',
+    created_by: 'created_by',
+    created_at: 'created_at'
+  };
+
+  export type StoreInviteScalarFieldEnum = (typeof StoreInviteScalarFieldEnum)[keyof typeof StoreInviteScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -8471,6 +9724,7 @@ export namespace Prisma {
     ecommerce_enabled?: BoolFilter<"Organization"> | boolean
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: UserOrganizationListRelationFilter
+    invites?: StoreInviteListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -8491,6 +9745,7 @@ export namespace Prisma {
     ecommerce_enabled?: SortOrder
     owner?: UserOrderByWithRelationInput
     members?: UserOrganizationOrderByRelationAggregateInput
+    invites?: StoreInviteOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -8514,6 +9769,7 @@ export namespace Prisma {
     ecommerce_enabled?: BoolFilter<"Organization"> | boolean
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
     members?: UserOrganizationListRelationFilter
+    invites?: StoreInviteListRelationFilter
   }, "id" | "slug" | "owner_id">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -8914,6 +10170,81 @@ export namespace Prisma {
     updated_at?: DateTimeWithAggregatesFilter<"UserOrganization"> | Date | string
   }
 
+  export type StoreInviteWhereInput = {
+    AND?: StoreInviteWhereInput | StoreInviteWhereInput[]
+    OR?: StoreInviteWhereInput[]
+    NOT?: StoreInviteWhereInput | StoreInviteWhereInput[]
+    id?: StringFilter<"StoreInvite"> | string
+    organization_id?: StringFilter<"StoreInvite"> | string
+    store_id?: StringFilter<"StoreInvite"> | string
+    token_hash?: StringFilter<"StoreInvite"> | string
+    expires_at?: DateTimeFilter<"StoreInvite"> | Date | string
+    used_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    revoked_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    created_by?: StringFilter<"StoreInvite"> | string
+    created_at?: DateTimeFilter<"StoreInvite"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }
+
+  export type StoreInviteOrderByWithRelationInput = {
+    id?: SortOrder
+    organization_id?: SortOrder
+    store_id?: SortOrder
+    token_hash?: SortOrder
+    expires_at?: SortOrder
+    used_at?: SortOrderInput | SortOrder
+    revoked_at?: SortOrderInput | SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type StoreInviteWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token_hash?: string
+    AND?: StoreInviteWhereInput | StoreInviteWhereInput[]
+    OR?: StoreInviteWhereInput[]
+    NOT?: StoreInviteWhereInput | StoreInviteWhereInput[]
+    organization_id?: StringFilter<"StoreInvite"> | string
+    store_id?: StringFilter<"StoreInvite"> | string
+    expires_at?: DateTimeFilter<"StoreInvite"> | Date | string
+    used_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    revoked_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    created_by?: StringFilter<"StoreInvite"> | string
+    created_at?: DateTimeFilter<"StoreInvite"> | Date | string
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }, "id" | "token_hash">
+
+  export type StoreInviteOrderByWithAggregationInput = {
+    id?: SortOrder
+    organization_id?: SortOrder
+    store_id?: SortOrder
+    token_hash?: SortOrder
+    expires_at?: SortOrder
+    used_at?: SortOrderInput | SortOrder
+    revoked_at?: SortOrderInput | SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+    _count?: StoreInviteCountOrderByAggregateInput
+    _max?: StoreInviteMaxOrderByAggregateInput
+    _min?: StoreInviteMinOrderByAggregateInput
+  }
+
+  export type StoreInviteScalarWhereWithAggregatesInput = {
+    AND?: StoreInviteScalarWhereWithAggregatesInput | StoreInviteScalarWhereWithAggregatesInput[]
+    OR?: StoreInviteScalarWhereWithAggregatesInput[]
+    NOT?: StoreInviteScalarWhereWithAggregatesInput | StoreInviteScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"StoreInvite"> | string
+    organization_id?: StringWithAggregatesFilter<"StoreInvite"> | string
+    store_id?: StringWithAggregatesFilter<"StoreInvite"> | string
+    token_hash?: StringWithAggregatesFilter<"StoreInvite"> | string
+    expires_at?: DateTimeWithAggregatesFilter<"StoreInvite"> | Date | string
+    used_at?: DateTimeNullableWithAggregatesFilter<"StoreInvite"> | Date | string | null
+    revoked_at?: DateTimeNullableWithAggregatesFilter<"StoreInvite"> | Date | string | null
+    created_by?: StringWithAggregatesFilter<"StoreInvite"> | string
+    created_at?: DateTimeWithAggregatesFilter<"StoreInvite"> | Date | string
+  }
+
   export type OrganizationCreateInput = {
     id?: string
     name: string
@@ -8931,6 +10262,7 @@ export namespace Prisma {
     ecommerce_enabled?: boolean
     owner: UserCreateNestedOneWithoutOwned_organizationInput
     members?: UserOrganizationCreateNestedManyWithoutOrganizationInput
+    invites?: StoreInviteCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -8950,6 +10282,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: string | null
     ecommerce_enabled?: boolean
     members?: UserOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+    invites?: StoreInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -8969,6 +10302,7 @@ export namespace Prisma {
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
     owner?: UserUpdateOneRequiredWithoutOwned_organizationNestedInput
     members?: UserOrganizationUpdateManyWithoutOrganizationNestedInput
+    invites?: StoreInviteUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -8988,6 +10322,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
     members?: UserOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+    invites?: StoreInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -9433,6 +10768,89 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type StoreInviteCreateInput = {
+    id?: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
+    organization: OrganizationCreateNestedOneWithoutInvitesInput
+  }
+
+  export type StoreInviteUncheckedCreateInput = {
+    id?: string
+    organization_id: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
+  }
+
+  export type StoreInviteUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutInvitesNestedInput
+  }
+
+  export type StoreInviteUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organization_id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoreInviteCreateManyInput = {
+    id?: string
+    organization_id: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
+  }
+
+  export type StoreInviteUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoreInviteUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organization_id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -9508,12 +10926,22 @@ export namespace Prisma {
     none?: UserOrganizationWhereInput
   }
 
+  export type StoreInviteListRelationFilter = {
+    every?: StoreInviteWhereInput
+    some?: StoreInviteWhereInput
+    none?: StoreInviteWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
   }
 
   export type UserOrganizationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type StoreInviteOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -9889,6 +11317,42 @@ export namespace Prisma {
     _max?: NestedEnumRoleFilter<$PrismaModel>
   }
 
+  export type StoreInviteCountOrderByAggregateInput = {
+    id?: SortOrder
+    organization_id?: SortOrder
+    store_id?: SortOrder
+    token_hash?: SortOrder
+    expires_at?: SortOrder
+    used_at?: SortOrder
+    revoked_at?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type StoreInviteMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organization_id?: SortOrder
+    store_id?: SortOrder
+    token_hash?: SortOrder
+    expires_at?: SortOrder
+    used_at?: SortOrder
+    revoked_at?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type StoreInviteMinOrderByAggregateInput = {
+    id?: SortOrder
+    organization_id?: SortOrder
+    store_id?: SortOrder
+    token_hash?: SortOrder
+    expires_at?: SortOrder
+    used_at?: SortOrder
+    revoked_at?: SortOrder
+    created_by?: SortOrder
+    created_at?: SortOrder
+  }
+
   export type UserCreateNestedOneWithoutOwned_organizationInput = {
     create?: XOR<UserCreateWithoutOwned_organizationInput, UserUncheckedCreateWithoutOwned_organizationInput>
     connectOrCreate?: UserCreateOrConnectWithoutOwned_organizationInput
@@ -9902,11 +11366,25 @@ export namespace Prisma {
     connect?: UserOrganizationWhereUniqueInput | UserOrganizationWhereUniqueInput[]
   }
 
+  export type StoreInviteCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput> | StoreInviteCreateWithoutOrganizationInput[] | StoreInviteUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: StoreInviteCreateOrConnectWithoutOrganizationInput | StoreInviteCreateOrConnectWithoutOrganizationInput[]
+    createMany?: StoreInviteCreateManyOrganizationInputEnvelope
+    connect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+  }
+
   export type UserOrganizationUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserOrganizationCreateWithoutOrganizationInput, UserOrganizationUncheckedCreateWithoutOrganizationInput> | UserOrganizationCreateWithoutOrganizationInput[] | UserOrganizationUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserOrganizationCreateOrConnectWithoutOrganizationInput | UserOrganizationCreateOrConnectWithoutOrganizationInput[]
     createMany?: UserOrganizationCreateManyOrganizationInputEnvelope
     connect?: UserOrganizationWhereUniqueInput | UserOrganizationWhereUniqueInput[]
+  }
+
+  export type StoreInviteUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput> | StoreInviteCreateWithoutOrganizationInput[] | StoreInviteUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: StoreInviteCreateOrConnectWithoutOrganizationInput | StoreInviteCreateOrConnectWithoutOrganizationInput[]
+    createMany?: StoreInviteCreateManyOrganizationInputEnvelope
+    connect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -9955,6 +11433,20 @@ export namespace Prisma {
     deleteMany?: UserOrganizationScalarWhereInput | UserOrganizationScalarWhereInput[]
   }
 
+  export type StoreInviteUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput> | StoreInviteCreateWithoutOrganizationInput[] | StoreInviteUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: StoreInviteCreateOrConnectWithoutOrganizationInput | StoreInviteCreateOrConnectWithoutOrganizationInput[]
+    upsert?: StoreInviteUpsertWithWhereUniqueWithoutOrganizationInput | StoreInviteUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: StoreInviteCreateManyOrganizationInputEnvelope
+    set?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    disconnect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    delete?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    connect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    update?: StoreInviteUpdateWithWhereUniqueWithoutOrganizationInput | StoreInviteUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: StoreInviteUpdateManyWithWhereWithoutOrganizationInput | StoreInviteUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: StoreInviteScalarWhereInput | StoreInviteScalarWhereInput[]
+  }
+
   export type UserOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<UserOrganizationCreateWithoutOrganizationInput, UserOrganizationUncheckedCreateWithoutOrganizationInput> | UserOrganizationCreateWithoutOrganizationInput[] | UserOrganizationUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserOrganizationCreateOrConnectWithoutOrganizationInput | UserOrganizationCreateOrConnectWithoutOrganizationInput[]
@@ -9967,6 +11459,20 @@ export namespace Prisma {
     update?: UserOrganizationUpdateWithWhereUniqueWithoutOrganizationInput | UserOrganizationUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: UserOrganizationUpdateManyWithWhereWithoutOrganizationInput | UserOrganizationUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: UserOrganizationScalarWhereInput | UserOrganizationScalarWhereInput[]
+  }
+
+  export type StoreInviteUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput> | StoreInviteCreateWithoutOrganizationInput[] | StoreInviteUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: StoreInviteCreateOrConnectWithoutOrganizationInput | StoreInviteCreateOrConnectWithoutOrganizationInput[]
+    upsert?: StoreInviteUpsertWithWhereUniqueWithoutOrganizationInput | StoreInviteUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: StoreInviteCreateManyOrganizationInputEnvelope
+    set?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    disconnect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    delete?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    connect?: StoreInviteWhereUniqueInput | StoreInviteWhereUniqueInput[]
+    update?: StoreInviteUpdateWithWhereUniqueWithoutOrganizationInput | StoreInviteUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: StoreInviteUpdateManyWithWhereWithoutOrganizationInput | StoreInviteUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: StoreInviteScalarWhereInput | StoreInviteScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutOwnerInput = {
@@ -10194,6 +11700,20 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutMembersInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutMembersInput, OrganizationUpdateWithoutMembersInput>, OrganizationUncheckedUpdateWithoutMembersInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutInvitesInput = {
+    create?: XOR<OrganizationCreateWithoutInvitesInput, OrganizationUncheckedCreateWithoutInvitesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutInvitesInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutInvitesNestedInput = {
+    create?: XOR<OrganizationCreateWithoutInvitesInput, OrganizationUncheckedCreateWithoutInvitesInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutInvitesInput
+    upsert?: OrganizationUpsertWithoutInvitesInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutInvitesInput, OrganizationUpdateWithoutInvitesInput>, OrganizationUncheckedUpdateWithoutInvitesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -10440,6 +11960,38 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type StoreInviteCreateWithoutOrganizationInput = {
+    id?: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
+  }
+
+  export type StoreInviteUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
+  }
+
+  export type StoreInviteCreateOrConnectWithoutOrganizationInput = {
+    where: StoreInviteWhereUniqueInput
+    create: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type StoreInviteCreateManyOrganizationInputEnvelope = {
+    data: StoreInviteCreateManyOrganizationInput | StoreInviteCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutOwned_organizationInput = {
     update: XOR<UserUpdateWithoutOwned_organizationInput, UserUncheckedUpdateWithoutOwned_organizationInput>
     create: XOR<UserCreateWithoutOwned_organizationInput, UserUncheckedCreateWithoutOwned_organizationInput>
@@ -10508,6 +12060,37 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"UserOrganization"> | Date | string
   }
 
+  export type StoreInviteUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: StoreInviteWhereUniqueInput
+    update: XOR<StoreInviteUpdateWithoutOrganizationInput, StoreInviteUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<StoreInviteCreateWithoutOrganizationInput, StoreInviteUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type StoreInviteUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: StoreInviteWhereUniqueInput
+    data: XOR<StoreInviteUpdateWithoutOrganizationInput, StoreInviteUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type StoreInviteUpdateManyWithWhereWithoutOrganizationInput = {
+    where: StoreInviteScalarWhereInput
+    data: XOR<StoreInviteUpdateManyMutationInput, StoreInviteUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type StoreInviteScalarWhereInput = {
+    AND?: StoreInviteScalarWhereInput | StoreInviteScalarWhereInput[]
+    OR?: StoreInviteScalarWhereInput[]
+    NOT?: StoreInviteScalarWhereInput | StoreInviteScalarWhereInput[]
+    id?: StringFilter<"StoreInvite"> | string
+    organization_id?: StringFilter<"StoreInvite"> | string
+    store_id?: StringFilter<"StoreInvite"> | string
+    token_hash?: StringFilter<"StoreInvite"> | string
+    expires_at?: DateTimeFilter<"StoreInvite"> | Date | string
+    used_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    revoked_at?: DateTimeNullableFilter<"StoreInvite"> | Date | string | null
+    created_by?: StringFilter<"StoreInvite"> | string
+    created_at?: DateTimeFilter<"StoreInvite"> | Date | string
+  }
+
   export type OrganizationCreateWithoutOwnerInput = {
     id?: string
     name: string
@@ -10524,6 +12107,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: string | null
     ecommerce_enabled?: boolean
     members?: UserOrganizationCreateNestedManyWithoutOrganizationInput
+    invites?: StoreInviteCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutOwnerInput = {
@@ -10542,6 +12126,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: string | null
     ecommerce_enabled?: boolean
     members?: UserOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+    invites?: StoreInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutOwnerInput = {
@@ -10664,6 +12249,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
     members?: UserOrganizationUpdateManyWithoutOrganizationNestedInput
+    invites?: StoreInviteUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutOwnerInput = {
@@ -10682,6 +12268,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
     members?: UserOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+    invites?: StoreInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type MobilePushTokenUpsertWithWhereUniqueWithoutUserInput = {
@@ -10993,6 +12580,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: string | null
     ecommerce_enabled?: boolean
     owner: UserCreateNestedOneWithoutOwned_organizationInput
+    invites?: StoreInviteCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -11011,6 +12599,7 @@ export namespace Prisma {
     uzum_fastpay_service_id?: string | null
     uzum_fastpay_merchant_service_user_id?: string | null
     ecommerce_enabled?: boolean
+    invites?: StoreInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -11045,6 +12634,7 @@ export namespace Prisma {
     uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
     owner?: UserUpdateOneRequiredWithoutOwned_organizationNestedInput
+    invites?: StoreInviteUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -11063,6 +12653,99 @@ export namespace Prisma {
     uzum_fastpay_service_id?: NullableStringFieldUpdateOperationsInput | string | null
     uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
     ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
+    invites?: StoreInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutInvitesInput = {
+    id?: string
+    name: string
+    slug: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus | null
+    subscription_ends_at?: Date | string | null
+    uzum_fastpay_enabled?: boolean
+    uzum_fastpay_merchant_id?: string | null
+    uzum_fastpay_secret_key?: string | null
+    uzum_fastpay_service_id?: string | null
+    uzum_fastpay_merchant_service_user_id?: string | null
+    ecommerce_enabled?: boolean
+    owner: UserCreateNestedOneWithoutOwned_organizationInput
+    members?: UserOrganizationCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutInvitesInput = {
+    id?: string
+    name: string
+    slug: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus | null
+    subscription_ends_at?: Date | string | null
+    owner_id: string
+    uzum_fastpay_enabled?: boolean
+    uzum_fastpay_merchant_id?: string | null
+    uzum_fastpay_secret_key?: string | null
+    uzum_fastpay_service_id?: string | null
+    uzum_fastpay_merchant_service_user_id?: string | null
+    ecommerce_enabled?: boolean
+    members?: UserOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutInvitesInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutInvitesInput, OrganizationUncheckedCreateWithoutInvitesInput>
+  }
+
+  export type OrganizationUpsertWithoutInvitesInput = {
+    update: XOR<OrganizationUpdateWithoutInvitesInput, OrganizationUncheckedUpdateWithoutInvitesInput>
+    create: XOR<OrganizationCreateWithoutInvitesInput, OrganizationUncheckedCreateWithoutInvitesInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutInvitesInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutInvitesInput, OrganizationUncheckedUpdateWithoutInvitesInput>
+  }
+
+  export type OrganizationUpdateWithoutInvitesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: NullableEnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus | null
+    subscription_ends_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    uzum_fastpay_enabled?: BoolFieldUpdateOperationsInput | boolean
+    uzum_fastpay_merchant_id?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_secret_key?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_service_id?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
+    ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
+    owner?: UserUpdateOneRequiredWithoutOwned_organizationNestedInput
+    members?: UserOrganizationUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutInvitesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: NullableEnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus | null
+    subscription_ends_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    owner_id?: StringFieldUpdateOperationsInput | string
+    uzum_fastpay_enabled?: BoolFieldUpdateOperationsInput | boolean
+    uzum_fastpay_merchant_id?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_secret_key?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_service_id?: NullableStringFieldUpdateOperationsInput | string | null
+    uzum_fastpay_merchant_service_user_id?: NullableStringFieldUpdateOperationsInput | string | null
+    ecommerce_enabled?: BoolFieldUpdateOperationsInput | boolean
+    members?: UserOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserOrganizationCreateManyOrganizationInput = {
@@ -11074,6 +12757,17 @@ export namespace Prisma {
     approved?: boolean
     created_at?: Date | string
     updated_at?: Date | string
+  }
+
+  export type StoreInviteCreateManyOrganizationInput = {
+    id?: string
+    store_id: string
+    token_hash: string
+    expires_at: Date | string
+    used_at?: Date | string | null
+    revoked_at?: Date | string | null
+    created_by: string
+    created_at?: Date | string
   }
 
   export type UserOrganizationUpdateWithoutOrganizationInput = {
@@ -11107,6 +12801,39 @@ export namespace Prisma {
     approved?: BoolFieldUpdateOperationsInput | boolean
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoreInviteUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoreInviteUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoreInviteUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    store_id?: StringFieldUpdateOperationsInput | string
+    token_hash?: StringFieldUpdateOperationsInput | string
+    expires_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    used_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    revoked_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    created_by?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MobilePushTokenCreateManyUserInput = {

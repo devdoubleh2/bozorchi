@@ -48,7 +48,8 @@ const ACTIVE_OPACITY = 0.7;
 const DEBOUNCE_MS = 500;
 const MIN_SEARCH_CHARS = 3;
 
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
+const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/;
 const PHONE_REGEX = /^(\+?998|8|)\s?-?\(?\d{2}\)?\s?-?\d{3}\s?-?\d{2}\s?-?\d{2}$/;
 
 export const Register = ({ navigation }: Props) => {
@@ -156,6 +157,8 @@ export const Register = ({ navigation }: Props) => {
       newErrors.password = t("auth.passwordRequired");
     } else if (password.length < MIN_PASSWORD_LENGTH) {
       newErrors.password = t("auth.passwordMinLength");
+    } else if (!PASSWORD_COMPLEXITY_REGEX.test(password)) {
+      newErrors.password = t("auth.passwordComplexity");
     }
 
     if (!confirmPassword) {

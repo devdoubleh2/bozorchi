@@ -8,7 +8,7 @@
     "prisma"
   ],
   "scripts": {
-    "dev": "bun --hot --env-file=.env.development app.ts",
+    "dev": "bun --watch --env-file=.env.development app.ts",
     "build": "bun run generate:api && tsc && tsc-alias",
     "generate:api": "bun run generate:public && bun run generate:tenant",
     "generate:public": "bunx prisma generate --schema=prisma/schema/public.prisma",
@@ -16,7 +16,8 @@
     "generate:all": "bun run generate:api",
     "start": "bun --env-file=.env.production app.ts",
     "test": "jest",
-    "test:int": "bun test tests/integration",
+    "test:int": "NODE_ENV=test bun --env-file=.env.development test tests/integration",
+    "test:unit": "NODE_ENV=test bun test tests/unit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",

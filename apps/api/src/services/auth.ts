@@ -9,6 +9,11 @@ import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { prisma, getTenantPrisma, createTenantSchema } from "../lib/prisma";
+import {
+  hashInviteToken,
+  INVITE_ERROR,
+  INVITE_ERROR_MESSAGE,
+} from "./invites";
 import { AuthRequest } from "@/middleware/auth";
 import { Prisma } from "../generated/public/client";
 import logger from "../../logs/log";
@@ -34,7 +39,7 @@ interface RegisterData {
   phone?: string;
   currency?: string;
   organization_id?: string;
-  store_id?: string;
+  invite_token?: string;
 }
 
 interface LoginData {
@@ -70,6 +75,14 @@ interface AuthResult {
   user: AuthUser;
   token: string;
   needsOnboarding?: boolean;
+}
+
+export class InviteError extends Error {
+  readonly code = INVITE_ERROR;
+  constructor() {
+    super(INVITE_ERROR_MESSAGE);
+    this.name = "InviteError";
+  }
 }
 
 class AuthService {
@@ -142,7 +155,7 @@ class AuthService {
       address,
       phone,
       currency,
-      store_id,
+      invite_token,
     } = data;
 
     logger.info("Registration attempt", "authService", { email, role });
@@ -214,34 +227,53 @@ class AuthService {
           if (!userWithRelations)
             throw new Error("Failed to fetch created user");
 
+          const membership = await tx.userOrganization.findUnique({
+            where: { user_id: user.id },
+            include: { organization: true },
+          });
+
           const { password_hash: _, ...authUser } = userWithRelations;
           return {
-            user: authUser as AuthUser,
+            user: { ...authUser, membership } as AuthUser,
             token: this.generateToken(user.id, organization.id, store.id),
           };
         }
 
-        // User role registration
-        if (!store_id)
-          throw new Error("Store ID is required for user registration");
+        if (!invite_token)
+          throw new Error("Invite token is required for cashier registration");
 
-        const existingStoreOrg = await tx.userOrganization.findFirst({
-          where: { store_id },
-          select: { organization_id: true },
+        const invite = await tx.storeInvite.findUnique({
+          where: { token_hash: hashInviteToken(invite_token) },
         });
 
-        if (!existingStoreOrg)
-          throw new Error("Store not found or invalid store ID");
+        if (
+          !invite ||
+          invite.used_at ||
+          invite.revoked_at ||
+          invite.expires_at.getTime() <= Date.now()
+        ) {
+          throw new InviteError();
+        }
+
+        await tx.storeInvite.update({
+          where: { id: invite.id },
+          data: { used_at: new Date() },
+        });
 
         await tx.userOrganization.create({
           data: {
             user_id: user.id,
-            organization_id: existingStoreOrg.organization_id,
-            store_id,
+            organization_id: invite.organization_id,
+            store_id: invite.store_id,
             role: "user",
-            approved: true,
+            approved: false,
           },
           select: { id: true },
+        });
+
+        const membership = await tx.userOrganization.findUnique({
+          where: { user_id: user.id },
+          include: { organization: true },
         });
 
         const userWithRelations = await tx.user.findUnique({
@@ -253,8 +285,8 @@ class AuthService {
 
         const { password_hash: _, ...authUser } = userWithRelations;
         return {
-          user: authUser as AuthUser,
-          token: this.generateToken(user.id, existingStoreOrg.organization_id, store_id),
+          user: { ...authUser, membership } as AuthUser,
+          token: this.generateToken(user.id, invite.organization_id, invite.store_id),
         };
       },
       { maxWait: 10000, timeout: 120000 }

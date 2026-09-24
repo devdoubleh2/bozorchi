@@ -192,6 +192,18 @@ exports.Prisma.UserOrganizationScalarFieldEnum = {
   updated_at: 'updated_at'
 };
 
+exports.Prisma.StoreInviteScalarFieldEnum = {
+  id: 'id',
+  organization_id: 'organization_id',
+  store_id: 'store_id',
+  token_hash: 'token_hash',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  revoked_at: 'revoked_at',
+  created_by: 'created_by',
+  created_at: 'created_at'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -236,7 +248,8 @@ exports.Prisma.ModelName = {
   UserAuthIdentity: 'UserAuthIdentity',
   MobilePushToken: 'MobilePushToken',
   PasswordResetToken: 'PasswordResetToken',
-  UserOrganization: 'UserOrganization'
+  UserOrganization: 'UserOrganization',
+  StoreInvite: 'StoreInvite'
 };
 
 /**

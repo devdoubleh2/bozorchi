@@ -469,11 +469,12 @@
     "nameRequired": "Имя обязательно",
     "invalidEmail": "Пожалуйста, введите корректный email",
     "passwordRequired": "Пароль обязателен",
-    "passwordMinLength": "Пароль должен быть не менее 6 символов",
+    "passwordMinLength": "Пароль должен содержать не менее 8 символов",
     "confirmPasswordRequired": "Подтверждение пароля обязательно",
     "passwordsDoNotMatch": "Пароли не совпадают",
     "registrationSuccess": "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения.",
-    "unexpectedError": "Произошла непредвиденная ошибка"
+    "unexpectedError": "Произошла непредвиденная ошибка",
+    "passwordComplexity": "Пароль должен содержать заглавную и строчную буквы, а также цифру"
   },
   "currency": {
     "UZS": "сум",

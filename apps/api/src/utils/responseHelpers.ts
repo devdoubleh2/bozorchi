@@ -9,6 +9,7 @@ interface SuccessResponse<T> {
 interface FailResponse {
   status: "fail";
   message: string;
+  code?: string;
   errors?: Array<{ path: string; message: string }>;
 }
 
@@ -32,9 +33,11 @@ export function sendFail(
   res: Response,
   message: string,
   statusCode: number = 400,
-  errors?: Array<{ path: string; message: string }>
+  errors?: Array<{ path: string; message: string }>,
+  code?: string
 ): Response {
   const response: FailResponse = { status: "fail", message };
+  if (code) response.code = code;
   if (errors) response.errors = errors;
   return res.status(statusCode).json(response);
 }

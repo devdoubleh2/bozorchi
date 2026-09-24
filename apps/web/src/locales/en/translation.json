@@ -980,6 +980,8 @@
         "invalidEmail": "Invalid email format",
         "passwordMismatch": "Passwords do not match",
         "passwordTooShort": "Password must be at least 8 characters",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordComplexity": "Password must contain an uppercase letter, a lowercase letter, and a number",
         "logoutSuccess": "Logged out successfully",
         "logout": "Log out",
         "rememberMe": "Remember me",

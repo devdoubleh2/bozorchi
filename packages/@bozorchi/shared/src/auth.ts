@@ -30,5 +30,5 @@ export interface RegisterData {
   address?: string;
   phone?: string;
   currency?: string;
-  store_id?: string;
+  invite_token?: string;
 }

@@ -212,6 +212,8 @@ const rateLimitMaxRequests = parseInt(
 const rateLimitSkipSuccessfulRequests =
   process.env["RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS"] !== "false";
 
+const isTestEnv = process.env["NODE_ENV"] === "test";
+
 const limiter = rateLimit({
   windowMs: rateLimitWindowMs, // 1 minute by default
   max: rateLimitMaxRequests,
@@ -222,7 +224,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   skipSuccessfulRequests: rateLimitSkipSuccessfulRequests,
   handler: (req, res, _next, options) => {
-    void log.warn("rateLimit", "Rate limit exceeded", {
+   log.warn("rateLimit", "Rate limit exceeded", {
       method: req.method,
       path: req.originalUrl,
       ip: req.ip,
@@ -238,7 +240,9 @@ const limiter = rateLimit({
   },
 });
 
-app.use(limiter);
+if (!isTestEnv) {
+  app.use(limiter);
+}
 
 app.use(cookie());
 
@@ -261,7 +265,7 @@ app.use(timeout("1m"));
 
 if (process.env["NODE_ENV"] === "development") {
   app.use(morgan("dev"));
-} else {
+} else if (!isTestEnv) {
   app.use(morgan("combined"));
 }
 
@@ -286,8 +290,10 @@ function haltOnTimedout(
 app.use(haltOnTimedout);
 
 // Apply strict rate limiting to auth routes
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/register", authLimiter);
+if (!isTestEnv) {
+  app.use("/api/auth/login", authLimiter);
+  app.use("/api/auth/register", authLimiter);
+}
 
 app.use("/api/auth", authRouter);
 app.use("/api/stores", storesRouter);
@@ -395,7 +401,7 @@ app.use(
     const isDev = process.env["NODE_ENV"] === "development";
 
     // Log the error
-    void log.error("errorHandler", err.message, {
+   log.error("errorHandler", err.message, {
       method: req.method,
       path: req.originalUrl,
       ip: req.ip,
@@ -509,11 +515,11 @@ async function startServer() {
     };
 
     process.once("SIGINT", () => {
-      void handleShutdown("SIGINT");
+     handleShutdown("SIGINT");
     });
 
     process.once("SIGTERM", () => {
-      void handleShutdown("SIGTERM");
+     handleShutdown("SIGTERM");
     });
   } catch (error) {
     console.error("❌ Failed to connect to database:", error);

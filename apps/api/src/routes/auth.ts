@@ -22,10 +22,10 @@ router.post(
   createAuthHandler((req, res) => authController.register(req, res))
 );
 
-// Get profile endpoint
+// Get profile endpoint (pending members allowed: identity read for waiting UI)
 router.get(
   "/profile",
-  createAuthMiddleware({ requireStore: false }),
+  createAuthMiddleware({ requireStore: false, allowPending: true }),
   createAuthHandler((req, res) => authController.getProfile(req, res))
 );
 

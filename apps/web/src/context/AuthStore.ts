@@ -18,8 +18,49 @@ import type {
   RegisterData,
   Store,
 } from "@/types/auth";
+import { resolveEffectiveRole } from "@/types/auth";
 import { parseApiError, type ParsedApiError } from "@/lib/utils";
 import { toast } from "sonner";
+
+// ============================================================================
+// OWNER (CREATE STORE) REGISTRATION TYPES
+// ============================================================================
+
+export interface OwnerSignUpData {
+  name: string;
+  email: string;
+  password: string;
+  orgName: string;
+  storeName: string;
+  address: string;
+  phone: string;
+  currency: string;
+}
+
+type OwnerPayload = Pick<RegisterData, "name" | "email" | "password"> & {
+  role: "admin";
+  organization_name: string;
+  store_name: string;
+  address: string;
+  phone: string;
+  currency: string;
+};
+
+// ============================================================================
+// CASHIER (JOIN STORE) REGISTRATION TYPES
+// ============================================================================
+
+export interface CashierSignUpData {
+  name: string;
+  email: string;
+  password: string;
+  inviteToken: string;
+}
+
+type CashierPayload = Pick<RegisterData, "name" | "email" | "password"> & {
+  role: "user";
+  invite_token: string;
+};
 
 // ============================================================================
 // TYPES
@@ -52,6 +93,14 @@ export interface AuthState {
     needsOnboarding?: boolean;
   }>;
   signUp: (data: RegisterData) => Promise<{
+    error: ParsedApiError | null;
+    user: AuthUser | null;
+  }>;
+  signUpAsOwner: (data: OwnerSignUpData) => Promise<{
+    error: ParsedApiError | null;
+    user: AuthUser | null;
+  }>;
+  signUpAsCashier: (data: CashierSignUpData) => Promise<{
     error: ParsedApiError | null;
     user: AuthUser | null;
   }>;
@@ -163,10 +212,7 @@ export const useAuthStore = create<AuthState>()(
             const membership = effectiveUser.membership;
             const isOwner = !!effectiveUser.owned_organization;
 
-            // Ensure role is properly typed
-            const role: "admin" | "user" = isOwner
-              ? "admin"
-              : ((membership?.role ?? "user") as "admin" | "user");
+            const role = resolveEffectiveRole(effectiveUser);
 
             const userStoreInfo: UserStoreInfo = {
               user_id: effectiveUser.id,
@@ -394,9 +440,7 @@ export const useAuthStore = create<AuthState>()(
             }
 
             // Build userStore from returned data
-            const role: "admin" | "user" = isOwner
-              ? "admin"
-              : ((user.membership?.role ?? "user") as "admin" | "user");
+            const role = resolveEffectiveRole(user);
 
             const userStoreInfo: UserStoreInfo = {
               user_id: user.id,
@@ -415,8 +459,38 @@ export const useAuthStore = create<AuthState>()(
 
             return { success: true, error: null };
           } catch (error) {
-            return { success: false, error: parseApiError(error) };
+            return { user: null, error: parseApiError(error) };
           }
+        },
+
+        // Sign up as owner (create store)
+        signUpAsOwner: async (data) => {
+          const payload: OwnerPayload = {
+            name: data.name,
+            email: data.email.trim(),
+            password: data.password,
+            role: "admin",
+            organization_name: data.orgName.trim(),
+            store_name: data.storeName.trim(),
+            address: data.address.trim(),
+            phone: data.phone.replace(/\D/g, ""),
+            currency: data.currency,
+          };
+
+          return get().signUp(payload);
+        },
+
+        // Sign up as cashier (join store via invite)
+        signUpAsCashier: async (data) => {
+          const payload: CashierPayload = {
+            name: data.name,
+            email: data.email.trim(),
+            password: data.password,
+            role: "user",
+            invite_token: data.inviteToken.trim(),
+          };
+
+          return get().signUp(payload);
         },
       };
     },
