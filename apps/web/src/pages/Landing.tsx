@@ -95,7 +95,7 @@ const COMPARISON_ROWS = [
     oldKey: "landing.compare.rows.staff.old",
     old: "Shared passwords",
     bigKey: "landing.compare.rows.staff.big",
-    big: "Admin-heavy",
+    big: "Owner-heavy",
   },
   {
     labelKey: "landing.compare.rows.owner.label",

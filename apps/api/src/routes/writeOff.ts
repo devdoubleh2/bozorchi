@@ -32,7 +32,7 @@ router.get(
   createAuthHandler(writeOffController.getWriteOffSummary)
 );
 
-// DELETE /api/write-offs/:id - Delete/reverse write-off (admin only, within 24 hours)
+// DELETE /api/write-offs/:id - Delete/reverse write-off (owner only, within 24 hours)
 router.delete(
   "/:id",
   requireManageInventory,

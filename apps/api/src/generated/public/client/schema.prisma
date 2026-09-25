@@ -103,7 +103,7 @@ model UserOrganization {
   user_id         String       @unique
   organization_id String
   store_id        String
-  role            Role         @default(user)
+  role            Role         @default(cashier)
   permissions     Permission[]
   approved        Boolean      @default(false)
   created_at      DateTime     @default(now())
@@ -154,6 +154,6 @@ enum SubscriptionStatus {
 }
 
 enum Role {
-  admin
-  user
+  owner
+  cashier
 }

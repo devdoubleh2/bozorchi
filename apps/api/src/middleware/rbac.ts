@@ -1,12 +1,12 @@
 import { RequestHandler, Response, NextFunction } from "express";
 import { Permission } from "../generated/public/client";
-import { AuthRequest, isEffectiveAdmin, requestMembershipRole } from "./auth";
+import { AuthRequest, isOwner } from "./auth";
 
 /**
- * Middleware to check staff-management access: owners (organization owner
- * link) OR admin memberships. Cashiers are denied.
+ * Middleware to check staff-management access: owners only (organization
+ * owner link). Cashiers are denied even with broad feature permissions.
  */
-export const requireAdmin = async (
+export const requireOwner = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -36,12 +36,10 @@ export const requireAdmin = async (
       return;
     }
 
-    if (
-      !isEffectiveAdmin(req.user, requestMembershipRole(req))
-    ) {
+    if (!isOwner(req.user)) {
       res.status(403).json({
         error: "Access denied",
-        message: "Admin privileges required",
+        message: "Owner privileges required",
       });
       return;
     }
@@ -68,7 +66,7 @@ const userHasPermission = (
     return false;
   }
 
-  if (isEffectiveAdmin(req.user, requestMembershipRole(req))) {
+  if (isOwner(req.user)) {
     return true;
   }
 

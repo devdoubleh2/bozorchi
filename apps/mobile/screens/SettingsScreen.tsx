@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   }, [navigation]);
 
   const staffSubtitle = useMemo(() => {
-    if (storeData?.role === "admin") {
+    if (storeData?.role === "owner") {
       return t("staff.manageTeam");
     }
     if (!storeData?.approved) {
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
   }, [storeData?.role, storeData?.approved, t]);
 
   const staffSubtitleColor =
-    storeData?.role === "admin" || storeData?.approved
+    storeData?.role === "owner" || storeData?.approved
       ? colors.textSecondary
       : colors.warning;
 

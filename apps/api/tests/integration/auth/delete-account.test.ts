@@ -29,16 +29,16 @@ describe("DELETE /api/auth/me safeguards", () => {
     const api = request(server);
 
     try {
-      const adminEmail = faker.internet.email();
-      const adminPassword = "Password123!";
+      const ownerEmail = faker.internet.email();
+      const ownerPassword = "Password123!";
 
-      const adminRegisterRes = await api
+      const ownerRegisterRes = await api
         .post("/api/auth/register")
         .send({
           name: faker.person.fullName(),
-          email: adminEmail,
-          password: adminPassword,
-          role: "admin",
+          email: ownerEmail,
+          password: ownerPassword,
+          role: "owner",
           organization_name: faker.company.name(),
           store_name: faker.company.name(),
           address: faker.location.streetAddress(),
@@ -46,30 +46,30 @@ describe("DELETE /api/auth/me safeguards", () => {
           currency: "UZS",
         });
 
-      expect(adminRegisterRes.status).toBe(201);
-      const adminCookie = extractTokenCookie(
-        adminRegisterRes.headers["set-cookie"] as string[] | undefined
+      expect(ownerRegisterRes.status).toBe(201);
+      const ownerCookie = extractTokenCookie(
+        ownerRegisterRes.headers["set-cookie"] as string[] | undefined
       );
-      const adminUserId = adminRegisterRes.body.data.user.id as string;
+      const ownerUserId = ownerRegisterRes.body.data.user.id as string;
 
-      const adminMembership = await prisma.userOrganization.findUnique({
-        where: { user_id: adminUserId },
+      const ownerMembership = await prisma.userOrganization.findUnique({
+        where: { user_id: ownerUserId },
       });
-      expect(adminMembership).not.toBeNull();
-      if (!adminMembership) {
-        throw new Error("Admin membership was not created");
+      expect(ownerMembership).not.toBeNull();
+      if (!ownerMembership) {
+        throw new Error("Owner membership was not created");
       }
 
-      const tenantPrisma = await getTenantPrisma(adminMembership.organization_id);
+      const tenantPrisma = await getTenantPrisma(ownerMembership.organization_id);
       const storeBeforeDelete = await tenantPrisma.store.findUnique({
-        where: { id: adminMembership.store_id },
+        where: { id: ownerMembership.store_id },
       });
       expect(storeBeforeDelete).not.toBeNull();
 
       const inviteRes = await api
         .post("/api/staff/invites")
-        .set("Cookie", [adminCookie])
-        .send({ store_id: adminMembership.store_id });
+        .set("Cookie", [ownerCookie])
+        .send({ store_id: ownerMembership.store_id });
       expect(inviteRes.status).toBe(201);
 
       const staffRegisterRes = await api
@@ -87,7 +87,7 @@ describe("DELETE /api/auth/me safeguards", () => {
 
       const assignmentsRes = await api
         .get("/api/staff/assignments")
-        .set("Cookie", [adminCookie]);
+        .set("Cookie", [ownerCookie]);
       expect(assignmentsRes.status).toBe(200);
       const pending = assignmentsRes.body.pending as Array<{ id: string }>;
       expect(pending.length).toBeGreaterThanOrEqual(1);
@@ -101,7 +101,7 @@ describe("DELETE /api/auth/me safeguards", () => {
 
       const approveRes = await api
         .post(`/api/staff/assignments/${assignmentId}/approve`)
-        .set("Cookie", [adminCookie]);
+        .set("Cookie", [ownerCookie]);
       expect(approveRes.status).toBe(200);
 
       const staffCookie = extractTokenCookie(
@@ -114,7 +114,7 @@ describe("DELETE /api/auth/me safeguards", () => {
       expect(deleteMeRes.status).toBe(200);
 
       const storeAfterDelete = await tenantPrisma.store.findUnique({
-        where: { id: adminMembership.store_id },
+        where: { id: ownerMembership.store_id },
       });
       expect(storeAfterDelete).not.toBeNull();
 
@@ -124,12 +124,12 @@ describe("DELETE /api/auth/me safeguards", () => {
       expect(deletedStaff).toBeNull();
 
       const ownerStillExists = await prisma.user.findUnique({
-        where: { id: adminUserId },
+        where: { id: ownerUserId },
       });
       expect(ownerStillExists).not.toBeNull();
 
       const ownerMembershipAfterDelete = await prisma.userOrganization.findUnique({
-        where: { user_id: adminUserId },
+        where: { user_id: ownerUserId },
       });
       expect(ownerMembershipAfterDelete).not.toBeNull();
     } finally {

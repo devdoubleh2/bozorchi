@@ -52,15 +52,15 @@ export default function StoreSwitcherCompact({
   const userStore = useAuthContext((state) => state.userStore);
   const switchStore = useAuthContext((state) => state.switchStore);
 
-  // Check if user is admin based on userStore role or organization ownership
-  const isAdmin =
-    userStore?.role === "admin" || !!user?.owned_organization;
+  // Check if user is owner based on userStore role or organization ownership
+  const isOwnerRole =
+    userStore?.role === "owner" || !!user?.owned_organization;
 
-  // Only fetch stores for admins
+  // Only fetch stores for owners
   const { data: storesResponse } = useQuery({
     queryKey: ["stores"],
     queryFn: () => api.get<{ stores: Store[] }>("/api/stores"),
-    enabled: !!isAdmin,
+    enabled: !!isOwnerRole,
   });
 
   const stores = storesResponse?.stores || [];
@@ -222,8 +222,8 @@ export default function StoreSwitcherCompact({
     [activeStore?.id, colors, isLoading]
   );
 
-  // Non-admin: show static badge
-  if (!isAdmin) {
+  // Cashier: show static badge
+  if (!isOwnerRole) {
     return (
       <View
         style={[

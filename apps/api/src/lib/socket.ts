@@ -120,7 +120,7 @@ export interface InventoryUpdateEvent {
 // ==================== Event Emitters ====================
 
 /**
- * Emit inventory update to store room (for POS clients and admin)
+ * Emit inventory update to store room (for POS clients and owners)
  */
 export const emitInventoryUpdate = (event: InventoryUpdateEvent) => {
     try {

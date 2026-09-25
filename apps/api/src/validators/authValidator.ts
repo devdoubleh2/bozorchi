@@ -18,14 +18,18 @@ const baseRegisterSchema = z.object({
   password: passwordSchema,
 });
 
+const privilegedRegisterSchema = {
+  organization_name: z.string().min(1, "Organization name is required"),
+  store_name: z.string().min(1, "Store name is required"),
+  address: z.string().min(1, "Address is required"),
+  currency: z.string().min(1, "Currency is required"),
+  phone: z.string().min(1, "Phone is required"),
+};
+
 export const registerSchema = z.discriminatedUnion("role", [
   baseRegisterSchema.extend({
-    role: z.literal("admin"),
-    organization_name: z.string().min(1, "Organization name is required"),
-    store_name: z.string().min(1, "Store name is required"),
-    address: z.string().min(1, "Address is required"),
-    currency: z.string().min(1, "Currency is required"),
-    phone: z.string().min(1, "Phone is required"),
+    role: z.literal("owner"),
+    ...privilegedRegisterSchema,
   }),
   baseRegisterSchema.extend({
     role: z.literal("cashier"),

@@ -55,8 +55,8 @@ const useStaffData = () => {
     () => ({
       storeId: storeData?.store?.id ?? null,
       storeName: storeData?.store?.name?.trim() || null,
-      isAdmin: storeData?.role === "admin",
-      isApproved: storeData?.approved || storeData?.role === "admin",
+      isOwnerRole: storeData?.role === "owner",
+      isApproved: storeData?.approved || storeData?.role === "owner",
       role: storeData?.role,
       storeData,
     }),
@@ -64,15 +64,15 @@ const useStaffData = () => {
   );
 };
 
-const useStaffAssignments = (isAdmin: boolean, storeId: string | null) => {
+const useStaffAssignments = (isOwnerRole: boolean, storeId: string | null) => {
   return useQuery({
     queryKey: [...QUERY_KEYS.staffAssignments, storeId],
     queryFn: async () =>
       api.get<StaffAssignmentsResponse>("/api/staff/assignments"),
-    enabled: isAdmin && !!storeId,
+    enabled: isOwnerRole && !!storeId,
     staleTime: 0,
     gcTime: 300000,
-    refetchInterval: isAdmin ? 5000 : false,
+    refetchInterval: isOwnerRole ? 5000 : false,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   });
@@ -154,7 +154,7 @@ const ActionButton: React.FC<ActionButtonConfig & { colors: any }> = ({
 interface StaffCardHeaderProps {
   storeName: string;
   role: string;
-  isAdmin: boolean;
+  isOwnerRole: boolean;
   onSharePress: () => void;
   colors: any;
   t: any;
@@ -341,11 +341,11 @@ export default function StaffScreen() {
     Record<string, AssignmentAction>
   >({});
 
-  const { storeId, storeName, isAdmin, isApproved, role, storeData } =
+  const { storeId, storeName, isOwnerRole, isApproved, role, storeData } =
     useStaffData();
 
   const { data: assignments, isFetching, refetch } = useStaffAssignments(
-    isAdmin,
+    isOwnerRole,
     storeId
   );
   const { approveMutation, removeMutation } = useStaffMutations();
@@ -432,7 +432,7 @@ export default function StaffScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      if (isAdmin) {
+      if (isOwnerRole) {
         await Promise.all([getStore(), refetch()]);
       } else {
         await getStore();
@@ -442,7 +442,7 @@ export default function StaffScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [getStore, isAdmin, queryClient, t]);
+  }, [getStore, isOwnerRole, queryClient, t]);
 
   const statusConfig = useMemo(
     () => ({
@@ -455,10 +455,10 @@ export default function StaffScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (isAdmin) {
+      if (isOwnerRole) {
         refetch();
       }
-    }, [isAdmin, refetch])
+    }, [isOwnerRole, refetch])
   );
 
   const renderAssignmentsList = useCallback(
@@ -500,7 +500,7 @@ export default function StaffScreen() {
       testID="staff-screen"
     >
       {/* Seller Status Card */}
-      {!isAdmin && (
+      {!isOwnerRole && (
         <View
           style={[
             styles.card,
@@ -555,8 +555,8 @@ export default function StaffScreen() {
         </View>
       )}
 
-      {/* Admin: Pending Requests */}
-      {isAdmin && (
+      {/* Owner: Pending Requests */}
+      {isOwnerRole && (
         <View
           style={[
             styles.card,
@@ -576,8 +576,8 @@ export default function StaffScreen() {
         </View>
       )}
 
-      {/* Admin: Current Staff */}
-      {isAdmin && (
+      {/* Owner: Current Staff */}
+      {isOwnerRole && (
         <View
           style={[
             styles.card,

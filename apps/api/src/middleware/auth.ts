@@ -68,23 +68,13 @@ export interface AuthMiddlewareOptions {
 export const isOwner = (user: UserWithRelations): boolean =>
   !!user.owned_organization;
 
-/** True when the membership row itself carries the admin role. */
-export const isAdminRole = (
-  membershipRole?: Role | string | null
-): boolean => membershipRole === Role.admin;
-
 export const resolveUserRole = (
   user: Pick<UserWithRelations, "owned_organization">,
   membershipRole?: Role | string | null
 ): Role =>
-  isOwner(user as UserWithRelations) || isAdminRole(membershipRole)
-    ? Role.admin
-    : Role.user;
-
-export const isEffectiveAdmin = (
-  user: Pick<UserWithRelations, "owned_organization">,
-  membershipRole?: Role | string | null
-): boolean => isOwner(user as UserWithRelations) || isAdminRole(membershipRole);
+  isOwner(user as UserWithRelations) || membershipRole === Role.owner
+    ? Role.owner
+    : Role.cashier;
 
 /** Stored membership role for this request, falling back to the resolved role. */
 export const requestMembershipRole = (
@@ -199,7 +189,7 @@ export const createAuthMiddleware =
           membership: membership ?? null,
         };
         authReq.user = normalizedUser;
-        // User is admin if they own the organization OR have admin role in membership
+        // Owner link is the only privilege signal; membership holds cashier otherwise.
         authReq.userRole = resolveUserRole(normalizedUser, membership?.role);
 
         // Determine organization
@@ -260,19 +250,19 @@ export const createAuthMiddleware =
 
         // Select active store
         if (requireStore) {
-          const isOwnerOrAdmin = isEffectiveAdmin(normalizedUser, membership?.role);
+          const isOwnerLink = isOwner(normalizedUser);
 
           logger.debug("Store resolution:", "authMiddleware", {
             organizationId: organization.id,
-            isOwnerOrAdmin,
+            isOwnerLink,
             activeStoreIdFromToken: decoded.activeStoreId,
             assignedStoreId: membership.store_id,
           });
 
           let store = null;
 
-          if (isOwnerOrAdmin) {
-            // Owners/admins: use activeStoreId from JWT token (session-based)
+          if (isOwnerLink) {
+            // Owners: use activeStoreId from JWT token (session-based)
             const activeStoreId = decoded.activeStoreId;
 
             if (activeStoreId) {
@@ -287,12 +277,12 @@ export const createAuthMiddleware =
             // Fallback to first store if no activeStoreId or store not found
             if (!store && authReq.userStores.length > 0) {
               store = authReq.userStores[0];
-              logger.debug("Using first store as fallback for owner/admin", "authMiddleware", {
+              logger.debug("Using first store as fallback for owner", "authMiddleware", {
                 storeId: store?.id,
               });
             }
           } else {
-            // Regular users: use their assigned store_id from database
+            // Cashiers: use their assigned store_id from database
             store = membership.store_id
               ? await authReq.tenantPrisma.store.findUnique({
                 where: {

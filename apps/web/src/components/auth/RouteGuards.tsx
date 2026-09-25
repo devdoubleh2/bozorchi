@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "react-i18next";
 import type { Role, Permission } from "@/types/auth";
-import { isEffectiveAdmin } from "@/types/auth";
+import { isOwner } from "@/types/auth";
 
 interface RequireRoleProps {
   children: React.ReactNode;
@@ -54,8 +54,8 @@ const ForbiddenPage = ({
     t(PERMISSION_LABEL_KEYS[permission], { defaultValue: permission })
   );
   const roleLabels = roles.map((role) =>
-    role === "admin"
-      ? t("auth.roleAdmin", { defaultValue: "Admin" })
+    role === "owner"
+      ? t("auth.roleOwner", { defaultValue: "Owner" })
       : t("auth.roleCashier", { defaultValue: "Cashier" })
   );
 
@@ -82,7 +82,7 @@ const ForbiddenPage = ({
       <p className="text-center text-muted-foreground max-w-md">
         {t(
           "auth.accessDeniedMessage",
-          "You don't have permission to access this page. Please contact your administrator if you believe this is a mistake."
+          "You don't have permission to access this page. Please contact your owner if you believe this is a mistake."
         )}
       </p>
       {permissionLabels.length > 0 && (
@@ -115,8 +115,8 @@ const ForbiddenPage = ({
  *
  * Usage:
  * ```tsx
- * <RequireRole allowedRoles={["admin"]}>
- *   <AdminSettings />
+ * <RequireRole allowedRoles={["owner"]}>
+ *   <OwnerSettings />
  * </RequireRole>
  * ```
  */
@@ -159,7 +159,7 @@ export function RequireRole({
 /**
  * Route guard that checks user permissions.
  *
- * For admin users, all permissions are granted automatically.
+ * For owners, all permissions are granted automatically.
  *
  * Usage:
  * ```tsx
@@ -196,12 +196,12 @@ export function RequirePermission({
     );
   }
 
-  // Owners and admin memberships hold every permission.
-  if (isEffectiveAdmin(user)) {
+  // Owners hold every permission.
+  if (isOwner(user)) {
     return <>{children}</>;
   }
 
-  // Check permissions for non-admin users
+  // Check permissions for cashiers
   const userPermissions =
     (userStore as { permissions?: Permission[] }).permissions ?? [];
 
@@ -231,7 +231,7 @@ export function RequirePermission({
  *
  * Usage:
  * ```tsx
- * <RequireAccess roles={["admin", "cashier"]} permissions={["VIEW_ANALYTICS"]}>
+ * <RequireAccess roles={["owner", "cashier"]} permissions={["VIEW_ANALYTICS"]}>
  *   <Analytics />
  * </RequireAccess>
  * ```
@@ -274,8 +274,8 @@ export function RequireAccess({
     }
   }
 
-  // Check permissions if specified (owners and admin memberships bypass)
-  if (permissions && permissions.length > 0 && !isEffectiveAdmin(user)) {
+  // Check permissions if specified (owners bypass)
+  if (permissions && permissions.length > 0 && !isOwner(user)) {
     const userPermissions =
       (userStore as { permissions?: Permission[] }).permissions ?? [];
     const hasPermission = requireAllPermissions

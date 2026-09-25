@@ -229,8 +229,8 @@ exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
 };
 
 exports.Role = exports.$Enums.Role = {
-  admin: 'admin',
-  user: 'user'
+  owner: 'owner',
+  cashier: 'cashier'
 };
 
 exports.Permission = exports.$Enums.Permission = {

@@ -320,8 +320,8 @@ const InventoryTable = () => {
     staleTime: 1000 * 60 * 15,
   });
 
-  // Check if user is admin/owner to enable stores query (matches StoreSwitcher)
-  const isAdmin = user?.membership?.role === "admin" || !!user?.owned_organization;
+  // Check if user is owner to enable stores query (matches StoreSwitcher)
+  const isOwnerRole = !!user?.owned_organization;
 
   // Fetch all stores with higher limit (use different cache key than StoreSwitcher to ensure limit works)
   const allStoresQuery = useQuery({
@@ -332,7 +332,7 @@ const InventoryTable = () => {
       }>("/api/stores?limit=100");
       return response.stores ?? [];
     },
-    enabled: !!isAdmin && !!storeId,
+    enabled: !!isOwnerRole && !!storeId,
     staleTime: 1000 * 60 * 30,
   });
 

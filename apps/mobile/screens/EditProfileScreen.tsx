@@ -184,10 +184,10 @@ export default function EditProfileScreen() {
       return;
     }
 
-    // Validate store name if admin
+    // Validate store name if owner
     if (
       storeData?.store &&
-      storeData?.role === "admin" &&
+      storeData?.role === "owner" &&
       formData.storeName.trim().length === 0
     ) {
       setErrors((prev) => ({
@@ -201,11 +201,11 @@ export default function EditProfileScreen() {
     const emailChanged = formData.email !== user?.email;
     const storeNameChanged =
       storeData?.store &&
-      storeData?.role === "admin" &&
+      storeData?.role === "owner" &&
       formData.storeName !== storeData.store.name;
     const storeCurrencyChanged =
       storeData?.store &&
-      storeData?.role === "admin" &&
+      storeData?.role === "owner" &&
       formData.currency !== storeData.store.currency;
 
     if (!emailChanged && !storeNameChanged && !storeCurrencyChanged) {
@@ -221,10 +221,10 @@ export default function EditProfileScreen() {
         });
       }
 
-      // Update store if store data changed and user is admin
+      // Update store if store data changed and user is owner
       if (
         storeData?.store &&
-        storeData?.role === "admin" &&
+        storeData?.role === "owner" &&
         (storeNameChanged || storeCurrencyChanged)
       ) {
         await updateStoreMutation.mutateAsync({
@@ -255,8 +255,8 @@ export default function EditProfileScreen() {
 
   const getRoleDisplay = useCallback(
     (role?: string) => {
-      if (role === "admin") return t("profile.roleAdmin");
-      if (role === "user") return t("profile.roleUser");
+      if (role === "owner") return t("profile.roleOwner", { defaultValue: "Owner" });
+      if (role === "cashier") return t("profile.roleCashier", { defaultValue: "Cashier" });
       return role || t("common.notSpecified");
     },
     [t]
@@ -339,8 +339,8 @@ export default function EditProfileScreen() {
         </View>
       </View>
 
-      {/* Store Information - Editable for Admin */}
-      {storeData?.store && storeData?.role === "admin" && (
+      {/* Store Information - Editable for Owner */}
+      {storeData?.store && storeData?.role === "owner" && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
             {t("profile.editStoreInfo")}
@@ -424,7 +424,7 @@ export default function EditProfileScreen() {
       )}
 
       {/* Store Information - Read-only for Users */}
-      {storeData?.store && storeData?.role !== "admin" && (
+      {storeData?.store && storeData?.role !== "owner" && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
             {t("profile.storeInfo")}

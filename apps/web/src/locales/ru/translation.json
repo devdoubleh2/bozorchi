@@ -969,7 +969,7 @@
     "registerSubtitle": "Создайте аккаунт и начните настройку магазина за несколько минут.",
     "alreadySignedIn": "Вы уже вошли в систему.",
     "nameRequired": "Имя обязательно",
-    "roleAdmin": "Администратор",
+    "roleOwner": "Владелец",
     "roleCashier": "Кассир"
   },
   "currency": {
@@ -1346,7 +1346,7 @@
     "photoLibraryPermissionRequired": "Требуется доступ к фотогалерее",
     "photoLibrarySavePermissionRequired": "Требуется разрешение на сохранение фотографий",
     "accessDenied": "Доступ запрещен",
-    "adminOnly": "Только для администратора",
+    "ownerOnly": "Только для владельца",
     "dateRangeLimited": "Данные за 1 неделю",
     "sessionExpired": "Сессия истекла. Пожалуйста, войдите снова.",
     "failedToLoadStoreTypes": "Не удалось загрузить типы магазинов",
@@ -1385,7 +1385,7 @@
     "inactive": "Неактивен",
     "storeInfo": "Информация о магазине",
     "yourRole": "Ваша роль",
-    "roleAdmin": "Администратор",
+    "roleOwner": "Владелец",
     "roleUser": "Пользователь",
     "roleOwner": "Владелец",
     "roleCashier": "Кассир",
@@ -1999,7 +1999,7 @@
   },
   "staff": {
     "storeId": "ID магазина",
-    "roleAdmin": "Владелец",
+    "roleOwner": "Владелец",
     "roleSeller": "Продавец",
     "manageTeam": "Управляйте доступом сотрудников к магазину",
     "statusApproved": "Доступ подтверждён",

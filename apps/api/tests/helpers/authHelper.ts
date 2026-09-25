@@ -19,7 +19,7 @@ export const extractTokenCookie = (
 
 export class AuthHelper {
     static async createAndLoginUser() {
-        // Admin registration details
+        // Owner registration details
         const email = faker.internet.email();
         const password = "Password123!"; // Strong password
         const name = faker.person.fullName();
@@ -28,11 +28,11 @@ export class AuthHelper {
         const phone = faker.phone.number();
         const address = faker.location.streetAddress();
 
-        // Register as Admin
+        // Register as Owner
         const registerResponse = await request(app)
             .post("/api/auth/register")
             .send({
-                role: "admin",
+                role: "owner",
                 email,
                 password,
                 name,

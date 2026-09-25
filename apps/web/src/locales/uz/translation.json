@@ -977,7 +977,7 @@
     "registerSubtitle": "Hisob yarating va do'konni bir necha daqiqada sozlang.",
     "alreadySignedIn": "Siz allaqachon kirgansiz.",
     "nameRequired": "Ism majburiy",
-    "roleAdmin": "Administrator",
+    "roleOwner": "Owner",
     "roleCashier": "Kassir"
   },
   "currency": {
@@ -1372,7 +1372,7 @@
     "photoLibraryPermissionRequired": "Foto kutubxonasiga ruxsat talab qilinadi",
     "photoLibrarySavePermissionRequired": "Rasmlarni saqlash uchun ruxsat talab qilinadi",
     "accessDenied": "Kirish rad etildi",
-    "adminOnly": "Faqat administrator uchun",
+    "ownerOnly": "Faqat ega uchun",
     "dateRangeLimited": "1 hafta uchun ma'lumotlar",
     "sessionExpired": "Sessiya muddati tugadi. Iltimos, qayta kiring.",
     "failedToLoadStoreTypes": "Do'kon turlarini yuklashda xatolik",
@@ -1411,7 +1411,7 @@
     "inactive": "Nofaol",
     "storeInfo": "Do'kon ma'lumotlari",
     "yourRole": "Sizning rolingiz",
-    "roleAdmin": "Administrator",
+    "roleOwner": "Owner",
     "roleUser": "Foydalanuvchi",
     "roleOwner": "Ega",
     "roleCashier": "Kassir",
@@ -2018,7 +2018,7 @@
   },
   "staff": {
     "storeId": "Do‘kon ID",
-    "roleAdmin": "Ega",
+    "roleOwner": "Ega",
     "roleSeller": "Sotuvchi",
     "manageTeam": "Xodimlarning do‘konga kirishini boshqaring",
     "statusApproved": "Kirish tasdiqlandi",
@@ -2183,7 +2183,7 @@
           "label": "Xodim kirishi",
           "bozorchi": "Rollar bo'yicha ruxsat",
           "old": "Umumiy parollar",
-          "big": "Ko'p administratsiya"
+          "big": "Ko'p boshqaruv"
         },
         "owner": {
           "label": "Ega nazorati",

@@ -1,7 +1,7 @@
 /**
  * User Seeder
  * 
- * Creates admin owner and seller employees with proper permissions.
+ * Creates owner and cashier employees with proper permissions.
  */
 
 import { prisma, createTenantSchema, getTenantPrisma } from "../../../src/lib/prisma";
@@ -23,24 +23,24 @@ export async function seedUsers(): Promise<UserSeedResult> {
     logger.startOperation(OPERATION);
 
     try {
-        // 1. Check or create admin user
-        logger.info(OPERATION, `Checking admin user: ${SEED_CONFIG.admin.email}`);
+        // 1. Check or create owner user
+        logger.info(OPERATION, `Checking owner user: ${SEED_CONFIG.owner.email}`);
         let user = await prisma.user.findUnique({
-            where: { email: SEED_CONFIG.admin.email },
+            where: { email: SEED_CONFIG.owner.email },
         });
 
         if (user) {
-            logger.info(OPERATION, "Admin user already exists, using existing.");
+            logger.info(OPERATION, "Owner user already exists, using existing.");
         } else {
-            const passwordHash = await bcrypt.hash(SEED_CONFIG.admin.password, 12);
+            const passwordHash = await bcrypt.hash(SEED_CONFIG.owner.password, 12);
             user = await prisma.user.create({
                 data: {
-                    name: SEED_CONFIG.admin.name,
-                    email: SEED_CONFIG.admin.email,
+                    name: SEED_CONFIG.owner.name,
+                    email: SEED_CONFIG.owner.email,
                     password_hash: passwordHash,
                 },
             });
-            logger.info(OPERATION, `Created admin user: ${user.id}`);
+            logger.info(OPERATION, `Created owner user: ${user.id}`);
         }
 
         // 2. Check or create organization
@@ -94,21 +94,21 @@ export async function seedUsers(): Promise<UserSeedResult> {
             logger.info(OPERATION, "Store already exists, using existing.");
         }
 
-        // 5. Link admin to organization
-        const existingAdminLink = await prisma.userOrganization.findFirst({
+        // 5. Link owner to organization
+        const existingOwnerLink = await prisma.userOrganization.findFirst({
             where: {
                 user_id: user.id,
                 organization_id: org.id,
             },
         });
 
-        if (!existingAdminLink) {
+        if (!existingOwnerLink) {
             await prisma.userOrganization.create({
                 data: {
                     user_id: user.id,
                     organization_id: org.id,
                     store_id: store.id,
-                    role: Role.admin,
+                    role: Role.owner,
                     approved: true,
                     permissions: [
                         Permission.POS_ACCESS,
@@ -119,12 +119,12 @@ export async function seedUsers(): Promise<UserSeedResult> {
                     ],
                 },
             });
-            logger.info(OPERATION, "Linked admin to organization with full permissions.");
+            logger.info(OPERATION, "Linked owner to organization with full permissions.");
         }
 
-        // 6. Create seller employees
+        // 6. Create cashier employees
         const employeeIds: string[] = [];
-        logger.info(OPERATION, `Creating ${SEED_CONFIG.employees.count} seller employees...`);
+        logger.info(OPERATION, `Creating ${SEED_CONFIG.employees.count} cashier employees...`);
 
         for (const empData of SEED_CONFIG.employees.names) {
             let employee = await prisma.user.findUnique({
@@ -159,7 +159,7 @@ export async function seedUsers(): Promise<UserSeedResult> {
                         user_id: employee.id,
                         organization_id: org.id,
                         store_id: store.id,
-                        role: Role.user,
+                        role: Role.cashier,
                         approved: true,
                         permissions: [Permission.POS_ACCESS],
                     },
@@ -167,7 +167,7 @@ export async function seedUsers(): Promise<UserSeedResult> {
             }
         }
 
-        const totalRecords = 1 + employeeIds.length; // admin + employees
+        const totalRecords = 1 + employeeIds.length; // owner + employees
         logger.endOperation(OPERATION, totalRecords);
 
         return {

@@ -33,18 +33,18 @@ export function StoreSwitcher() {
   // Prevent race conditions - store the current switching operation
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
-  const isAdmin =
-    user?.membership?.role === "admin" || user?.owned_organization;
+  const isOwnerRole =
+    !!user?.owned_organization;
 
-  // Only organization owners and users with admin role can see/switch stores
+  // Only organization owners can see/switch stores
   const { data: storesResponse } = useQuery({
     queryKey: ["stores"],
     queryFn: () => api.get<{ stores: Store[] }>("/api/stores"),
-    enabled: !!isAdmin,
+    enabled: !!isOwnerRole,
   });
 
   const stores = React.useMemo(() => {
-    if (!isAdmin) {
+    if (!isOwnerRole) {
       if (userStore) {
         return [
           {
@@ -62,11 +62,11 @@ export function StoreSwitcher() {
       storesResponse?.stores.map((store) => ({
         id: store.id,
         name: store.name,
-        role: "admin" as const,
+        role: "owner" as const,
         store: store,
       })) || []
     );
-  }, [isAdmin, userStore, storesResponse]);
+  }, [isOwnerRole, userStore, storesResponse]);
 
   const activeStore = userStore?.store;
 
@@ -119,8 +119,8 @@ export function StoreSwitcher() {
     }
   };
 
-  // For non-admins, just show a non-interactive button
-  if (!isAdmin) {
+  // For cashiers, just show a non-interactive button
+  if (!isOwnerRole) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -136,7 +136,7 @@ export function StoreSwitcher() {
                 {activeStore?.name || "Store"}
               </span>
               <span className="truncate text-xs text-muted-foreground">
-                {userStore?.role === "admin" ? "Admin" : "User"}
+                {userStore?.role === "owner" ? "Owner" : "Cashier"}
               </span>
             </div>
           </SidebarMenuButton>
@@ -163,7 +163,7 @@ export function StoreSwitcher() {
                   {activeStore?.name || "Select Store"}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Admin
+                  Owner
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />

@@ -437,11 +437,11 @@ export class WriteOffController {
 
       const { id } = validationResult.data;
 
-      // Check admin role
-      if (req.userRole !== "admin") {
+      // Owner-only delete
+      if (!req.user?.owned_organization) {
         return res.status(403).json({
           error: "Access denied",
-          message: "Only administrators can delete write-offs",
+          message: "Only owners can delete write-offs",
         });
       }
 

@@ -253,7 +253,7 @@ export const openApiDocument: OpenApiDocument = {
     { name: "organizations", description: "Organization and public e-commerce endpoints" },
     { name: "files", description: "File uploads" },
     { name: "import", description: "Bulk import workflows" },
-    { name: "admin", description: "Staff, users, backup, and administrative utilities" },
+    { name: "owner", description: "Staff, users, backup, and owner utilities" },
     { name: "webhooks", description: "External service webhooks" },
   ],
   paths: {
@@ -779,19 +779,19 @@ export const openApiDocument: OpenApiDocument = {
     }),
 
     "/api/currencies": path({
-      get: protectedOperation(["admin"], "List currencies"),
-      post: protectedOperation(["admin"], "Create currency", {
+      get: protectedOperation(["owner"], "List currencies"),
+      post: protectedOperation(["owner"], "Create currency", {
         requestBody: body(schemaRef("CurrencyRequest")),
         responses: validationResponses,
       }),
     }),
     "/api/currencies/{id}": path({
-      put: protectedOperation(["admin"], "Update currency", {
+      put: protectedOperation(["owner"], "Update currency", {
         parameters: [idParam()],
         requestBody: body(schemaRef("CurrencyRequest"), false),
         responses: validationResponses,
       }),
-      delete: protectedOperation(["admin"], "Delete currency", {
+      delete: protectedOperation(["owner"], "Delete currency", {
         parameters: [idParam()],
         responses: validationResponses,
       }),
@@ -863,45 +863,45 @@ export const openApiDocument: OpenApiDocument = {
     }),
 
     "/api/staff/assignments": path({
-      get: protectedOperation(["admin"], "List staff assignments"),
+      get: protectedOperation(["owner"], "List staff assignments"),
     }),
     "/api/staff/assignments/{assignmentId}": path({
-      put: protectedOperation(["admin"], "Update staff assignment", {
+      put: protectedOperation(["owner"], "Update staff assignment", {
         parameters: [idParam("assignmentId", "Staff assignment identifier")],
         requestBody: body(schemaRef("StaffAssignmentRequest")),
       }),
-      delete: protectedOperation(["admin"], "Remove staff assignment", {
+      delete: protectedOperation(["owner"], "Remove staff assignment", {
         parameters: [idParam("assignmentId", "Staff assignment identifier")],
       }),
     }),
     "/api/staff/assignments/{assignmentId}/approve": path({
-      post: protectedOperation(["admin"], "Approve staff assignment (grants POS access unless permissions are provided)", {
+      post: protectedOperation(["owner"], "Approve staff assignment (grants POS access unless permissions are provided)", {
         parameters: [idParam("assignmentId", "Staff assignment identifier")],
         requestBody: body(schemaRef("ApproveAssignmentRequest")),
       }),
     }),
     "/api/staff/invites": path({
-      get: protectedOperation(["admin"], "List store invites"),
-      post: protectedOperation(["admin"], "Create store invite", {
+      get: protectedOperation(["owner"], "List store invites"),
+      post: protectedOperation(["owner"], "Create store invite", {
         requestBody: body(schemaRef("CreateInviteRequest")),
       }),
     }),
     "/api/staff/invites/{inviteId}": path({
-      delete: protectedOperation(["admin"], "Revoke store invite", {
+      delete: protectedOperation(["owner"], "Revoke store invite", {
         parameters: [idParam("inviteId", "Store invite identifier")],
       }),
     }),
     "/api/users/assign-store": path({
-      post: protectedOperation(["admin"], "Assign user to store", {
+      post: protectedOperation(["owner"], "Assign user to store", {
         requestBody: body(schemaRef("AssignStoreRequest")),
         responses: validationResponses,
       }),
     }),
     "/api/users/me": path({
-      delete: protectedOperation(["admin"], "Delete current user account"),
+      delete: protectedOperation(["owner"], "Delete current user account"),
     }),
     "/api/backup/manual": path({
-      post: protectedOperation(["admin"], "Trigger manual database backup"),
+      post: protectedOperation(["owner"], "Trigger manual database backup"),
     }),
 
     "/api/checkout/create-checkout": path({
@@ -1140,9 +1140,9 @@ export const openApiDocument: OpenApiDocument = {
           name: { type: "string", nullable: true },
           role: {
             type: "string",
-            enum: ["admin", "cashier"],
+            enum: ["owner", "cashier"],
             description:
-              "Cashier memberships are stored under the legacy 'user' value; see toStoredRole/toApiRole.",
+              "Roles are owner and cashier; see toStoredRole/toApiRole.",
           },
         },
       },
@@ -1160,7 +1160,7 @@ export const openApiDocument: OpenApiDocument = {
           {
             type: "object",
             properties: {
-              role: { type: "string", enum: ["admin"] },
+              role: { type: "string", enum: ["owner"] },
               name: { type: "string" },
               email: { type: "string", format: "email" },
               password: { type: "string", format: "password", minimum: 8 },
@@ -1658,7 +1658,7 @@ export const openApiDocument: OpenApiDocument = {
       StaffAssignmentRequest: {
         type: "object",
         properties: {
-          role: { type: "string", enum: ["admin", "cashier"] },
+          role: { type: "string", enum: ["owner", "cashier"] },
           permissions: {
             type: "array",
             items: { type: "string" },
@@ -1672,7 +1672,7 @@ export const openApiDocument: OpenApiDocument = {
         type: "object",
         properties: {
           storeId: schemaRef("Id"),
-          role: { type: "string", enum: ["admin", "cashier"] },
+          role: { type: "string", enum: ["owner", "cashier"] },
         },
         required: ["storeId"],
       },

@@ -27,7 +27,7 @@ export interface Organization {
 // USER ORGANIZATION (Membership) TYPES
 // ============================================================================
 
-export type Role = 'admin' | 'user';
+export type Role = 'owner' | 'cashier';
 
 export type Permission =
     | 'POS_ACCESS'
@@ -91,7 +91,7 @@ export interface RegisterData {
     name: string;
     email: string;
     password: string;
-    role: 'admin' | 'user';
+    role: 'owner' | 'cashier';
     organization_name?: string;
     store_name?: string;
     address?: string;

@@ -66,7 +66,7 @@ export default function AccountEditPage() {
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const storeEditable = userStore?.role === "admin";
+  const storeEditable = userStore?.role === "owner";
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -111,7 +111,7 @@ export default function AccountEditPage() {
 
   const roleLabel = useMemo(() => {
     if (isOwner(user)) return t("profile.roleOwner", { defaultValue: "Owner" });
-    if (userStore?.role === "admin") return t("profile.roleAdmin");
+    if (userStore?.role === "owner") return t("profile.roleOwner", { defaultValue: "Owner" });
     if (userStore?.role === "cashier") return t("profile.roleCashier", { defaultValue: "Cashier" });
     return userStore?.role ?? t("common.notSpecified");
   }, [user, userStore?.role, t]);

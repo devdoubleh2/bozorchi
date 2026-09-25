@@ -19,11 +19,11 @@ export class StoreHelper {
             });
 
         if (response.status !== 201) {
-            // If 403, it might be due to permissions (only admins/owners).
+            // If 403, it might be due to permissions (owners only).
             // The AuthHelper creates a user who owns an organization by default?
             // Let's check the register flow.
             // Actually, the register flow creates a user.
-            // Users need to be admins of an organization to create stores.
+            // Users need to own the organization to create stores.
             // We might need to handle organization creation if registration doesn't do it.
             // Based on AuthController, register creates a user.
             // It seems we might need to check how organizations are created or if the user is an owner.

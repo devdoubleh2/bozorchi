@@ -94,7 +94,7 @@ export function CurrencyDropdown({ className }: CurrencyDropdownProps) {
     const [deletingCurrency, setDeletingCurrency] = useState<Currency | null>(null);
     const [formData, setFormData] = useState<CurrencyFormData>(defaultFormData);
 
-    const isAdmin = userStore?.role === "admin";
+    const isOwnerRole = userStore?.role === "owner";
 
     // Fetch currencies
     const { data: currencies = [], isLoading } = useQuery({
@@ -248,7 +248,7 @@ export function CurrencyDropdown({ className }: CurrencyDropdownProps) {
     };
 
     const handleCurrencySelect = (currency: Currency) => {
-        if (!currency.is_base && isAdmin) {
+        if (!currency.is_base && isOwnerRole) {
             setBaseMutation.mutate(currency.id);
         }
         setOpen(false);
@@ -256,8 +256,8 @@ export function CurrencyDropdown({ className }: CurrencyDropdownProps) {
 
     const isPending = createMutation.isPending || updateMutation.isPending;
 
-    // Only render for admin users
-    if (!isAdmin) {
+    // Only render for owners
+    if (!isOwnerRole) {
         return null;
     }
 

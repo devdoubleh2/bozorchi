@@ -106,7 +106,7 @@ export default function StoreSetupScreen({ navigation, route }: Props) {
         "/api/users/assign-store",
         {
           storeId,
-          role: "user",
+          role: "cashier",
         }
       );
       return response;
@@ -285,7 +285,7 @@ export default function StoreSetupScreen({ navigation, route }: Props) {
           address: storeInfo.address,
           phone: storeInfo.phone,
           userId: user.id,
-          role: "admin",
+          role: "owner",
         };
 
         await api.post("/api/stores/create", storeData);
