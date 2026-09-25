@@ -9,7 +9,7 @@ const authController = new AuthController();
 
 const assignStoreSchema = z.object({
   storeId: z.string().min(1, "Store ID is required"),
-  role: z.enum(["admin", "user"]).optional(),
+  role: z.enum(["admin", "cashier"]).optional(),
 });
 
 router.use(createAuthMiddleware({ requireStore: false }));

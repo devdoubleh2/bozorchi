@@ -3,7 +3,7 @@ import request from "supertest";
 import { faker } from "@faker-js/faker";
 import app from "../../../app";
 import { prisma } from "../../../src/lib/prisma";
-import { INVITE_ERROR_MESSAGE } from "../../../src/services/invites";
+import { INVITE_ERROR, INVITE_ERROR_MESSAGE } from "../../../src/services/invites";
 import { extractTokenCookie } from "../../helpers/authHelper";
 import { registerOwner } from "../../helpers/orgHelper";
 
@@ -20,7 +20,7 @@ const cashierPayload = (token: string) => ({
   name: faker.person.fullName(),
   email: faker.internet.email(),
   password: "Password123!",
-  role: "user",
+  role: "cashier",
   invite_token: token,
 });
 
@@ -40,6 +40,7 @@ describe("Cashier invite redemption", () => {
     extractTokenCookie(response.headers["set-cookie"]);
 
     const userId = response.body.data.user.id as string;
+    expect(response.body.data.user.membership.role).toBe("cashier");
     const membership = await prisma.userOrganization.findUnique({
       where: { user_id: userId },
     });
@@ -89,6 +90,7 @@ describe("Cashier invite redemption", () => {
         .send(cashierPayload(badToken));
       expect(response.status).toBe(400);
       expect(response.body.message).toBe(INVITE_ERROR_MESSAGE);
+      expect(response.body.code).toBe(INVITE_ERROR);
     }
   }, 120000);
 
@@ -123,7 +125,7 @@ describe("Cashier invite redemption", () => {
     expect(stores.status).toBe(403);
   }, 120000);
 
-  it("fails duplicate-email registration without consuming the invite", async () => {
+  it("fails duplicate-email registration with the email error even when the token is dead", async () => {
     const org = await registerOwner();
     const { invite, token } = await createInvite(org.cookie, org.storeId);
 
@@ -133,16 +135,54 @@ describe("Cashier invite redemption", () => {
 
     const second = await request(app)
       .post("/api/auth/register")
-      .send({ ...cashierPayload("unknown-token"), email: payload.email });
+      .send({ ...cashierPayload(token), email: payload.email });
     expect(second.status).toBe(400);
     expect(second.body.message).toMatch(/already exists/i);
 
-    const fresh = await createInvite(org.cookie, org.storeId);
+    const consumed = await prisma.storeInvite.findUnique({
+      where: { id: invite.id },
+    });
+    expect(consumed?.used_at).not.toBeNull();
+
+    const retry = await request(app)
+      .post("/api/auth/register")
+      .send({ ...cashierPayload(token), email: faker.internet.email() });
+    expect(retry.status).toBe(400);
+    expect(retry.body.code).toBe(INVITE_ERROR);
+  }, 120000);
+
+  it("leaves a valid invite usable after a duplicate-email attempt", async () => {
+    const org = await registerOwner();
+    const { invite, token } = await createInvite(org.cookie, org.storeId);
+
+    const duplicate = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: faker.person.fullName(),
+        email: org.email,
+        password: "Password123!",
+        role: "cashier",
+        invite_token: token,
+      });
+    expect(duplicate.status).toBe(400);
+    expect(duplicate.body.message).toMatch(/already exists/i);
+
     const untouched = await prisma.storeInvite.findUnique({
-      where: { id: fresh.invite.id },
+      where: { id: invite.id },
     });
     expect(untouched?.used_at).toBeNull();
-    void invite;
+
+    const retry = await request(app)
+      .post("/api/auth/register")
+      .send({
+        ...cashierPayload(token),
+        email: faker.internet.email(),
+      });
+    expect(retry.status).toBe(201);
+    const reused = await prisma.storeInvite.findUnique({
+      where: { id: invite.id },
+    });
+    expect(reused?.used_at).not.toBeNull();
   }, 120000);
 
   it("requires an invite token instead of a raw store id", async () => {
@@ -154,7 +194,7 @@ describe("Cashier invite redemption", () => {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         password: "Password123!",
-        role: "user",
+        role: "cashier",
       });
     expect(withoutToken.status).toBe(400);
     expect(withoutToken.body.message).toMatch(/invite_token/);
@@ -165,7 +205,7 @@ describe("Cashier invite redemption", () => {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         password: "Password123!",
-        role: "user",
+        role: "cashier",
         store_id: org.storeId,
       });
     expect(withStoreId.status).toBe(400);

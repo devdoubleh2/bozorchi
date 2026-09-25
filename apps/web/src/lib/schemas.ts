@@ -17,7 +17,7 @@ export const registerSchema = z.object({
             message: "Password must contain an uppercase letter, a lowercase letter, and a number",
         }),
     confirmPassword: z.string().min(1, { message: "Confirm Password is required" }),
-    role: z.enum(["admin", "user"]),
+    role: z.enum(["admin", "cashier"]),
 
     // Admin fields
     organization_name: z.string().optional(),
@@ -55,7 +55,7 @@ export const registerSchema = z.object({
     message: "Phone number is required",
     path: ["phone"],
 }).refine((data) => {
-    if (data.role === "user") {
+    if (data.role === "cashier") {
         return !!data.invite_token;
     }
     return true;

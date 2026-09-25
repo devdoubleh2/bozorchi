@@ -1138,7 +1138,12 @@ export const openApiDocument: OpenApiDocument = {
           id: schemaRef("Id"),
           email: { type: "string", format: "email" },
           name: { type: "string", nullable: true },
-          role: { type: "string", enum: ["admin", "user"] },
+          role: {
+            type: "string",
+            enum: ["admin", "cashier"],
+            description:
+              "Cashier memberships are stored under the legacy 'user' value; see toStoredRole/toApiRole.",
+          },
         },
       },
       AuthResponse: {
@@ -1180,7 +1185,7 @@ export const openApiDocument: OpenApiDocument = {
           {
             type: "object",
             properties: {
-              role: { type: "string", enum: ["user"] },
+              role: { type: "string", enum: ["cashier"] },
               name: { type: "string" },
               email: { type: "string", format: "email" },
               password: { type: "string", format: "password", minimum: 8 },
@@ -1653,7 +1658,7 @@ export const openApiDocument: OpenApiDocument = {
       StaffAssignmentRequest: {
         type: "object",
         properties: {
-          role: { type: "string", enum: ["admin", "user"] },
+          role: { type: "string", enum: ["admin", "cashier"] },
           permissions: {
             type: "array",
             items: { type: "string" },
@@ -1667,7 +1672,7 @@ export const openApiDocument: OpenApiDocument = {
         type: "object",
         properties: {
           storeId: schemaRef("Id"),
-          role: { type: "string", enum: ["admin", "user"] },
+          role: { type: "string", enum: ["admin", "cashier"] },
         },
         required: ["storeId"],
       },

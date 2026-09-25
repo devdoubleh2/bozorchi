@@ -974,7 +974,9 @@
     "loginSubtitle": "Do'kon va analitikangizni boshqarish uchun kiring.",
     "registerSubtitle": "Hisob yarating va do'konni bir necha daqiqada sozlang.",
     "alreadySignedIn": "Siz allaqachon kirgansiz.",
-    "nameRequired": "Ism majburiy"
+    "nameRequired": "Ism majburiy",
+    "roleAdmin": "Administrator",
+    "roleCashier": "Kassir"
   },
   "currency": {
     "UZS": "so'm",
@@ -1081,7 +1083,8 @@
       "roleRequired": "Rolni tanlang",
       "storeRequired": "Do'konni tanlang",
       "searchFailed": "Do'konni qidirishda xatolik",
-      "createFailed": "Do'kon yaratishda xatolik"
+      "createFailed": "Do'kon yaratishda xatolik",
+      "inviteInvalid": "Bu taklif muddati o'tgan, ishlatilgan yoki bekor qilingan. Rahbaringizdan yangi taklif so'rang."
     },
     "error": {
       "assignmentFailed": "Do'konni tayinlashda xatolik",
@@ -1408,6 +1411,8 @@
     "yourRole": "Sizning rolingiz",
     "roleAdmin": "Administrator",
     "roleUser": "Foydalanuvchi",
+    "roleOwner": "Ega",
+    "roleCashier": "Kassir",
     "editPersonalInfo": "Shaxsiy ma'lumotlarni tahrirlash",
     "emailChangeWarning": "Email o'zgartirilgach, tizimga qayta kirishingiz kerak bo'ladi.",
     "saveChanges": "O'zgarishlarni saqlash",
@@ -1482,7 +1487,8 @@
     "activateSubscription": "Obunani faollashtirish",
     "dangerZone": "Xavfli zona",
     "dangerZoneDescription": "Obunani bekor qilish barcha funksiyalarga kirishni yo'qotishga olib keladi.",
-    "cancelSubscription": "Obunani bekor qilish"
+    "cancelSubscription": "Obunani bekor qilish",
+    "ownerOnly": "To'lovni faqat tashkilot egasi boshqarishi mumkin. Obunani faollashtirish yoki bekor qilish uchun egaga murojaat qiling."
   },
   "payment": {
     "selectPaymentMethod": "To'lov usulini tanlang",
@@ -2020,8 +2026,8 @@
     "copySuccess": "ID nusxalandi",
     "copyError": "ID ni nusxalab bo‘lmadi",
     "refreshStatus": "Holatni yangilash",
-    "sellerPendingTitle": "So‘rov yuborildi",
-    "sellerPendingDescription": "Do‘kon egasiga xabar berdik. Tasdiqlangach, kirish ochiladi.",
+    "sellerPendingTitle": "Rahbar tasdig'i kutilmoqda",
+    "sellerPendingDescription": "So'rovingiz rahbarga yuborildi. U tasdiqlagach, kassa kirishi ochiladi.",
     "sellerApprovedTitle": "Kirish faol",
     "sellerApprovedDescription": "Do‘konda ishlashni davom ettirishingiz mumkin.",
     "pendingRequests": "Kutilayotgan so‘rovlar",

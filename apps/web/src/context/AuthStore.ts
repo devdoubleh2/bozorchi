@@ -58,7 +58,7 @@ export interface CashierSignUpData {
 }
 
 type CashierPayload = Pick<RegisterData, "name" | "email" | "password"> & {
-  role: "user";
+  role: "cashier";
   invite_token: string;
 };
 
@@ -486,7 +486,7 @@ export const useAuthStore = create<AuthState>()(
             name: data.name,
             email: data.email.trim(),
             password: data.password,
-            role: "user",
+            role: "cashier",
             invite_token: data.inviteToken.trim(),
           };
 

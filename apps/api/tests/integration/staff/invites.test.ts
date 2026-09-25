@@ -108,6 +108,31 @@ describe("Store invites", () => {
     expect(revokeUnknown.status).toBe(404);
   }, 120000);
 
+  it("lists expired unused invites with their status", async () => {
+    const org = await registerOwner();
+
+    const created = await request(app)
+      .post("/api/staff/invites")
+      .set("Cookie", [org.cookie])
+      .send({ store_id: org.storeId });
+    expect(created.status).toBe(201);
+    const inviteId = created.body.invite.id as string;
+
+    await prisma.storeInvite.update({
+      where: { id: inviteId },
+      data: { expires_at: new Date(Date.now() - 1000) },
+    });
+
+    const listed = await request(app)
+      .get("/api/staff/invites")
+      .set("Cookie", [org.cookie]);
+    expect(listed.status).toBe(200);
+    const invites = listed.body.invites as Array<{ id: string; status: string }>;
+    expect(invites.some((i) => i.id === inviteId && i.status === "expired")).toBe(
+      true
+    );
+  }, 120000);
+
   it("rejects invites for stores outside the organization and bad expiry", async () => {
     const org = await registerOwner();
     const other = await registerOwner();

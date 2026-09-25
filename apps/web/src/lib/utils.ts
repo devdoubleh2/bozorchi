@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export type ParsedApiError = Error & { details?: string[] };
+export type ParsedApiError = Error & { details?: string[]; code?: string };
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -58,11 +58,22 @@ export const parseApiError = (error: unknown): ParsedApiError => {
   const fallbackError =
     error instanceof Error ? error : new Error("Unexpected error");
 
+  const extractCode = (body: unknown): string | undefined => {
+    if (typeof body === "object" && body !== null && "code" in body) {
+      const code = (body as { code?: unknown }).code;
+      return typeof code === "string" && code.length > 0 ? code : undefined;
+    }
+    return undefined;
+  };
+
   if (error instanceof Error) {
+    const bodyCode =
+      "body" in error ? extractCode((error as { body?: unknown }).body) : undefined;
     try {
       const parsed = JSON.parse(error.message) as {
         error?: string;
         message?: string;
+        code?: unknown;
         details?: unknown;
       };
       if (typeof parsed === "object" && parsed) {
@@ -77,12 +88,20 @@ export const parseApiError = (error: unknown): ParsedApiError => {
         if (details.length) {
           parsedError.details = details;
         }
+        const code = extractCode(parsed) ?? bodyCode;
+        if (code) {
+          parsedError.code = code;
+        }
         return parsedError;
       }
     } catch {
       /* ignore json parsing failure */
     }
-    return fallbackError as ParsedApiError;
+    const parsedError = fallbackError as ParsedApiError;
+    if (bodyCode) {
+      parsedError.code = bodyCode;
+    }
+    return parsedError;
   }
 
   return fallbackError as ParsedApiError;

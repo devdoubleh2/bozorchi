@@ -29,6 +29,7 @@ import {
 import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal, Link2, Copy, Check, TicketPlus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { isEffectiveAdmin } from "@/types/auth";
 
 type PermissionType =
   | "POS_ACCESS"
@@ -98,7 +99,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
 
   const storeId = userStore?.store?.id ?? "";
 
-  const isAdmin = userStore?.role === "admin";
+  const isAdmin = isEffectiveAdmin(user);
 
   const { data: assignments } = useQuery({
     queryKey: ["staffAssignments", storeId],
@@ -127,6 +128,10 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
 
   const outstandingInvites: StoreInvite[] = (invitesData?.invites ?? []).filter(
     (invite) => invite.status === "outstanding"
+  );
+
+  const expiredInvites: StoreInvite[] = (invitesData?.invites ?? []).filter(
+    (invite) => invite.status === "expired"
   );
 
   const invalidateInvites = useCallback(() => {
@@ -385,12 +390,15 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="size-5 text-muted-foreground" />
-              {t("staff.sellerPendingTitle")}
+              {t("staff.sellerPendingTitle", { defaultValue: "Waiting for manager approval" })}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              {t("staff.sellerPendingDescription")}
+              {t("staff.sellerPendingDescription", {
+                defaultValue:
+                  "Your request is with your manager. Once they approve you, till access unlocks.",
+              })}
             </p>
           </CardContent>
         </Card>
@@ -490,6 +498,54 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
                             >
                               {t("staff.invites.revoke", { defaultValue: "Revoke" })}
                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="size-5 text-muted-foreground" />
+                {t("staff.invites.expiredTitle", { defaultValue: "Expired invites" })}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {t("staff.invites.expiredDescription", {
+                  defaultValue:
+                    "These invites expired before they were used. Create a new invite above if the cashier still needs access.",
+                })}
+              </p>
+
+              {expiredInvites.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("staff.invites.noneExpired", { defaultValue: "No expired invites." })}
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("staff.invites.store", { defaultValue: "Store" })}</TableHead>
+                        <TableHead>{t("staff.invites.expires", { defaultValue: "Expires" })}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expiredInvites.map((invite) => (
+                        <TableRow key={invite.id}>
+                          <TableCell>
+                            <span className="font-medium">
+                              {invite.store_name ?? invite.store_id}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(invite.expires_at).toLocaleDateString()}
                           </TableCell>
                         </TableRow>
                       ))}

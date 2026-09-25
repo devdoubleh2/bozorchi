@@ -12,3 +12,13 @@ docs, and code naming. Do not use "user" for a person's job in the shop.
 - **Cashier** — a membership with the user role, pinned to one store with POS
   access. Joins via a store invite, starts pending, and becomes active only
   after an Owner or Admin approves them.
+
+### Glossary exception: stored `user` role value
+
+Validators, API docs, shared auth types, and UI call the cashier job
+**Cashier** end to end. The stored `user_organization.role` value keeps the
+legacy `user` string (no data migration). Translation lives in exactly one
+place at the persistence edge — `toStoredRole` / `toApiRole` in
+`apps/api/src/utils/roles.ts` — covered by `tests/unit/roles.test.ts`. Do
+not compare API-facing roles against the stored `user` string outside that
+module.

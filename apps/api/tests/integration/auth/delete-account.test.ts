@@ -78,7 +78,7 @@ describe("DELETE /api/auth/me safeguards", () => {
           name: faker.person.fullName(),
           email: faker.internet.email(),
           password: "Password123!",
-          role: "user",
+          role: "cashier",
           invite_token: inviteRes.body.token,
         });
 

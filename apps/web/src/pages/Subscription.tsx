@@ -7,6 +7,7 @@ import { Loader2, AlertTriangle, CheckCircle2, CreditCard, AlertCircle } from "l
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/use-auth";
+import { isOwner } from "@/types/auth";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -215,6 +216,9 @@ export default function SubscriptionPage() {
     }
 
     const { store } = storeData;
+    // Billing is owner power: only the organization owner can activate or
+    // cancel the subscription. Everyone else gets a read-only view.
+    const ownerView = isOwner(user);
     // Check for valid subscription statuses that grant access
     // "active" = paid and active subscription
     // "trialing" = user is in trial period and should have access
@@ -275,7 +279,7 @@ export default function SubscriptionPage() {
                     </div>
 
                     {/* Activation Section for Inactive Subscriptions */}
-                    {!isActive && (
+                    {!isActive && ownerView && (
                         <div className="space-y-4">
                             {checkoutError && (
                                 <Alert variant="destructive">
@@ -310,7 +314,7 @@ export default function SubscriptionPage() {
                     )}
 
                     {/* Cancellation Section for Active Subscriptions */}
-                    {isActive && (
+                    {isActive && ownerView && (
                         <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
                             <h3 className="font-medium text-destructive mb-2">
                                 {t("subscription.dangerZone")}
@@ -329,6 +333,19 @@ export default function SubscriptionPage() {
                                 {t("subscription.cancelSubscription")}
                             </Button>
                         </div>
+                    )}
+
+                    {/* Owner-only notice for everyone else */}
+                    {!ownerView && (
+                        <Alert>
+                            <AlertCircle className="size-4" />
+                            <AlertDescription>
+                                {t("subscription.ownerOnly", {
+                                    defaultValue:
+                                        "Only the organization owner can manage billing. Ask your owner to activate or cancel the subscription.",
+                                })}
+                            </AlertDescription>
+                        </Alert>
                     )}
 
                     {/* Payment History Section */}

@@ -20,7 +20,7 @@ async function setupPendingCashier() {
     name: faker.person.fullName(),
     email,
     password,
-    role: "user",
+    role: "cashier",
     invite_token: inviteRes.body.token,
   });
   expect(registerRes.status).toBe(201);

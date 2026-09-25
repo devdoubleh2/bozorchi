@@ -1,7 +1,12 @@
 import { describe, expect, it, mock } from "bun:test";
 import type { NextFunction, Response } from "express";
 import { requireAdmin, requirePermission } from "../../src/middleware/rbac";
-import { isEffectiveAdmin, resolveUserRole } from "../../src/middleware/auth";
+import {
+  isAdminRole,
+  isEffectiveAdmin,
+  isOwner,
+  resolveUserRole,
+} from "../../src/middleware/auth";
 import { Permission, Role } from "../../src/generated/public/client";
 
 const createMockResponse = () => {
@@ -72,6 +77,59 @@ describe("RBAC approval enforcement", () => {
 
     expect(next).not.toHaveBeenCalled();
     expect((res as any).status).toHaveBeenCalledWith(403);
+  });
+});
+
+describe("Owner vs Admin predicates", () => {
+  it("derives ownership from the organization owner link only", () => {
+    expect(isOwner({ owned_organization: { id: "org-1" } } as any)).toBe(true);
+    expect(isOwner({ owned_organization: null } as any)).toBe(false);
+  });
+
+  it("derives admin from the membership role only, never the owner link", () => {
+    expect(isAdminRole(Role.admin)).toBe(true);
+    expect(isAdminRole(Role.user)).toBe(false);
+    expect(isAdminRole(null)).toBe(false);
+    expect(isAdminRole(undefined)).toBe(false);
+  });
+
+  it("keeps owner and admin membership distinguishable when composed", () => {
+    const ownerWithUserMembership = { owned_organization: { id: "org-1" } } as any;
+    expect(isOwner(ownerWithUserMembership)).toBe(true);
+    expect(isAdminRole(Role.user)).toBe(false);
+    expect(isEffectiveAdmin(ownerWithUserMembership, Role.user)).toBe(true);
+
+    const adminWithoutOwnership = { owned_organization: null } as any;
+    expect(isOwner(adminWithoutOwnership)).toBe(false);
+    expect(isAdminRole(Role.admin)).toBe(true);
+    expect(isEffectiveAdmin(adminWithoutOwnership, Role.admin)).toBe(true);
+  });
+
+  it("denies cashiers in both predicates and the composed rule", () => {
+    const cashier = { owned_organization: null } as any;
+    expect(isOwner(cashier)).toBe(false);
+    expect(isAdminRole(Role.user)).toBe(false);
+    expect(isEffectiveAdmin(cashier, Role.user)).toBe(false);
+    expect(isEffectiveAdmin(cashier, null)).toBe(false);
+  });
+
+  it("lets an admin membership without ownership through the admin gate", async () => {
+    const req = {
+      userId: "admin-1",
+      userRole: Role.admin,
+      userApproved: true,
+      user: {
+        owned_organization: null,
+        membership: { role: Role.admin, permissions: [] },
+      },
+    } as any;
+
+    const res = createMockResponse();
+    const next = mock(() => {}) as unknown as NextFunction;
+
+    await requireAdmin(req, res, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
   });
 });
 

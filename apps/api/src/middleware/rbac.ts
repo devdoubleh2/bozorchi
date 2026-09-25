@@ -1,9 +1,10 @@
 import { RequestHandler, Response, NextFunction } from "express";
-import { Permission, Role } from "../generated/public/client";
-import { AuthRequest, isEffectiveAdmin } from "./auth";
+import { Permission } from "../generated/public/client";
+import { AuthRequest, isEffectiveAdmin, requestMembershipRole } from "./auth";
 
 /**
- * Middleware to check if user has admin role
+ * Middleware to check staff-management access: owners (organization owner
+ * link) OR admin memberships. Cashiers are denied.
  */
 export const requireAdmin = async (
   req: AuthRequest,
@@ -35,7 +36,9 @@ export const requireAdmin = async (
       return;
     }
 
-    if (req.userRole !== Role.admin) {
+    if (
+      !isEffectiveAdmin(req.user, requestMembershipRole(req))
+    ) {
       res.status(403).json({
         error: "Access denied",
         message: "Admin privileges required",
@@ -65,7 +68,7 @@ const userHasPermission = (
     return false;
   }
 
-  if (isEffectiveAdmin(req.user, req.user?.membership?.role ?? req.userRole)) {
+  if (isEffectiveAdmin(req.user, requestMembershipRole(req))) {
     return true;
   }
 
