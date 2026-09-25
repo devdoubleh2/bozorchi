@@ -21,7 +21,7 @@ export interface TransactionsResponse {
 export interface UserStoreInfo {
     userId: string;
     storeId: string;
-    role: "admin" | "user";
+    role: "owner" | "cashier";
     approved: boolean;
     permissions?: string[];
     store: Store;
@@ -32,7 +32,7 @@ export interface UserStore {
     id: string;
     userId: string;
     storeId: string;
-    role: "admin" | "user";
+    role: "owner" | "cashier";
     approved: boolean;
 }
 
@@ -42,7 +42,7 @@ export interface StaffAssignment {
     user_id: string;
     organization_id: string;
     store_id: string | null;
-    role: "admin" | "user";
+    role: "owner" | "cashier";
     approved: boolean;
     created_at: string;
     updated_at: string;
@@ -64,16 +64,16 @@ export interface RegisterData {
     name: string;
     email: string;
     password: string;
-    role: 'admin' | 'user';
+    role: 'owner' | 'cashier';
 
-    // Admin fields (required when role = 'admin')
+    // Owner fields (required when role = 'owner')
     organization_name?: string;
     store_name?: string;
     address?: string;
     phone?: string;
     currency?: string;
 
-    // User fields (required when role = 'user')
+    // Cashier fields (required when role = 'cashier')
     store_id?: string;
 }
 

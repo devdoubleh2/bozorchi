@@ -1,6 +1,6 @@
 import { Response } from "express";
 import logger from "../../logs/log";
-import { AuthRequest, isAdminRole, isEffectiveAdmin, isOwner, requestMembershipRole } from "../middleware/auth";
+import { AuthRequest, isOwner } from "../middleware/auth";
 import { createTenantSchema, getTenantPrisma, prisma } from "../lib/prisma";
 
 export class StoresController {
@@ -74,10 +74,8 @@ export class StoresController {
         });
       }
 
-      // SECURITY: Only owners and admins can create stores
-      if (
-        !isEffectiveAdmin(req.user, requestMembershipRole(req))
-      ) {
+      // SECURITY: Only owners can create stores
+      if (!isOwner(req.user)) {
         logger.warn("Create store failed - insufficient permissions", "storesController", {
           userId: req.userId,
           role: req.userRole,
@@ -85,7 +83,7 @@ export class StoresController {
         });
         return res.status(403).json({
           error: "Insufficient permissions",
-          details: "Only organization admins can create stores",
+          details: "Only organization owners can create stores",
         });
       }
 
@@ -171,7 +169,7 @@ export class StoresController {
             user_id: req.userId,
             organization_id: organizationId,
             store_id: store.id,
-            role: "admin",
+            role: "owner",
             approved: true,
           },
         });
@@ -214,24 +212,21 @@ export class StoresController {
 
       // Otherwise, resolve store manually (when requireStore: false in middleware)
       // Same logic as auth middleware store resolution
-      const isOwnerOrAdmin = isEffectiveAdmin(
-        req.user,
-        requestMembershipRole(req)
-      );
+      const isOwnerLink = isOwner(req.user);
       let store = null;
 
       logger.debug("Resolving store manually", "storesController", {
         userId: req.userId,
-        isOwnerOrAdmin,
+        isOwnerLink,
         userStoresCount: req.userStores?.length || 0,
         membershipStoreId: req.user?.membership?.store_id,
       });
 
-      if (isOwnerOrAdmin) {
-        // Use first available store for owners/admins
+      if (isOwnerLink) {
+        // Use first available store for owners
         store = req.userStores?.[0] || null;
       } else {
-        // Use assigned store for regular users
+        // Use assigned store for cashiers
         const storeId = req.user?.membership?.store_id;
         if (storeId && req.tenantPrisma) {
           store = await req.tenantPrisma.store.findUnique({
@@ -244,7 +239,7 @@ export class StoresController {
         logger.warn("Get store failed - no active store found", "storesController", {
           userId: req.userId,
           organizationId: req.organizationId,
-          isOwnerOrAdmin,
+          isOwnerLink,
         });
         return res.status(404).json({
           error: "No active store found",
@@ -282,20 +277,16 @@ export class StoresController {
     });
 
     try {
-      // Only organization owners or users with admin role can switch stores
-      const ownerAccess = isOwner(req.user);
-      const adminAccess = isAdminRole(requestMembershipRole(req));
-
-      if (!ownerAccess && !adminAccess) {
+      // Only organization owners can switch stores
+      if (!isOwner(req.user)) {
         logger.warn("Store switch failed - insufficient permissions", "storesController", {
           userId: req.userId,
           targetStoreId: storeId,
           role: req.userRole,
-          ownerAccess,
-          adminAccess,
+          isOwner: !!req.user?.owned_organization,
         });
         return res.status(403).json({
-          error: "Only organization owners and admins can switch stores",
+          error: "Only organization owners can switch stores",
         });
       }
 
@@ -402,7 +393,7 @@ export class StoresController {
   }
 
   /**
-   * Switch store for owners/admins.
+   * Switch store for owners.
    * Returns a new JWT token with the activeStoreId embedded.
    * This is session-based - no database update.
    */
@@ -418,20 +409,16 @@ export class StoresController {
     });
 
     try {
-      // Only organization owners or users with admin role can switch stores
-      const ownerAccess = isOwner(req.user);
-      const adminAccess = isAdminRole(requestMembershipRole(req));
-
-      if (!ownerAccess && !adminAccess) {
+      // Only organization owners can switch stores
+      if (!isOwner(req.user)) {
         logger.warn("Store switch failed - insufficient permissions", "storesController", {
           userId: req.userId,
           targetStoreId: storeId,
           role: req.userRole,
-          ownerAccess,
-          adminAccess,
+          isOwner: !!req.user?.owned_organization,
         });
         return res.status(403).json({
-          error: "Only organization owners and admins can switch stores",
+          error: "Only organization owners can switch stores",
         });
       }
 
@@ -514,13 +501,10 @@ export class StoresController {
       return res.status(400).json({ error: "Store ID is required" });
     }
 
-    // Only organization owners or users with admin role can update stores
-    const ownerAccess = isOwner(req.user);
-    const adminAccess = isAdminRole(requestMembershipRole(req));
-
-    if (!ownerAccess && !adminAccess) {
+    // Only organization owners can update stores
+    if (!isOwner(req.user)) {
       return res.status(403).json({
-        error: "Only organization owners and admins can update stores",
+        error: "Only organization owners can update stores",
       });
     }
 

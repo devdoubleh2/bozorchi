@@ -29,7 +29,7 @@ import {
 import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal, Link2, Copy, Check, TicketPlus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
-import { isEffectiveAdmin } from "@/types/auth";
+import { isOwner } from "@/types/auth";
 
 type PermissionType =
   | "POS_ACCESS"
@@ -99,14 +99,14 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
 
   const storeId = userStore?.store?.id ?? "";
 
-  const isAdmin = isEffectiveAdmin(user);
+  const isOwnerRole = isOwner(user);
 
   const { data: assignments } = useQuery({
     queryKey: ["staffAssignments", storeId],
     queryFn: async () =>
       api.get<StaffAssignmentsResponse>("/api/staff/assignments"),
-    enabled: isAdmin && Boolean(storeId),
-    refetchInterval: isAdmin ? 5000 : false,
+    enabled: isOwnerRole && Boolean(storeId),
+    refetchInterval: isOwnerRole ? 5000 : false,
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
@@ -121,7 +121,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
   const { data: invitesData } = useQuery({
     queryKey: ["storeInvites"],
     queryFn: async () => api.get<InvitesResponse>("/api/staff/invites"),
-    enabled: isAdmin,
+    enabled: isOwnerRole,
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
@@ -385,7 +385,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
         </div>
       ) : null}
 
-      {!isAdmin && (
+      {!isOwnerRole && (
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -404,7 +404,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
         </Card>
       )}
 
-      {isAdmin && (
+      {isOwnerRole && (
         <>
           <Card className="border-border/60">
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

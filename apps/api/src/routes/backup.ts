@@ -8,14 +8,14 @@ const router: Router = Router();
 /**
  * POST /api/backup/manual
  * Triggers a manual database backup
- * Only accessible by authenticated users (you can add admin check)
+ * Only accessible by authenticated users (you can add owner check)
  */
 router.post(
   "/manual",
   createAuthHandler(async (req: AuthRequest, res: Response) => {
     try {
-      // Optional: Add admin check here
-      // if (req.user.role !== 'admin') {
+      // Optional: Add owner check here
+      // if (!req.user?.owned_organization) {
       //   return res.status(403).json({ error: "Forbidden" });
       // }
 

@@ -1390,7 +1390,7 @@
                     "label": "Staff access",
                     "bozorchi": "Role-based controls",
                     "old": "Shared passwords",
-                    "big": "Admin-heavy"
+                    "big": "Owner-heavy"
                 },
                 "owner": {
                     "label": "Owner view",

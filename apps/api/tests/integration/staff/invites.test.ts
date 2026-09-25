@@ -30,20 +30,17 @@ describe("Store invites", () => {
     expect(record?.revoked_at).toBeNull();
   }, 120000);
 
-  it("lets an admin membership create invites but forbids cashiers", async () => {
+  it("lets an owner create invites but forbids cashiers", async () => {
     const org = await registerOwner();
-    const admin = await createMember(org.organizationId, org.storeId, {
-      role: "admin",
-    });
     const cashier = await createMember(org.organizationId, org.storeId, {
-      role: "user",
+      role: "cashier",
     });
 
-    const asAdmin = await request(app)
+    const asOwner = await request(app)
       .post("/api/staff/invites")
-      .set("Cookie", [admin.cookie])
+      .set("Cookie", [org.cookie])
       .send({ store_id: org.storeId });
-    expect(asAdmin.status).toBe(201);
+    expect(asOwner.status).toBe(201);
 
     for (const [method, path] of [
       ["post", "/api/staff/invites"],

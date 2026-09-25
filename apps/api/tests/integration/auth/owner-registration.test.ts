@@ -8,7 +8,7 @@ const ownerPayload = () => ({
   name: faker.person.fullName(),
   email: faker.internet.email(),
   password: "Password123!",
-  role: "admin",
+  role: "owner",
   organization_name: faker.company.name(),
   store_name: `${faker.company.name()} Store`,
   address: faker.location.streetAddress(),

@@ -1,12 +1,7 @@
 import { describe, expect, it, mock } from "bun:test";
 import type { NextFunction, Response } from "express";
-import { requireAdmin, requirePermission } from "../../src/middleware/rbac";
-import {
-  isAdminRole,
-  isEffectiveAdmin,
-  isOwner,
-  resolveUserRole,
-} from "../../src/middleware/auth";
+import { requireOwner, requirePermission } from "../../src/middleware/rbac";
+import { isOwner, resolveUserRole } from "../../src/middleware/auth";
 import { Permission, Role } from "../../src/generated/public/client";
 
 const createMockResponse = () => {
@@ -20,7 +15,7 @@ describe("RBAC approval enforcement", () => {
   it("blocks unapproved users even when permission is present", async () => {
     const req = {
       userId: "user-1",
-      userRole: Role.user,
+      userRole: Role.cashier,
       userApproved: false,
       user: {
         membership: {
@@ -42,7 +37,7 @@ describe("RBAC approval enforcement", () => {
   it("allows approved users with matching permission", async () => {
     const req = {
       userId: "user-2",
-      userRole: Role.user,
+      userRole: Role.cashier,
       userApproved: true,
       user: {
         membership: {
@@ -60,133 +55,116 @@ describe("RBAC approval enforcement", () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it("blocks unapproved admins", async () => {
+  it("blocks unapproved owners", async () => {
     const req = {
-      userId: "admin-1",
-      userRole: Role.admin,
+      userId: "owner-1",
+      userRole: Role.owner,
       userApproved: false,
       user: {
-        owned_organization: null,
+        owned_organization: { id: "org-1" },
       },
     } as any;
 
     const res = createMockResponse();
     const next = mock(() => {}) as unknown as NextFunction;
 
-    await requireAdmin(req, res, next);
+    await requireOwner(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect((res as any).status).toHaveBeenCalledWith(403);
   });
 });
 
-describe("Owner vs Admin predicates", () => {
+describe("Owner predicate (owner link only)", () => {
   it("derives ownership from the organization owner link only", () => {
     expect(isOwner({ owned_organization: { id: "org-1" } } as any)).toBe(true);
     expect(isOwner({ owned_organization: null } as any)).toBe(false);
   });
 
-  it("derives admin from the membership role only, never the owner link", () => {
-    expect(isAdminRole(Role.admin)).toBe(true);
-    expect(isAdminRole(Role.user)).toBe(false);
-    expect(isAdminRole(null)).toBe(false);
-    expect(isAdminRole(undefined)).toBe(false);
+  it("resolves owner vs cashier roles", () => {
+    const owner = { owned_organization: { id: "org-1" } } as any;
+    expect(resolveUserRole(owner, Role.cashier)).toBe(Role.owner);
+    expect(resolveUserRole(owner, null)).toBe(Role.owner);
+
+    const cashier = { owned_organization: null } as any;
+    expect(resolveUserRole(cashier, Role.cashier)).toBe(Role.cashier);
+    expect(resolveUserRole(cashier, Role.owner)).toBe(Role.owner);
   });
 
-  it("keeps owner and admin membership distinguishable when composed", () => {
-    const ownerWithUserMembership = { owned_organization: { id: "org-1" } } as any;
-    expect(isOwner(ownerWithUserMembership)).toBe(true);
-    expect(isAdminRole(Role.user)).toBe(false);
-    expect(isEffectiveAdmin(ownerWithUserMembership, Role.user)).toBe(true);
-
-    const adminWithoutOwnership = { owned_organization: null } as any;
-    expect(isOwner(adminWithoutOwnership)).toBe(false);
-    expect(isAdminRole(Role.admin)).toBe(true);
-    expect(isEffectiveAdmin(adminWithoutOwnership, Role.admin)).toBe(true);
-  });
-
-  it("denies cashiers in both predicates and the composed rule", () => {
+  it("denies cashiers at the owner gate", () => {
     const cashier = { owned_organization: null } as any;
     expect(isOwner(cashier)).toBe(false);
-    expect(isAdminRole(Role.user)).toBe(false);
-    expect(isEffectiveAdmin(cashier, Role.user)).toBe(false);
-    expect(isEffectiveAdmin(cashier, null)).toBe(false);
   });
 
-  it("lets an admin membership without ownership through the admin gate", async () => {
+  it("denies a cashier membership without ownership through the owner gate", async () => {
     const req = {
-      userId: "admin-1",
-      userRole: Role.admin,
+      userId: "cashier-1",
+      userRole: Role.cashier,
       userApproved: true,
       user: {
         owned_organization: null,
-        membership: { role: Role.admin, permissions: [] },
+        membership: { role: Role.cashier, permissions: [] },
       },
     } as any;
 
     const res = createMockResponse();
     const next = mock(() => {}) as unknown as NextFunction;
 
-    await requireAdmin(req, res, next);
+    await requireOwner(req, res, next);
 
-    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).not.toHaveBeenCalled();
+    expect((res as any).status).toHaveBeenCalledWith(403);
   });
 });
 
-describe("One owner rule (organization owner link OR admin membership)", () => {
-  it("treats an owner as admin even when the membership row says user", () => {
+describe("Owner rule (organization owner link only)", () => {
+  it("treats an owner as owner even when the membership row says cashier", () => {
     const owner = { owned_organization: { id: "org-1" } } as any;
-    expect(resolveUserRole(owner, Role.user)).toBe(Role.admin);
-    expect(resolveUserRole(owner, null)).toBe(Role.admin);
-    expect(isEffectiveAdmin(owner, Role.user)).toBe(true);
+    expect(resolveUserRole(owner, Role.cashier)).toBe(Role.owner);
+    expect(resolveUserRole(owner, null)).toBe(Role.owner);
+    expect(isOwner(owner)).toBe(true);
   });
 
-  it("treats an admin membership without ownership as admin", () => {
+  it("treats a cashier as cashier", () => {
     const user = { owned_organization: null } as any;
-    expect(resolveUserRole(user, Role.admin)).toBe(Role.admin);
-    expect(isEffectiveAdmin(user, Role.admin)).toBe(true);
+    expect(resolveUserRole(user, Role.cashier)).toBe(Role.cashier);
+    expect(isOwner(user)).toBe(false);
   });
 
-  it("treats a cashier as non-admin", () => {
-    const user = { owned_organization: null } as any;
-    expect(resolveUserRole(user, Role.user)).toBe(Role.user);
-    expect(isEffectiveAdmin(user, Role.user)).toBe(false);
-  });
-
-  it("lets an owner with a user membership through the admin gate", async () => {
+  it("lets an owner through the owner gate", async () => {
     const req = {
       userId: "owner-1",
-      userRole: Role.admin,
+      userRole: Role.owner,
       userApproved: true,
       user: {
         owned_organization: { id: "org-1" },
-        membership: { role: Role.user, permissions: [] },
+        membership: { role: Role.owner, permissions: [] },
       },
     } as any;
 
     const res = createMockResponse();
     const next = mock(() => {}) as unknown as NextFunction;
 
-    await requireAdmin(req, res, next);
+    await requireOwner(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it("denies an approved cashier at the admin gate", async () => {
+  it("denies an approved cashier at the owner gate", async () => {
     const req = {
       userId: "cashier-1",
-      userRole: Role.user,
+      userRole: Role.cashier,
       userApproved: true,
       user: {
         owned_organization: null,
-        membership: { role: Role.user, permissions: [Permission.POS_ACCESS] },
+        membership: { role: Role.cashier, permissions: [Permission.POS_ACCESS] },
       },
     } as any;
 
     const res = createMockResponse();
     const next = mock(() => {}) as unknown as NextFunction;
 
-    await requireAdmin(req, res, next);
+    await requireOwner(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect((res as any).status).toHaveBeenCalledWith(403);
@@ -195,11 +173,11 @@ describe("One owner rule (organization owner link OR admin membership)", () => {
   it("grants an owner POS access without explicit permissions", async () => {
     const req = {
       userId: "owner-1",
-      userRole: Role.admin,
+      userRole: Role.owner,
       userApproved: true,
       user: {
         owned_organization: { id: "org-1" },
-        membership: { role: Role.user, permissions: [] },
+        membership: { role: Role.owner, permissions: [] },
       },
     } as any;
 

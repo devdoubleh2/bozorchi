@@ -220,7 +220,7 @@ export class ApiClient {
           : "";
         const message = requiredPermissions
           ? `You do not have permission for this action. Required: ${requiredPermissions}.`
-          : "You do not have permission for this action. Please contact your owner/admin.";
+          : "You do not have permission for this action. Please contact your owner.";
         throw new ApiRequestError(response.status, message, errorBody);
       }
 

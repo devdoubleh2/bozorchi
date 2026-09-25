@@ -217,9 +217,9 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
               const isOwner = !!user.owned_organization;
 
               // Ensure role is properly typed
-              const role: "admin" | "user" = isOwner
-                ? "admin"
-                : ((membership?.role ?? "user") as "admin" | "user");
+              const role: "owner" | "cashier" = isOwner
+                ? "owner"
+                : ((membership?.role ?? "cashier") as "owner" | "cashier");
 
               const userStoreInfo: UserStoreInfo = {
                 user_id: user.id,
@@ -256,13 +256,11 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
 
               // Check if user has permission to switch stores (matching web app)
               const isOwner = !!user.owned_organization;
-              const isAdmin = user.membership?.role === "admin";
-
-              if (!isOwner && !isAdmin) {
+              if (!isOwner) {
                 log.error("AuthContext", "Cannot switch store: Insufficient permissions");
                 return {
                   success: false,
-                  error: new Error("Only organization owners and admins can switch stores"),
+                  error: new Error("Only organization owners can switch stores"),
                 };
               }
 
@@ -283,9 +281,9 @@ const createAuthStore = (initialState: Partial<AuthState> = {}) => {
               }
 
               // Build userStore from returned data (matching web app)
-              const role: "admin" | "user" = isOwner
-                ? "admin"
-                : ((user.membership?.role ?? "user") as "admin" | "user");
+              const role: "owner" | "cashier" = isOwner
+                ? "owner"
+                : ((user.membership?.role ?? "cashier") as "owner" | "cashier");
 
               const userStoreInfo: UserStoreInfo = {
                 user_id: user.id,

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import authService, { InviteError } from "../services/auth";
 import logger from "../../logs/log"
-import { AuthRequest, isAdminRole, isOwner, requestMembershipRole } from "../middleware/auth";
+import { AuthRequest, isOwner } from "../middleware/auth";
 import { AppError } from "../utils/AppError";
 import { sendSuccess, sendFail } from "../utils/responseHelpers";
 import { toApiRole } from "../utils/roles";
@@ -302,20 +302,19 @@ export class AuthController {
     }
 
     // Security check: Only allow store assignment if:
-    // 1. User is owner/admin (can manage assignments), OR
+    // 1. User is owner (can manage assignments), OR
     // 2. User has NO current store assignment (first-time onboarding)
     const ownerAccess = isOwner(req.user);
-    const adminAccess = isAdminRole(requestMembershipRole(req));
     const hasExistingAssignment = !!req.user?.membership?.store_id;
 
-    if (!ownerAccess && !adminAccess && hasExistingAssignment) {
+    if (!ownerAccess && hasExistingAssignment) {
       logger.warn("Assign store failed - user cannot reassign themselves", "authController", {
         userId: req.userId,
         targetStoreId: storeId,
         currentStoreId: req.user?.membership?.store_id,
         role: req.userRole,
       });
-      throw new AppError("Cannot change store assignment. Contact your administrator.", 403);
+      throw new AppError("Cannot change store assignment. Contact your owner.", 403);
     }
 
     // Update user's store assignment in public schema

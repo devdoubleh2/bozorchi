@@ -150,7 +150,7 @@ function registerReducer(state: RegisterState, action: RegisterAction): Register
 }
 
 const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
-  if (!userStore || userStore.role === "admin") return "/dashboard";
+  if (!userStore || userStore.role === "owner") return "/dashboard";
 
   const permissions = userStore.permissions ?? [];
   if (permissions.includes("VIEW_DASHBOARD")) return "/dashboard";

@@ -52,9 +52,9 @@ export default function StoreCreate() {
   ];
 
   useEffect(() => {
-    // Redirect if user is not an admin and already has stores (i.e., is a seller/employee)
+    // Redirect if user is not an owner and already has stores
     // We check stores.length > 0 to allow initial onboarding
-    if (user && userStore && userStore.role !== "admin") {
+    if (user && userStore && userStore.role !== "owner") {
       navigate("/");
     }
   }, [user, userStore, navigate]);
@@ -101,7 +101,7 @@ export default function StoreCreate() {
           phone: formData.phone.replace(/\D/g, ""),
           userId: user.id,
           organizationId,
-          role: "admin",
+          role: "owner",
         }
       );
       return response.store;

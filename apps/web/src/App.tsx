@@ -58,7 +58,7 @@ import { CurrencyDropdown } from "@/components/CurrencyDropdown";
 import { NavMain, type NavItem } from "@/components/nav-main";
 import { RequireAccess } from "@/components/auth";
 import type { Permission, Role } from "@/types/auth";
-import { isAdminMembership, isOwner } from "@/types/auth";
+import { isOwner } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
 import LocaleRouteSync from "@/components/LocaleRouteSync";
@@ -356,7 +356,7 @@ const PROTECTED_ROUTES: RouteConfig[] = [
   { path: "/account", component: AccountPage },
   { path: "/account/edit", component: AccountEditPage },
   { path: "/account/receipt-design", component: ReceiptDesignPage },
-  { path: "/staff", component: StaffPage, roles: ["admin"] },
+  { path: "/staff", component: StaffPage, roles: ["owner"] },
   { path: "/subscription", component: SubscriptionPage },
   { path: "/mobile-paywall", component: MobilePaywallPage },
   {
@@ -440,11 +440,11 @@ const RequireStaffApproval = ({ children }: { children: React.ReactNode }) => {
   const { user, userStore, getStore } = useAuth();
   const navigate = useNavigate();
   // Owners route to owner views, never to the pending landing: only a
-  // non-owner, non-admin membership waiting for approval is pending.
+  // non-owner membership waiting for approval is pending.
   const isPending =
     !!userStore &&
     !isOwner(user) &&
-    !isAdminMembership(user) &&
+    
     userStore.approved === false;
 
   // Poll for approval status when user is pending
@@ -542,7 +542,7 @@ const useNavItems = (): NavItem[] => {
 
   return useMemo(() => {
     const canAccess = (permissions: Permission[]) => {
-      if (userStore?.role === "admin") return true;
+      if (userStore?.role === "owner") return true;
       const userPermissions = userStore?.permissions ?? [];
       return permissions.some((permission) => userPermissions.includes(permission));
     };
@@ -625,7 +625,7 @@ const useNavItems = (): NavItem[] => {
       });
     }
 
-    if (userStore?.role === "admin") {
+    if (userStore?.role === "owner") {
       items.push({ title: t("navigation.staff", { defaultValue: "Staff" }), url: "/staff", icon: ShieldCheck });
       // FISCALIZATION DISABLED - items.push({ title: t("navigation.fiscal", { defaultValue: "Fiscal Integration" }), url: "/fiscal-settings", icon: Printer });
     }

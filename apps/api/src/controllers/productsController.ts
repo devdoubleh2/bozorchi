@@ -381,7 +381,7 @@ export class ProductsController {
       }
 
       const hasAccess =
-        !req.store || // Org admin can see all
+        !req.store || // Owner can see all
         product.store_id === req.store.id || // Product belongs to store
         product.store_id === null; // Product is org-wide
 

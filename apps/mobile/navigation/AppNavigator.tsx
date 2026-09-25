@@ -438,7 +438,7 @@ const RootNavigator = () => {
   const userStore = useAuthContext((state) => state.userStore);
   const needsOnboarding = useAuthContext((state) => state.needsOnboarding);
   const shouldShowStaffGate =
-    !!userStore && userStore.role !== "admin" && userStore.approved === false;
+    !!userStore && userStore.role !== "owner" && userStore.approved === false;
 
   const buildSearchBarOptions = useCallback(
     (

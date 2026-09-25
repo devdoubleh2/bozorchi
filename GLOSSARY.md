@@ -5,20 +5,9 @@ docs, and code naming. Do not use "user" for a person's job in the shop.
 
 - **Owner** — the user referenced by the organization's owner link (exactly
   one per company). Holds billing and subscription power. Recognized
-  everywhere via the owner link, never via the membership role column.
-- **Admin** — a membership with the admin role. Manages staff, inventory, and
-  settings. Owner and Admin are distinct concepts that coincide in a
-  one-person shop.
-- **Cashier** — a membership with the user role, pinned to one store with POS
-  access. Joins via a store invite, starts pending, and becomes active only
-  after an Owner or Admin approves them.
-
-### Glossary exception: stored `user` role value
-
-Validators, API docs, shared auth types, and UI call the cashier job
-**Cashier** end to end. The stored `user_organization.role` value keeps the
-legacy `user` string (no data migration). Translation lives in exactly one
-place at the persistence edge — `toStoredRole` / `toApiRole` in
-`apps/api/src/utils/roles.ts` — covered by `tests/unit/roles.test.ts`. Do
-not compare API-facing roles against the stored `user` string outside that
-module.
+  everywhere via the owner link, never via the membership role column. Holds
+  implicit all-access; switches freely between stores.
+- **Cashier** — the membership role, pinned to one store with POS access.
+  Joins via a store invite, starts pending, and becomes active only after an
+  Owner approves them. Gains extra product/inventory/analytics abilities only
+  when the Owner explicitly grants permissions.

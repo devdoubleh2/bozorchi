@@ -79,8 +79,8 @@ export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof Subscr
 
 
 export const Role: {
-  admin: 'admin',
-  user: 'user'
+  owner: 'owner',
+  cashier: 'cashier'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]

@@ -37,8 +37,8 @@ export default function StoreSwitcher() {
 
     // Match the permission check in switchStore (AuthContext)
     const isOwner = !!user?.owned_organization;
-    const isAdmin = user?.membership?.role === "admin";
-    const canSwitchStores = isOwner || isAdmin;
+    const isOwnerRole = !!user?.owned_organization;
+    const canSwitchStores = isOwner || isOwnerRole;
 
     // Only fetch stores for users who can switch
     const { data: storesResponse } = useQuery({
@@ -174,7 +174,7 @@ export default function StoreSwitcher() {
                             {activeStore?.name || "Store"}
                         </Text>
                         <Text style={[styles.storeRole, { color: colors.textSecondary }]}>
-                            {userStore?.role === "admin" ? "Admin" : "User"}
+                            {userStore?.role === "owner" ? "Owner" : "Cashier"}
                         </Text>
                     </View>
                 </View>
@@ -205,7 +205,7 @@ export default function StoreSwitcher() {
                             {activeStore?.name || t("storeSetup.selectStore.title")}
                         </Text>
                         <Text style={[styles.storeRole, { color: colors.textSecondary }]}>
-                            {isOwner ? t("common.owner", { defaultValue: "Owner" }) : "Admin"}
+                            {isOwner ? t("common.owner", { defaultValue: "Owner" }) : "Owner"}
                         </Text>
                     </View>
                     {isLoading ? (

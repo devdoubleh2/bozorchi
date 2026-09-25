@@ -22,7 +22,7 @@ import logger from "../../logs/log";
 interface AccessTokenPayload {
   userId: string;
   organizationId?: string;
-  activeStoreId?: string; // For owners/admins switching stores (session-based)
+  activeStoreId?: string; // For owners switching stores (session-based)
   iat?: number;
   exp?: number;
 }
@@ -179,7 +179,7 @@ class AuthService {
           data: { name, email, password_hash: passwordHash },
         });
 
-        if (role === "admin") {
+        if (role === "owner") {
           if (
             !organization_name ||
             !store_name ||
@@ -188,7 +188,7 @@ class AuthService {
             !phone
           ) {
             throw new Error(
-              "Admin registration requires organization_name, store_name, address, currency, and phone"
+              "Owner registration requires organization_name, store_name, address, currency, and phone"
             );
           }
 
@@ -222,6 +222,7 @@ class AuthService {
               user_id: user.id,
               organization_id: organization.id,
               store_id: store.id,
+              role: toStoredRole("owner"),
               approved: true,
             },
             select: { id: true },

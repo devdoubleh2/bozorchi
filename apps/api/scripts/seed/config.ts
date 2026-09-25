@@ -19,7 +19,7 @@ export const SEED_CONFIG = {
     },
 
     // User credentials
-    admin: {
+    owner: {
         name: "Asadbek",
         email: "asadbek.sh220721@gmail.com",
         password: "Asadbek1877",

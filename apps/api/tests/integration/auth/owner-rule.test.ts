@@ -6,13 +6,13 @@ import { prisma } from "../../../src/lib/prisma";
 import { createMember, registerOwner } from "../../helpers/orgHelper";
 
 describe("One owner rule", () => {
-  it("treats the owner as admin on admin-gated surfaces even though the membership row says user", async () => {
+  it("treats the owner as owner on owner-gated surfaces with an owner membership row", async () => {
     const org = await registerOwner();
     const membership = await prisma.userOrganization.findUnique({
       where: { user_id: org.userId },
     });
 
-    expect(membership?.role).toBe("user");
+    expect(membership?.role).toBe("owner");
 
     const response = await request(app)
       .get("/api/staff/assignments")
@@ -23,10 +23,10 @@ describe("One owner rule", () => {
     expect(response.body).toHaveProperty("approved");
   }, 120000);
 
-  it("denies an approved cashier at every admin-gated surface", async () => {
+  it("denies an approved cashier at every owner-gated surface", async () => {
     const org = await registerOwner();
     const cashier = await createMember(org.organizationId, org.storeId, {
-      role: "user",
+      role: "cashier",
     });
 
     const staff = await request(app)
@@ -40,13 +40,10 @@ describe("One owner rule", () => {
     expect([403, 404]).toContain(stores.status);
   }, 120000);
 
-  it("reserves billing for owners, never admins or cashiers", async () => {
+  it("reserves billing for owners, never cashiers", async () => {
     const org = await registerOwner();
     const cashier = await createMember(org.organizationId, org.storeId, {
-      role: "user",
-    });
-    const admin = await createMember(org.organizationId, org.storeId, {
-      role: "admin",
+      role: "cashier",
     });
 
     const cashierBilling = await request(app)
@@ -57,15 +54,6 @@ describe("One owner rule", () => {
         customerEmail: faker.internet.email(),
       });
     expect(cashierBilling.status).toBe(403);
-
-    const adminBilling = await request(app)
-      .post("/api/checkout/create-checkout")
-      .set("Cookie", [admin.cookie])
-      .send({
-        organizationId: org.organizationId,
-        customerEmail: faker.internet.email(),
-      });
-    expect(adminBilling.status).toBe(403);
 
     const ownerBilling = await request(app)
       .post("/api/checkout/create-checkout")
@@ -80,7 +68,7 @@ describe("One owner rule", () => {
   it("lets the owner switch stores while a cashier cannot", async () => {
     const org = await registerOwner();
     const cashier = await createMember(org.organizationId, org.storeId, {
-      role: "user",
+      role: "cashier",
     });
 
     const cashierSwitch = await request(app)

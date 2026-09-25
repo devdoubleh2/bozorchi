@@ -9,7 +9,7 @@ describe("Auth Integration", () => {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         password: "Password123!",
-        role: "admin",
+        role: "owner",
         organization_name: faker.company.name(),
         store_name: faker.company.name() + " Store",
         phone: faker.phone.number(),
@@ -17,7 +17,7 @@ describe("Auth Integration", () => {
         currency: "UZS"
     };
 
-    it("POST /api/auth/register should register a new admin user", async () => {
+    it("POST /api/auth/register should register a new owner user", async () => {
         const response = await request(app)
             .post("/api/auth/register")
             .send(validUser);

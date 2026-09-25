@@ -19,7 +19,7 @@ export async function registerOwner(): Promise<TestOrg> {
     name: faker.person.fullName(),
     email: faker.internet.email(),
     password: "Password123!",
-    role: "admin",
+    role: "owner",
     organization_name: faker.company.name(),
     store_name: `${faker.company.name()} Store`,
     address: faker.location.streetAddress(),
@@ -46,12 +46,11 @@ export async function registerOwner(): Promise<TestOrg> {
   };
 }
 
-// NOTE: `role` here is the stored membership value ("admin" | "user").
-// API-facing payloads use "cashier"; see toStoredRole/toApiRole.
+// NOTE: `role` here is the stored membership value ("owner" | "cashier").
 export async function createMember(
   organizationId: string,
   storeId: string,
-  overrides: { role?: "admin" | "user"; approved?: boolean } = {}
+  overrides: { role?: "owner" | "cashier"; approved?: boolean } = {}
 ): Promise<{ cookie: string; userId: string; email: string }> {
   const email = faker.internet.email();
   const password = "Password123!";
@@ -67,7 +66,7 @@ export async function createMember(
       user_id: user.id,
       organization_id: organizationId,
       store_id: storeId,
-      role: overrides.role ?? "user",
+      role: overrides.role ?? "cashier",
       approved: overrides.approved ?? true,
     },
   });

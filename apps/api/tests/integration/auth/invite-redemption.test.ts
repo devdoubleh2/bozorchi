@@ -47,7 +47,7 @@ describe("Cashier invite redemption", () => {
     expect(membership).not.toBeNull();
     expect(membership?.organization_id).toBe(org.organizationId);
     expect(membership?.store_id).toBe(org.storeId);
-    expect(membership?.role).toBe("user");
+    expect(membership?.role).toBe("cashier");
     expect(membership?.approved).toBe(false);
 
     const used = await prisma.storeInvite.findUnique({

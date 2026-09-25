@@ -2,7 +2,7 @@ import { Router, RequestHandler } from "express";
 import { StaffController } from "../controllers/staffController";
 import { InvitesController } from "../controllers/invitesController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
-import { requireAdmin } from "../middleware/rbac";
+import { requireOwner } from "../middleware/rbac";
 import { validateRequest, validateParams } from "../middleware/validation";
 import {
   createInviteSchema,
@@ -15,7 +15,7 @@ const staffController = new StaffController();
 const invitesController = new InvitesController();
 
 router.use(createAuthMiddleware());
-router.use(requireAdmin as unknown as RequestHandler);
+router.use(requireOwner as unknown as RequestHandler);
 
 router.post(
   "/invites",

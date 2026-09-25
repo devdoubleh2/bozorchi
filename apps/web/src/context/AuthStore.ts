@@ -38,7 +38,7 @@ export interface OwnerSignUpData {
 }
 
 type OwnerPayload = Pick<RegisterData, "name" | "email" | "password"> & {
-  role: "admin";
+  role: "owner";
   organization_name: string;
   store_name: string;
   address: string;
@@ -388,7 +388,7 @@ export const useAuthStore = create<AuthState>()(
           }
         },
 
-        // Switch store (for admins/owners only) - session-based, returns new JWT
+        // Switch store (for owners only) - session-based, returns new JWT
         switchStore: async (storeId: string) => {
           try {
             const { user } = get();
@@ -404,12 +404,9 @@ export const useAuthStore = create<AuthState>()(
             }
 
             // Check if user has permission to switch stores
-            const isOwner = !!user.owned_organization;
-            const isAdmin = user.membership?.role === "admin";
-
-            if (!isOwner && !isAdmin) {
+            if (!user.owned_organization) {
               const error = new Error(
-                "Only organization owners and admins can switch stores"
+                "Only organization owners can switch stores"
               ) as ParsedApiError;
               error.details = [];
               return {
@@ -469,7 +466,7 @@ export const useAuthStore = create<AuthState>()(
             name: data.name,
             email: data.email.trim(),
             password: data.password,
-            role: "admin",
+            role: "owner",
             organization_name: data.orgName.trim(),
             store_name: data.storeName.trim(),
             address: data.address.trim(),

@@ -202,7 +202,7 @@ export const Register = ({ navigation }: Props) => {
         name,
         email,
         password,
-        role: mode === "create" ? "admin" : "user",
+        role: mode === "create" ? "owner" : "cashier",
         ...(mode === "create" ? {
           organization_name: orgName.trim(),
           store_name: orgName.trim(),

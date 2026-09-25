@@ -8,7 +8,7 @@
  *   bun run seed:production --clear # Clear all data and reseed
  * 
  * This script will:
- * 1. Create admin user and seller employees
+ * 1. Create owner user and cashier employees
  * 2. Setup organization and store
  * 3. Create 1000+ products with variations
  * 4. Create 500+ customers with loyalty cards
@@ -110,14 +110,14 @@ async function main() {
         console.log("\n" + "=".repeat(70));
         console.log("LOGIN CREDENTIALS");
         console.log("=".repeat(70));
-        console.log(`\nAdmin Account:`);
-        console.log(`  Email: ${SEED_CONFIG.admin.email}`);
-        console.log(`  Password: ${SEED_CONFIG.admin.password}`);
-        console.log(`\nSeller Accounts:`);
+        console.log(`\nOwner Account:`);
+        console.log(`  Email: ${SEED_CONFIG.owner.email}`);
+        console.log(`  Password: ${SEED_CONFIG.owner.password}`);
+        console.log(`\nCashier Accounts:`);
         for (const emp of SEED_CONFIG.employees.names) {
             console.log(`  Email: ${emp.email}`);
         }
-        console.log(`  Password (all sellers): ${SEED_CONFIG.employees.password}`);
+        console.log(`  Password (all cashiers): ${SEED_CONFIG.employees.password}`);
         console.log("");
 
         // Print transaction distribution info

@@ -1,7 +1,7 @@
 import { Router, RequestHandler } from "express";
 import { StoresController } from "../controllers/storesController";
 import { createAuthHandler, createAuthMiddleware } from "../middleware/auth";
-import { requireAdmin } from "../middleware/rbac";
+import { requireOwner } from "../middleware/rbac";
 import { validateRequest, validateQuery } from "../middleware/validation";
 import { z } from "zod";
 
@@ -125,14 +125,14 @@ router.get(
 
 router.put(
   "/",
-  requireAdmin as unknown as RequestHandler,
+  requireOwner as unknown as RequestHandler,
   validateRequest(updateStoreSchema),
   createAuthHandler(storesController.updateStore)
 );
 
 router.delete(
   "/",
-  requireAdmin as unknown as RequestHandler,
+  requireOwner as unknown as RequestHandler,
   createAuthHandler(storesController.deleteStore)
 );
 
