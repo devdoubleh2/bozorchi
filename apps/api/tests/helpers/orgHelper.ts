@@ -46,6 +46,8 @@ export async function registerOwner(): Promise<TestOrg> {
   };
 }
 
+// NOTE: `role` here is the stored membership value ("admin" | "user").
+// API-facing payloads use "cashier"; see toStoredRole/toApiRole.
 export async function createMember(
   organizationId: string,
   storeId: string,

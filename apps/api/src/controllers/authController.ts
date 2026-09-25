@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import authService, { InviteError } from "../services/auth";
 import logger from "../../logs/log"
-import { AuthRequest } from "../middleware/auth";
+import { AuthRequest, isAdminRole, isOwner, requestMembershipRole } from "../middleware/auth";
 import { AppError } from "../utils/AppError";
 import { sendSuccess, sendFail } from "../utils/responseHelpers";
+import { toApiRole } from "../utils/roles";
 
 export class AuthController {
   async register(req: Request, res: Response) {
@@ -61,7 +62,9 @@ export class AuthController {
         email: user.email,
         organizationId:
           user.owned_organization?.id || user.membership?.organization_id,
-        role: user.owned_organization ? "admin" : user.membership?.role,
+        role: user.owned_organization
+          ? "owner"
+          : toApiRole(user.membership?.role ?? "user"),
       });
 
       // Set token in HttpOnly cookie
@@ -151,10 +154,13 @@ export class AuthController {
     });
 
     const { password_hash, ...user } = req.user;
+    const membership = user.membership
+      ? { ...user.membership, role: toApiRole(user.membership.role) }
+      : user.membership;
     // Include membership and owned_organization for frontend permission checks
     return sendSuccess(res, {
       ...user,
-      membership: user.membership,
+      membership,
       owned_organization: user.owned_organization,
     });
   }
@@ -298,11 +304,11 @@ export class AuthController {
     // Security check: Only allow store assignment if:
     // 1. User is owner/admin (can manage assignments), OR
     // 2. User has NO current store assignment (first-time onboarding)
-    const isOwner = !!req.user?.owned_organization;
-    const isAdmin = req.userRole === "admin";
+    const ownerAccess = isOwner(req.user);
+    const adminAccess = isAdminRole(requestMembershipRole(req));
     const hasExistingAssignment = !!req.user?.membership?.store_id;
 
-    if (!isOwner && !isAdmin && hasExistingAssignment) {
+    if (!ownerAccess && !adminAccess && hasExistingAssignment) {
       logger.warn("Assign store failed - user cannot reassign themselves", "authController", {
         userId: req.userId,
         targetStoreId: storeId,

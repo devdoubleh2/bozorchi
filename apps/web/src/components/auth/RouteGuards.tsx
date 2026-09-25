@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "react-i18next";
 import type { Role, Permission } from "@/types/auth";
+import { isEffectiveAdmin } from "@/types/auth";
 
 interface RequireRoleProps {
   children: React.ReactNode;
@@ -55,7 +56,7 @@ const ForbiddenPage = ({
   const roleLabels = roles.map((role) =>
     role === "admin"
       ? t("auth.roleAdmin", { defaultValue: "Admin" })
-      : t("auth.roleUser", { defaultValue: "Staff" })
+      : t("auth.roleCashier", { defaultValue: "Cashier" })
   );
 
   return (
@@ -180,7 +181,7 @@ export function RequirePermission({
   redirectTo = "/",
   showForbidden = false,
 }: RequirePermissionProps) {
-  const { userStore, isLoading } = useAuth();
+  const { user, userStore, isLoading } = useAuth();
   const location = useLocation();
 
   // Still loading - don't make decisions yet
@@ -195,8 +196,8 @@ export function RequirePermission({
     );
   }
 
-  // Admins have all permissions
-  if (userStore.role === "admin") {
+  // Owners and admin memberships hold every permission.
+  if (isEffectiveAdmin(user)) {
     return <>{children}</>;
   }
 
@@ -230,7 +231,7 @@ export function RequirePermission({
  *
  * Usage:
  * ```tsx
- * <RequireAccess roles={["admin", "user"]} permissions={["VIEW_ANALYTICS"]}>
+ * <RequireAccess roles={["admin", "cashier"]} permissions={["VIEW_ANALYTICS"]}>
  *   <Analytics />
  * </RequireAccess>
  * ```
@@ -250,7 +251,7 @@ export function RequireAccess({
   redirectTo?: string;
   showForbidden?: boolean;
 }) {
-  const { userStore, isLoading } = useAuth();
+  const { user, userStore, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -273,8 +274,8 @@ export function RequireAccess({
     }
   }
 
-  // Check permissions if specified (admins bypass)
-  if (permissions && permissions.length > 0 && userStore.role !== "admin") {
+  // Check permissions if specified (owners and admin memberships bypass)
+  if (permissions && permissions.length > 0 && !isEffectiveAdmin(user)) {
     const userPermissions =
       (userStore as { permissions?: Permission[] }).permissions ?? [];
     const hasPermission = requireAllPermissions

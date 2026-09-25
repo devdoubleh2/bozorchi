@@ -3,7 +3,7 @@ export interface AuthUser {
   id: string;
   name: string | null;
   email: string;
-  role?: "admin" | "user";
+  role?: "admin" | "cashier";
   created_at?: string;
   membership?: any;
   owned_organization?: any;
@@ -24,7 +24,7 @@ export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "user";
+  role: "admin" | "cashier";
   organization_name?: string;
   store_name?: string;
   address?: string;

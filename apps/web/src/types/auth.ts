@@ -28,12 +28,27 @@ export interface Organization {
 // ROLE & PERMISSION TYPES
 // ============================================================================
 
-export type Role = "admin" | "user";
+export type Role = "admin" | "cashier";
 
 export const resolveEffectiveRole = (
   user: Pick<AuthUser, "owned_organization" | "membership"> | null | undefined
 ): Role =>
-  user?.owned_organization ? "admin" : (user?.membership?.role ?? "user");
+  user?.owned_organization ? "admin" : (user?.membership?.role ?? "cashier");
+
+/** Ownership derives from the organization owner link, never the role column. */
+export const isOwner = (
+  user: Pick<AuthUser, "owned_organization"> | null | undefined
+): boolean => !!user?.owned_organization;
+
+/** True when the membership row itself carries the admin role. */
+export const isAdminMembership = (
+  user: Pick<AuthUser, "membership"> | null | undefined
+): boolean => user?.membership?.role === "admin";
+
+/** Staff-management rule: owner OR admin membership. Billing uses isOwner. */
+export const isEffectiveAdmin = (
+  user: Pick<AuthUser, "owned_organization" | "membership"> | null | undefined
+): boolean => isOwner(user) || isAdminMembership(user);
 
 export type Permission =
   | "POS_ACCESS"

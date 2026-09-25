@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import logger from "../../logs/log";
 import { AuthRequest } from "../middleware/auth";
 import { Permission } from "../generated/public/client";
+import { toApiRole } from "../utils/roles";
 
 const ALLOWED_PERMISSIONS = new Set<Permission>([
   Permission.POS_ACCESS,
@@ -51,7 +52,7 @@ export class StaffController {
             email: user?.email || "Unknown",
             name: user?.name || null,
           },
-          role: assignment.role,
+          role: toApiRole(assignment.role),
           approved: assignment.approved,
           permissions: assignment.permissions,
           created_at: assignment.created_at,

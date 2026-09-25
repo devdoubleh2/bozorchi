@@ -68,18 +68,28 @@ export interface AuthMiddlewareOptions {
 export const isOwner = (user: UserWithRelations): boolean =>
   !!user.owned_organization;
 
+/** True when the membership row itself carries the admin role. */
+export const isAdminRole = (
+  membershipRole?: Role | string | null
+): boolean => membershipRole === Role.admin;
+
 export const resolveUserRole = (
   user: Pick<UserWithRelations, "owned_organization">,
   membershipRole?: Role | string | null
 ): Role =>
-  isOwner(user as UserWithRelations) || membershipRole === Role.admin
+  isOwner(user as UserWithRelations) || isAdminRole(membershipRole)
     ? Role.admin
     : Role.user;
 
 export const isEffectiveAdmin = (
   user: Pick<UserWithRelations, "owned_organization">,
   membershipRole?: Role | string | null
-): boolean => resolveUserRole(user, membershipRole) === Role.admin;
+): boolean => isOwner(user as UserWithRelations) || isAdminRole(membershipRole);
+
+/** Stored membership role for this request, falling back to the resolved role. */
+export const requestMembershipRole = (
+  req: Pick<AuthRequest, "user" | "userRole">
+): Role | string => req.user?.membership?.role ?? req.userRole;
 
 // just passing the types.
 export const createAuthHandler = (

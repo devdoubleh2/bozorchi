@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "react-i18next";
+import { INVITE_ERROR_CODE } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -344,7 +345,11 @@ export default function Register() {
       }
 
       if (result.error) {
-        throw new Error(result.error.message || "Registration failed");
+        const failure = new Error(
+          result.error.message || "Registration failed"
+        ) as Error & { code?: string };
+        failure.code = result.error.code;
+        throw failure;
       }
 
       // Refresh user store data
@@ -359,11 +364,17 @@ export default function Register() {
 
     } catch (err: any) {
       console.error("Registration error:", err);
+      const isInviteError = err?.code === INVITE_ERROR_CODE;
       dispatch({
         type: "SET_ERRORS",
         errors: {
-          message: err.message || t("common.error"),
-          details: err.details,
+          message: isInviteError
+            ? t("storeSetup.errors.inviteInvalid", {
+              defaultValue:
+                "This invite is expired, already used, or revoked. Ask your manager for a new invite.",
+            })
+            : err.message || t("common.error"),
+          details: isInviteError ? undefined : err.details,
         },
       });
     } finally {

@@ -28,7 +28,7 @@ export const registerSchema = z.discriminatedUnion("role", [
     phone: z.string().min(1, "Phone is required"),
   }),
   baseRegisterSchema.extend({
-    role: z.literal("user"),
+    role: z.literal("cashier"),
     invite_token: z.string().min(1, "Invite token is required"),
   }),
 ]);

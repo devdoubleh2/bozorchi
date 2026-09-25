@@ -1,7 +1,7 @@
 // backend/src/routes/checkout.ts
 import express from "express";
 import { polarApi } from "@/services/polar";
-import { createAuthMiddleware, createAuthHandler, isEffectiveAdmin } from "@/middleware/auth";
+import { createAuthMiddleware, createAuthHandler, isOwner } from "@/middleware/auth";
 
 const router: express.Router = express.Router();
 
@@ -36,8 +36,8 @@ router.post(
 
 
 
-      if (req.organization?.id !== organizationId || !isEffectiveAdmin(req.user, req.userRole)) {
-        res.status(403).json({ error: "Only organization owners and admins can manage billing" });
+      if (req.organization?.id !== organizationId || !isOwner(req.user)) {
+        res.status(403).json({ error: "Only organization owners can manage billing" });
         return;
       }
 
@@ -85,8 +85,8 @@ router.post(
 
     try {
       // Verify ownership
-      if (req.organization?.id !== organizationId || !isEffectiveAdmin(req.user, req.userRole)) {
-        res.status(403).json({ error: "Only organization owners and admins can manage billing" });
+      if (req.organization?.id !== organizationId || !isOwner(req.user)) {
+        res.status(403).json({ error: "Only organization owners can manage billing" });
         return;
       }
 

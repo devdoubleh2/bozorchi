@@ -40,7 +40,7 @@ describe("One owner rule", () => {
     expect([403, 404]).toContain(stores.status);
   }, 120000);
 
-  it("reserves billing for effective admins, never cashiers", async () => {
+  it("reserves billing for owners, never admins or cashiers", async () => {
     const org = await registerOwner();
     const cashier = await createMember(org.organizationId, org.storeId, {
       role: "user",
@@ -58,6 +58,15 @@ describe("One owner rule", () => {
       });
     expect(cashierBilling.status).toBe(403);
 
+    const adminBilling = await request(app)
+      .post("/api/checkout/create-checkout")
+      .set("Cookie", [admin.cookie])
+      .send({
+        organizationId: org.organizationId,
+        customerEmail: faker.internet.email(),
+      });
+    expect(adminBilling.status).toBe(403);
+
     const ownerBilling = await request(app)
       .post("/api/checkout/create-checkout")
       .set("Cookie", [org.cookie])
@@ -66,15 +75,6 @@ describe("One owner rule", () => {
         customerEmail: faker.internet.email(),
       });
     expect(ownerBilling.status).not.toBe(403);
-
-    const adminBilling = await request(app)
-      .post("/api/checkout/create-checkout")
-      .set("Cookie", [admin.cookie])
-      .send({
-        organizationId: org.organizationId,
-        customerEmail: faker.internet.email(),
-      });
-    expect(adminBilling.status).not.toBe(403);
   }, 120000);
 
   it("lets the owner switch stores while a cashier cannot", async () => {

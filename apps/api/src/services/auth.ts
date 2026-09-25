@@ -14,6 +14,7 @@ import {
   INVITE_ERROR,
   INVITE_ERROR_MESSAGE,
 } from "./invites";
+import { toApiRole, toStoredRole, type ApiRole } from "../utils/roles";
 import { AuthRequest } from "@/middleware/auth";
 import { Prisma } from "../generated/public/client";
 import logger from "../../logs/log";
@@ -32,7 +33,7 @@ interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "user";
+  role: ApiRole;
   organization_name?: string;
   store_name?: string;
   address?: string;
@@ -84,6 +85,13 @@ export class InviteError extends Error {
     this.name = "InviteError";
   }
 }
+
+const withApiRole = <T extends { role: string } | null>(
+  membership: T
+): T =>
+  (membership
+    ? { ...membership, role: toApiRole(membership.role) }
+    : membership) as T;
 
 class AuthService {
   private readonly JWT_SECRET: string;
@@ -234,7 +242,10 @@ class AuthService {
 
           const { password_hash: _, ...authUser } = userWithRelations;
           return {
-            user: { ...authUser, membership } as AuthUser,
+            user: {
+              ...authUser,
+              membership: withApiRole(membership),
+            } as AuthUser,
             token: this.generateToken(user.id, organization.id, store.id),
           };
         }
@@ -265,7 +276,7 @@ class AuthService {
             user_id: user.id,
             organization_id: invite.organization_id,
             store_id: invite.store_id,
-            role: "user",
+            role: toStoredRole("cashier"),
             approved: false,
           },
           select: { id: true },
@@ -285,7 +296,10 @@ class AuthService {
 
         const { password_hash: _, ...authUser } = userWithRelations;
         return {
-          user: { ...authUser, membership } as AuthUser,
+          user: {
+            ...authUser,
+            membership: withApiRole(membership),
+          } as AuthUser,
           token: this.generateToken(user.id, invite.organization_id, invite.store_id),
         };
       },
@@ -330,7 +344,10 @@ class AuthService {
     const { password_hash: _, ...authUser } = user;
 
     return {
-      user: { ...authUser, membership } as AuthUser,
+      user: {
+        ...authUser,
+        membership: withApiRole(membership),
+      } as AuthUser,
       token: this.generateToken(user.id, organizationId, membership?.store_id || undefined),
     };
   }
@@ -429,7 +446,10 @@ class AuthService {
     const { password_hash: _, ...authUser } = user;
 
     return {
-      user: { ...authUser, membership } as AuthUser,
+      user: {
+        ...authUser,
+        membership: withApiRole(membership),
+      } as AuthUser,
       token: this.generateToken(user.id, organizationId, activeStoreId),
       needsOnboarding: !membership && !user.owned_organization ? true : needsOnboarding,
     };

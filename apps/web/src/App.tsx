@@ -58,6 +58,7 @@ import { CurrencyDropdown } from "@/components/CurrencyDropdown";
 import { NavMain, type NavItem } from "@/components/nav-main";
 import { RequireAccess } from "@/components/auth";
 import type { Permission, Role } from "@/types/auth";
+import { isAdminMembership, isOwner } from "@/types/auth";
 import { cn } from "./lib/utils";
 import { FaroRoutes } from "@grafana/faro-react";
 import LocaleRouteSync from "@/components/LocaleRouteSync";
@@ -436,9 +437,15 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 };
 
 const RequireStaffApproval = ({ children }: { children: React.ReactNode }) => {
-  const { userStore, getStore } = useAuth();
+  const { user, userStore, getStore } = useAuth();
   const navigate = useNavigate();
-  const isPending = !!userStore && userStore.role !== "admin" && userStore.approved === false;
+  // Owners route to owner views, never to the pending landing: only a
+  // non-owner, non-admin membership waiting for approval is pending.
+  const isPending =
+    !!userStore &&
+    !isOwner(user) &&
+    !isAdminMembership(user) &&
+    userStore.approved === false;
 
   // Poll for approval status when user is pending
   useQuery({

@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { isOwner } from "@/types/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,10 +110,11 @@ export default function AccountEditPage() {
   }, [user?.created_at]);
 
   const roleLabel = useMemo(() => {
+    if (isOwner(user)) return t("profile.roleOwner", { defaultValue: "Owner" });
     if (userStore?.role === "admin") return t("profile.roleAdmin");
-    if (userStore?.role === "user") return t("profile.roleUser");
+    if (userStore?.role === "cashier") return t("profile.roleCashier", { defaultValue: "Cashier" });
     return userStore?.role ?? t("common.notSpecified");
-  }, [userStore?.role, t]);
+  }, [user, userStore?.role, t]);
 
   const currencyOptions = useMemo(() => {
     const merged = [...DEFAULT_CURRENCIES];

@@ -18,11 +18,19 @@ export type AuthErrorCode =
 
 export interface ApiError {
   error?: string;
-  code?: AuthErrorCode;
+  code?: string;
   message?: string;
   requiredPermissions?: string[];
   details?: string[] | string;
 }
+
+/**
+ * Dedicated error code the API returns when a store invite token is
+ * expired, already used, revoked, or unknown. Mirrors INVITE_ERROR in
+ * apps/api/src/services/invites.ts. The sign-up screen branches on this
+ * code to render the shared "ask your manager for a new invite" guidance.
+ */
+export const INVITE_ERROR_CODE = "INVITE_INVALID";
 
 export class ApiRequestError extends Error {
   readonly status: number;
