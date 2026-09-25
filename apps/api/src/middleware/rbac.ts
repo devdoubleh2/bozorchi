@@ -1,6 +1,6 @@
 import { RequestHandler, Response, NextFunction } from "express";
 import { Permission, Role } from "../generated/public/client";
-import { AuthRequest } from "./auth";
+import { AuthRequest, isEffectiveAdmin } from "./auth";
 
 /**
  * Middleware to check if user has admin role
@@ -65,7 +65,7 @@ const userHasPermission = (
     return false;
   }
 
-  if (req.userRole === Role.admin || !!req.user?.owned_organization) {
+  if (isEffectiveAdmin(req.user, req.user?.membership?.role ?? req.userRole)) {
     return true;
   }
 

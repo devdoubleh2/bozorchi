@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useReducer } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -24,8 +24,129 @@ import {
 import { Loader2 } from "lucide-react";
 import type { UserStoreInfo } from "@/types/auth";
 
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
+const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/;
 const PHONE_REGEX = /^(\+?998|8|)\s?-?\(?\d{2}\)?\s?-?\d{3}\s?-?\d{2}\s?-?\d{2}$/;
+
+type Mode = "create" | "join";
+
+// ============================================================================
+// OWNER (CREATE STORE) TYPES
+// ============================================================================
+
+interface OwnerFields {
+  orgName: string;
+  storeName: string;
+  address: string;
+  phone: string;
+  currency: string;
+}
+
+interface OwnerErrors {
+  orgName?: string;
+  storeName?: string;
+  address?: string;
+  phone?: string;
+}
+
+// ============================================================================
+// CASHIER (JOIN STORE) TYPES
+// ============================================================================
+
+interface CashierFields {
+  inviteToken: string;
+}
+
+interface CashierErrors {
+  inviteToken?: string;
+}
+
+// ============================================================================
+// SHARED TYPES
+// ============================================================================
+
+interface AccountFields {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface AccountErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+interface FormErrors extends AccountErrors, OwnerErrors, CashierErrors {
+  message?: string;
+  details?: string[];
+}
+
+interface RegisterState {
+  mode: Mode;
+  account: AccountFields;
+  owner: OwnerFields;
+  cashier: CashierFields;
+  errors: FormErrors;
+  isSubmitting: boolean;
+}
+
+type RegisterAction =
+  | { type: "SET_ACCOUNT_FIELD"; field: keyof AccountFields; value: string }
+  | { type: "SET_OWNER_FIELD"; field: keyof OwnerFields; value: string }
+  | { type: "SET_CASHIER_FIELD"; field: keyof CashierFields; value: string }
+  | { type: "SET_MODE"; mode: Mode }
+  | { type: "SET_ERRORS"; errors: FormErrors }
+  | { type: "SET_SUBMITTING"; value: boolean }
+  | { type: "PREFILL"; name?: string; email?: string };
+
+const initialState: RegisterState = {
+  mode: "create",
+  account: { name: "", email: "", password: "", confirmPassword: "" },
+  owner: { orgName: "", storeName: "", address: "", phone: "", currency: "UZS" },
+  cashier: { inviteToken: "" },
+  errors: {},
+  isSubmitting: false,
+};
+
+function registerReducer(state: RegisterState, action: RegisterAction): RegisterState {
+  switch (action.type) {
+    case "SET_ACCOUNT_FIELD":
+      return {
+        ...state,
+        account: { ...state.account, [action.field]: action.value },
+      };
+    case "SET_OWNER_FIELD":
+      return {
+        ...state,
+        owner: { ...state.owner, [action.field]: action.value },
+      };
+    case "SET_CASHIER_FIELD":
+      return {
+        ...state,
+        cashier: { ...state.cashier, [action.field]: action.value },
+      };
+    case "SET_MODE":
+      return { ...state, mode: action.mode };
+    case "SET_ERRORS":
+      return { ...state, errors: action.errors };
+    case "SET_SUBMITTING":
+      return { ...state, isSubmitting: action.value };
+    case "PREFILL":
+      return {
+        ...state,
+        account: {
+          ...state.account,
+          name: state.account.name || action.name || "",
+          email: state.account.email || action.email || "",
+        },
+      };
+    default:
+      return state;
+  }
+}
 
 const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
   if (!userStore || userStore.role === "admin") return "/dashboard";
@@ -43,94 +164,153 @@ const resolveDefaultRoute = (userStore: UserStoreInfo | null): string => {
   return "/account";
 };
 
+type TFn = (key: string, options?: Record<string, unknown>) => string;
+
+// ============================================================================
+// OWNER (CREATE STORE) VALIDATION
+// ============================================================================
+
+function validateOwnerFields(fields: OwnerFields, t: TFn): OwnerErrors {
+  const errors: OwnerErrors = {};
+
+  if (!fields.orgName)
+    errors.orgName = t("storeSetup.errors.organizationNameRequired", {
+      defaultValue: "Organization name is required",
+    });
+  if (!fields.storeName)
+    errors.storeName = t("storeSetup.errors.storeNameRequired", {
+      defaultValue: "Store name is required",
+    });
+  if (!fields.address)
+    errors.address = t("storeSetup.errors.addressRequired");
+  if (!fields.phone) {
+    errors.phone = t("storeSetup.errors.phoneRequired");
+  } else if (!PHONE_REGEX.test(fields.phone.replace(/[\s-]/g, ""))) {
+    errors.phone = t("storeSetup.errors.phoneInvalid");
+  }
+
+  return errors;
+}
+
+// ============================================================================
+// CASHIER (JOIN STORE) VALIDATION
+// ============================================================================
+
+function validateCashierFields(fields: CashierFields, t: TFn): CashierErrors {
+  const errors: CashierErrors = {};
+
+  if (!fields.inviteToken.trim())
+    errors.inviteToken = t("storeSetup.errors.inviteRequired", {
+      defaultValue: "Invite code is required. Ask your manager for a new invite.",
+    });
+
+  return errors;
+}
+
+export function extractInviteToken(value: string): string {
+  const trimmed = value.trim();
+  const match = /[?&]invite=([^&]+)/.exec(trimmed);
+  if (match?.[1]) {
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  }
+  return trimmed;
+}
+
+// ============================================================================
+// SHARED ACCOUNT VALIDATION
+// ============================================================================
+
+function validateAccountFields(fields: AccountFields, t: TFn): AccountErrors {
+  const errors: AccountErrors = {};
+
+  if (!fields.name) errors.name = t("auth.nameRequired");
+
+  if (!fields.email) {
+    errors.email = t("auth.emailRequired");
+  } else if (!/\S+@\S+\.\S+/.test(fields.email)) {
+    errors.email = t("auth.invalidEmail");
+  }
+
+  if (!fields.password) {
+    errors.password = t("auth.passwordRequired");
+  } else if (fields.password.length < MIN_PASSWORD_LENGTH) {
+    errors.password = t("auth.passwordMinLength", {
+      defaultValue: "Password must be at least 8 characters",
+    });
+  } else if (!PASSWORD_COMPLEXITY_REGEX.test(fields.password)) {
+    errors.password = t("auth.passwordComplexity", {
+      defaultValue:
+        "Password must contain an uppercase letter, a lowercase letter, and a number",
+    });
+  }
+
+  if (!fields.confirmPassword) {
+    errors.confirmPassword = t("auth.confirmPasswordRequired");
+  } else if (fields.password !== fields.confirmPassword) {
+    errors.confirmPassword = t("auth.passwordsDoNotMatch");
+  }
+
+  return errors;
+}
+
 export default function Register() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signUp, getStore } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { signUpAsOwner, signUpAsCashier, getStore } = useAuth();
   const { t } = useTranslation();
   const oauthPrefill = (location.state as {
     oauthPrefill?: { name?: string; email?: string };
   } | null)?.oauthPrefill;
 
-  const [mode, setMode] = useState<"create" | "join">("create");
+  const [state, dispatch] = useReducer(registerReducer, initialState);
+  const { mode, account, owner, cashier, errors, isSubmitting } = state;
 
-  // User fields
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const setAccountField = (field: keyof AccountFields) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => dispatch({ type: "SET_ACCOUNT_FIELD", field, value: e.target.value });
 
-  // Store fields
-  const [orgName, setOrgName] = useState("");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [currency, setCurrency] = useState("UZS");
-  const [storeName, setStoreName] = useState("");
+  const setOwnerField = (field: keyof OwnerFields) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => dispatch({ type: "SET_OWNER_FIELD", field, value: e.target.value });
 
-  // Join fields
-  const [storeId, setStoreId] = useState("");
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{
-    name?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-    orgName?: string;
-    address?: string;
-    phone?: string;
-    storeId?: string;
-    storeName?: string;
-    message?: string;
-    details?: string[];
-  }>({});
+  const setCashierField = (field: keyof CashierFields) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => dispatch({ type: "SET_CASHIER_FIELD", field, value: e.target.value });
 
   useEffect(() => {
     if (!oauthPrefill) {
       return;
     }
 
-    setName((current) => current || oauthPrefill.name || "");
-    setEmail((current) => current || oauthPrefill.email || "");
+    dispatch({
+      type: "PREFILL",
+      name: oauthPrefill.name,
+      email: oauthPrefill.email,
+    });
   }, [oauthPrefill]);
 
+  useEffect(() => {
+    const invite = searchParams.get("invite");
+    if (invite) {
+      dispatch({ type: "SET_MODE", mode: "join" });
+      dispatch({ type: "SET_CASHIER_FIELD", field: "inviteToken", value: invite });
+    }
+  }, [searchParams]);
 
   const validateForm = () => {
-    const nextErrors: typeof errors = {};
+    const nextErrors: FormErrors = {
+      ...validateAccountFields(account, t),
+      ...(mode === "create"
+        ? validateOwnerFields(owner, t)
+        : validateCashierFields(cashier, t)),
+    };
 
-    if (!name) nextErrors.name = t("auth.nameRequired");
-
-    if (!email) {
-      nextErrors.email = t("auth.emailRequired");
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      nextErrors.email = t("auth.invalidEmail");
-    }
-
-    if (!password) {
-      nextErrors.password = t("auth.passwordRequired");
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
-      nextErrors.password = t("auth.passwordMinLength");
-    }
-
-    if (!confirmPassword) {
-      nextErrors.confirmPassword = t("auth.confirmPasswordRequired");
-    } else if (password !== confirmPassword) {
-      nextErrors.confirmPassword = t("auth.passwordsDoNotMatch");
-    }
-
-    if (mode === "create") {
-      if (!orgName) nextErrors.orgName = t("storeSetup.errors.organizationNameRequired", { defaultValue: "Organization name is required" });
-      if (!address) nextErrors.address = t("storeSetup.errors.addressRequired");
-      if (!phone) {
-        nextErrors.phone = t("storeSetup.errors.phoneRequired");
-      } else if (!PHONE_REGEX.test(phone.replace(/[\s-]/g, ""))) {
-        nextErrors.phone = t("storeSetup.errors.phoneInvalid");
-      }
-    } else {
-      if (!storeId) nextErrors.storeId = t("storeSetup.errors.storeRequired");
-    }
-
-    setErrors(nextErrors);
+    dispatch({ type: "SET_ERRORS", errors: nextErrors });
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -138,26 +318,30 @@ export default function Register() {
     event.preventDefault();
     if (!validateForm()) return;
 
-    setIsSubmitting(true);
-    setErrors({});
+    dispatch({ type: "SET_SUBMITTING", value: true });
+    dispatch({ type: "SET_ERRORS", errors: {} });
 
     try {
-      // Single unified registration API call
-      const result = await signUp({
-        name,
-        email: email.trim(),
-        password,
-        role: mode === "create" ? "admin" : "user",
-        ...(mode === "create" ? {
-          organization_name: orgName.trim(),
-          address: address.trim(),
-          phone: phone.replace(/\D/g, ""),
-          currency,
-          store_name: storeName.trim()
-        } : {
-          store_id: storeId,
-        })
-      });
+      let result;
+      if (mode === "create") {
+        result = await signUpAsOwner({
+          name: account.name,
+          email: account.email,
+          password: account.password,
+          orgName: owner.orgName,
+          storeName: owner.storeName,
+          address: owner.address,
+          phone: owner.phone,
+          currency: owner.currency,
+        });
+      } else {
+        result = await signUpAsCashier({
+          name: account.name,
+          email: account.email,
+          password: account.password,
+          inviteToken: extractInviteToken(cashier.inviteToken),
+        });
+      }
 
       if (result.error) {
         throw new Error(result.error.message || "Registration failed");
@@ -165,16 +349,25 @@ export default function Register() {
 
       // Refresh user store data
       const store = await getStore();
-      navigate(resolveDefaultRoute(store), { replace: true });
+      const isPendingCashier =
+        !result.user?.owned_organization &&
+        !!result.user?.membership &&
+        !result.user.membership.approved;
+      navigate(isPendingCashier ? "/staff" : resolveDefaultRoute(store), {
+        replace: true,
+      });
 
     } catch (err: any) {
       console.error("Registration error:", err);
-      setErrors({
-        message: err.message || t("common.error"),
-        details: err.details,
+      dispatch({
+        type: "SET_ERRORS",
+        errors: {
+          message: err.message || t("common.error"),
+          details: err.details,
+        },
       });
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: "SET_SUBMITTING", value: false });
     }
   };
 
@@ -190,7 +383,7 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} noValidate>
           <CardContent className="space-y-4">
-            <Tabs value={mode} onValueChange={(v) => setMode(v as "create" | "join")} className="w-full">
+            <Tabs value={mode} onValueChange={(v) => dispatch({ type: "SET_MODE", mode: v as Mode })} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="create">{t("storeSetup.create", { defaultValue: "Create Store" })}</TabsTrigger>
                 <TabsTrigger value="join">{t("storeSetup.join", { defaultValue: "Join Store" })}</TabsTrigger>
@@ -203,8 +396,8 @@ export default function Register() {
                   <Input
                     id="name"
                     placeholder={t("auth.name")}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={account.name}
+                    onChange={setAccountField("name")}
                     required
                     aria-invalid={!!errors.name}
                   />
@@ -217,8 +410,8 @@ export default function Register() {
                     id="email"
                     type="email"
                     placeholder={t("auth.email")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={account.email}
+                    onChange={setAccountField("email")}
                     required
                     aria-invalid={!!errors.email}
                   />
@@ -232,8 +425,8 @@ export default function Register() {
                       id="password"
                       type="password"
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={account.password}
+                      onChange={setAccountField("password")}
                       required
                       aria-invalid={!!errors.password}
                     />
@@ -246,8 +439,8 @@ export default function Register() {
                       id="confirmPassword"
                       type="password"
                       placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      value={account.confirmPassword}
+                      onChange={setAccountField("confirmPassword")}
                       required
                       aria-invalid={!!errors.confirmPassword}
                     />
@@ -261,8 +454,8 @@ export default function Register() {
                     <Input
                       id="orgName"
                       placeholder="My Organization"
-                      value={orgName}
-                      onChange={(e) => setOrgName(e.target.value)}
+                      value={owner.orgName}
+                      onChange={setOwnerField("orgName")}
                       aria-invalid={!!errors.orgName}
                     />
                     {errors.orgName && <p className="text-xs text-destructive">{errors.orgName}</p>}
@@ -273,8 +466,8 @@ export default function Register() {
                     <Input
                       id="address"
                       placeholder={t("storeSetup.address")}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      value={owner.address}
+                      onChange={setOwnerField("address")}
                       aria-invalid={!!errors.address}
                     />
                     {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
@@ -286,8 +479,8 @@ export default function Register() {
                     <Input
                       id="storeName"
                       placeholder={t("storeSetup.storeName")}
-                      value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
+                      value={owner.storeName}
+                      onChange={setOwnerField("storeName")}
                       aria-invalid={!!errors.storeName}
                     />
                     {errors.storeName && <p className="text-xs text-destructive">{errors.storeName}</p>}
@@ -299,8 +492,8 @@ export default function Register() {
                       <Input
                         id="phone"
                         placeholder="+998 90 123 45 67"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        value={owner.phone}
+                        onChange={setOwnerField("phone")}
                         aria-invalid={!!errors.phone}
                       />
                       {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
@@ -308,7 +501,7 @@ export default function Register() {
 
                     <div className="space-y-1">
                       <Label htmlFor="currency">{t("storeSetup.currency.title")}</Label>
-                      <Select value={currency} onValueChange={setCurrency}>
+                      <Select value={owner.currency} onValueChange={(v) => dispatch({ type: "SET_OWNER_FIELD", field: "currency", value: v })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select currency" />
                         </SelectTrigger>
@@ -325,15 +518,25 @@ export default function Register() {
 
                 <TabsContent value="join" className="space-y-4 mt-4 pt-4 border-t">
                   <div className="space-y-1">
-                    <Label htmlFor="storeId">{t("storeSetup.storeId", { defaultValue: "Store ID" })}</Label>
+                    <Label htmlFor="inviteToken">
+                      {t("storeSetup.inviteCode", { defaultValue: "Invite code" })}
+                    </Label>
                     <Input
-                      id="storeId"
-                      placeholder="Enter Store ID"
-                      value={storeId}
-                      onChange={(e) => setStoreId(e.target.value)}
-                      aria-invalid={!!errors.storeId}
+                      id="inviteToken"
+                      placeholder={t("storeSetup.inviteCodePlaceholder", {
+                        defaultValue: "Paste the invite code or link from your manager",
+                      })}
+                      value={cashier.inviteToken}
+                      onChange={setCashierField("inviteToken")}
+                      aria-invalid={!!errors.inviteToken}
                     />
-                    {errors.storeId && <p className="text-xs text-destructive">{errors.storeId}</p>}
+                    {errors.inviteToken && <p className="text-xs text-destructive">{errors.inviteToken}</p>}
+                    <p className="text-xs text-muted-foreground">
+                      {t("storeSetup.inviteCodeHint", {
+                        defaultValue:
+                          "You join as pending until your manager approves you. If the code does not work, ask your manager for a new invite.",
+                      })}
+                    </p>
                   </div>
                 </TabsContent>
               </div>

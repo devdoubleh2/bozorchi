@@ -47,7 +47,10 @@ describe("DELETE /api/auth/me safeguards", () => {
         });
 
       expect(adminRegisterRes.status).toBe(201);
-      const adminUserId = adminRegisterRes.body.user.id as string;
+      const adminCookie = extractTokenCookie(
+        adminRegisterRes.headers["set-cookie"] as string[] | undefined
+      );
+      const adminUserId = adminRegisterRes.body.data.user.id as string;
 
       const adminMembership = await prisma.userOrganization.findUnique({
         where: { user_id: adminUserId },
@@ -63,6 +66,12 @@ describe("DELETE /api/auth/me safeguards", () => {
       });
       expect(storeBeforeDelete).not.toBeNull();
 
+      const inviteRes = await api
+        .post("/api/staff/invites")
+        .set("Cookie", [adminCookie])
+        .send({ store_id: adminMembership.store_id });
+      expect(inviteRes.status).toBe(201);
+
       const staffRegisterRes = await api
         .post("/api/auth/register")
         .send({
@@ -70,11 +79,31 @@ describe("DELETE /api/auth/me safeguards", () => {
           email: faker.internet.email(),
           password: "Password123!",
           role: "user",
-          store_id: adminMembership.store_id,
+          invite_token: inviteRes.body.token,
         });
 
       expect(staffRegisterRes.status).toBe(201);
-      const staffUserId = staffRegisterRes.body.user.id as string;
+      const staffUserId = staffRegisterRes.body.data.user.id as string;
+
+      const assignmentsRes = await api
+        .get("/api/staff/assignments")
+        .set("Cookie", [adminCookie]);
+      expect(assignmentsRes.status).toBe(200);
+      const pending = assignmentsRes.body.pending as Array<{ id: string }>;
+      expect(pending.length).toBeGreaterThanOrEqual(1);
+      const assignmentId = (
+        await prisma.userOrganization.findUnique({
+          where: { user_id: staffUserId },
+          select: { id: true },
+        })
+      )?.id;
+      if (!assignmentId) throw new Error("Staff membership was not created");
+
+      const approveRes = await api
+        .post(`/api/staff/assignments/${assignmentId}/approve`)
+        .set("Cookie", [adminCookie]);
+      expect(approveRes.status).toBe(200);
+
       const staffCookie = extractTokenCookie(
         staffRegisterRes.headers["set-cookie"] as string[] | undefined
       );

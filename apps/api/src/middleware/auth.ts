@@ -62,10 +62,24 @@ export interface AuthRequest extends Request {
 export interface AuthMiddlewareOptions {
   requireStore?: boolean;
   requireOrg?: boolean;
+  allowPending?: boolean;
 }
 
 export const isOwner = (user: UserWithRelations): boolean =>
   !!user.owned_organization;
+
+export const resolveUserRole = (
+  user: Pick<UserWithRelations, "owned_organization">,
+  membershipRole?: Role | string | null
+): Role =>
+  isOwner(user as UserWithRelations) || membershipRole === Role.admin
+    ? Role.admin
+    : Role.user;
+
+export const isEffectiveAdmin = (
+  user: Pick<UserWithRelations, "owned_organization">,
+  membershipRole?: Role | string | null
+): boolean => resolveUserRole(user, membershipRole) === Role.admin;
 
 // just passing the types.
 export const createAuthHandler = (
@@ -87,7 +101,7 @@ export const createAuthHandler = (
 export const createAuthMiddleware =
   (options: AuthMiddlewareOptions = {}): RequestHandler =>
     async (req, res, next) => {
-      const { requireStore = true, requireOrg = true } = options;
+      const { requireStore = true, requireOrg = true, allowPending = false } = options;
       const authReq = req as AuthRequest;
 
       try {
@@ -157,7 +171,7 @@ export const createAuthMiddleware =
               membership: null,
             };
             authReq.user = normalizedUser;
-            authReq.userRole = isOwner(normalizedUser) ? "admin" : "user";
+            authReq.userRole = resolveUserRole(normalizedUser);
             authReq.userStores = [];
             authReq.userApproved = false;
             authReq.prisma = prisma;
@@ -176,10 +190,7 @@ export const createAuthMiddleware =
         };
         authReq.user = normalizedUser;
         // User is admin if they own the organization OR have admin role in membership
-        authReq.userRole =
-          isOwner(normalizedUser) || membership?.role === "admin"
-            ? "admin"
-            : "user";
+        authReq.userRole = resolveUserRole(normalizedUser, membership?.role);
 
         // Determine organization
         const organization =
@@ -201,7 +212,7 @@ export const createAuthMiddleware =
         authReq.organizationId = organization.id;
         authReq.userApproved = membership?.approved ?? false;
 
-        if (requireOrg && !authReq.userApproved && !isOwner(normalizedUser)) {
+        if (requireOrg && !authReq.userApproved && !isOwner(normalizedUser) && !allowPending) {
           return res.status(403).json({
             error: "Your organization membership is pending approval",
             code: AuthErrorCode.NO_ORG_ACCESS,
@@ -239,7 +250,7 @@ export const createAuthMiddleware =
 
         // Select active store
         if (requireStore) {
-          const isOwnerOrAdmin = isOwner(normalizedUser) || membership?.role === "admin";
+          const isOwnerOrAdmin = isEffectiveAdmin(normalizedUser, membership?.role);
 
           logger.debug("Store resolution:", "authMiddleware", {
             organizationId: organization.id,

@@ -2,6 +2,21 @@ import request from "supertest";
 import app from "../../app";
 import { faker } from "@faker-js/faker";
 
+export const extractTokenCookie = (
+  setCookieHeader?: string | string[]
+): string => {
+  const cookies = Array.isArray(setCookieHeader)
+    ? setCookieHeader
+    : [setCookieHeader ?? ""];
+  const tokenCookie = cookies.find((cookie) => cookie.startsWith("token="));
+
+  if (!tokenCookie) {
+    throw new Error("Auth token cookie was not set on response");
+  }
+
+  return tokenCookie.split(";")[0]!;
+};
+
 export class AuthHelper {
     static async createAndLoginUser() {
         // Admin registration details
@@ -32,9 +47,11 @@ export class AuthHelper {
             throw new Error(`Failed to register user: ${JSON.stringify(registerResponse.body)}`);
         }
 
+        const cookie = extractTokenCookie(registerResponse.headers["set-cookie"]);
+
         return {
-            token: registerResponse.body.token,
-            user: registerResponse.body.user,
+            cookie,
+            user: registerResponse.body.data.user,
             email,
             password,
         };
@@ -49,6 +66,6 @@ export class AuthHelper {
             throw new Error(`Failed to login user: ${JSON.stringify(response.body)}`);
         }
 
-        return response.body.token;
+        return extractTokenCookie(response.headers["set-cookie"]);
     }
 }

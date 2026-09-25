@@ -153,9 +153,16 @@ export class StaffController {
         });
       }
 
+      const { permissions } = req.body as { permissions?: Permission[] };
+
+      let grantedPermissions: Permission[] | undefined;
+      if (permissions !== undefined) {
+        grantedPermissions = [...new Set(permissions)];
+      }
+
       const assignment = await prisma.userOrganization.findUnique({
         where: { id: assignmentId },
-        select: { id: true, store_id: true, approved: true },
+        select: { id: true, store_id: true, approved: true, permissions: true },
       });
 
       if (!assignment || assignment.store_id !== req.store.id) {
@@ -170,14 +177,20 @@ export class StaffController {
         });
       }
 
+      const finalPermissions =
+        grantedPermissions ?? (assignment.permissions.length > 0
+          ? assignment.permissions
+          : [Permission.POS_ACCESS]);
+
       await prisma.userOrganization.update({
         where: { id: assignmentId },
-        data: { approved: true },
+        data: { approved: true, permissions: finalPermissions },
         select: { id: true },
       });
 
       return res.json({
         message: "Staff member approved successfully",
+        permissions: finalPermissions,
       });
     } catch (error) {
       logger.error("Approve staff assignment error:", "staffController", error);

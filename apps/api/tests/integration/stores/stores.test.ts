@@ -5,19 +5,19 @@ import { faker } from "@faker-js/faker";
 import { AuthHelper } from "../../helpers/authHelper";
 
 describe("Store Integration", () => {
-    it("POST /api/stores should create a new store", async () => {
-        const { token } = await AuthHelper.createAndLoginUser();
+    it("POST /api/stores/create should create a new store", async () => {
+        const { cookie } = await AuthHelper.createAndLoginUser();
 
         const newStore = {
             name: faker.company.name(),
             address: faker.location.streetAddress(),
-            phone: faker.phone.number(),
+            phone: "+998901234567",
             currency: "UZS"
         };
 
         const response = await request(app)
-            .post("/api/stores")
-            .set("Authorization", `Bearer ${token}`)
+            .post("/api/stores/create")
+            .set("Cookie", [cookie])
             .send(newStore);
 
         if (response.status !== 201) {
@@ -29,11 +29,11 @@ describe("Store Integration", () => {
     }, 120000);
 
     it("GET /api/stores should list stores", async () => {
-        const { token } = await AuthHelper.createAndLoginUser();
+        const { cookie } = await AuthHelper.createAndLoginUser();
 
         const response = await request(app)
             .get("/api/stores")
-            .set("Authorization", `Bearer ${token}`);
+            .set("Cookie", [cookie]);
 
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body.stores)).toBe(true);

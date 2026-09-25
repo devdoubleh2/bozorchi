@@ -30,6 +30,11 @@ export interface Organization {
 
 export type Role = "admin" | "user";
 
+export const resolveEffectiveRole = (
+  user: Pick<AuthUser, "owned_organization" | "membership"> | null | undefined
+): Role =>
+  user?.owned_organization ? "admin" : (user?.membership?.role ?? "user");
+
 export type Permission =
   | "POS_ACCESS"
   | "MANAGE_PRODUCTS"
@@ -136,5 +141,5 @@ export interface RegisterData {
   phone?: string;
   currency?: string;
   organization_id?: string;
-  store_id?: string;
+  invite_token?: string;
 }

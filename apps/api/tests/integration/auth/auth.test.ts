@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import request from "supertest";
 import app from "../../../app";
 import { faker } from "@faker-js/faker";
-import { AuthHelper } from "../../helpers/authHelper";
+import { AuthHelper, extractTokenCookie } from "../../helpers/authHelper";
 
 describe("Auth Integration", () => {
     const validUser = {
@@ -27,9 +27,11 @@ describe("Auth Integration", () => {
         }
 
         expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty("token");
-        expect(response.body).toHaveProperty("user");
-        expect(response.body.user.email).toBe(validUser.email);
+        expect(response.body.status).toBe("success");
+        expect(response.body.data).toHaveProperty("user");
+        expect(response.body.data.user.email).toBe(validUser.email);
+        // Session is delivered as an HttpOnly cookie
+        extractTokenCookie(response.headers["set-cookie"]);
     }, 120000);
 
     it("POST /api/auth/register should fail with duplicate email", async () => {
@@ -50,7 +52,7 @@ describe("Auth Integration", () => {
             });
 
         expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty("token");
+        extractTokenCookie(response.headers["set-cookie"]);
     });
 
     it("POST /api/auth/login should fail with invalid password", async () => {
@@ -65,13 +67,13 @@ describe("Auth Integration", () => {
     });
 
     it("GET /api/auth/profile should return user profile", async () => {
-        const { token, user } = await AuthHelper.createAndLoginUser();
+        const { cookie, user } = await AuthHelper.createAndLoginUser();
 
         const response = await request(app)
             .get("/api/auth/profile")
-            .set("Authorization", `Bearer ${token}`);
+            .set("Cookie", [cookie]);
 
         expect(response.status).toBe(200);
-        expect(response.body.email).toBe(user.email);
+        expect(response.body.data.email).toBe(user.email);
     });
 });

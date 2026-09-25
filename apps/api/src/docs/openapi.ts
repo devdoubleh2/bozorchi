@@ -875,8 +875,20 @@ export const openApiDocument: OpenApiDocument = {
       }),
     }),
     "/api/staff/assignments/{assignmentId}/approve": path({
-      post: protectedOperation(["admin"], "Approve staff assignment", {
+      post: protectedOperation(["admin"], "Approve staff assignment (grants POS access unless permissions are provided)", {
         parameters: [idParam("assignmentId", "Staff assignment identifier")],
+        requestBody: body(schemaRef("ApproveAssignmentRequest")),
+      }),
+    }),
+    "/api/staff/invites": path({
+      get: protectedOperation(["admin"], "List store invites"),
+      post: protectedOperation(["admin"], "Create store invite", {
+        requestBody: body(schemaRef("CreateInviteRequest")),
+      }),
+    }),
+    "/api/staff/invites/{inviteId}": path({
+      delete: protectedOperation(["admin"], "Revoke store invite", {
+        parameters: [idParam("inviteId", "Store invite identifier")],
       }),
     }),
     "/api/users/assign-store": path({
@@ -1148,6 +1160,7 @@ export const openApiDocument: OpenApiDocument = {
               email: { type: "string", format: "email" },
               password: { type: "string", format: "password", minimum: 8 },
               organization_name: { type: "string" },
+              store_name: { type: "string" },
               address: { type: "string" },
               currency: { type: "string" },
               phone: { type: "string" },
@@ -1158,6 +1171,7 @@ export const openApiDocument: OpenApiDocument = {
               "email",
               "password",
               "organization_name",
+              "store_name",
               "address",
               "currency",
               "phone",
@@ -1170,9 +1184,9 @@ export const openApiDocument: OpenApiDocument = {
               name: { type: "string" },
               email: { type: "string", format: "email" },
               password: { type: "string", format: "password", minimum: 8 },
-              store_id: schemaRef("Id"),
+              invite_token: { type: "string", description: "Single-use store invite token" },
             },
-            required: ["role", "name", "email", "password", "store_id"],
+            required: ["role", "name", "email", "password", "invite_token"],
           },
         ],
       },
@@ -1656,6 +1670,24 @@ export const openApiDocument: OpenApiDocument = {
           role: { type: "string", enum: ["admin", "user"] },
         },
         required: ["storeId"],
+      },
+      CreateInviteRequest: {
+        type: "object",
+        properties: {
+          store_id: schemaRef("Id"),
+          expires_in_days: { type: "number", minimum: 1, maximum: 30 },
+        },
+        required: ["store_id"],
+      },
+      ApproveAssignmentRequest: {
+        type: "object",
+        properties: {
+          permissions: {
+            type: "array",
+            items: { type: "string" },
+            description: "Permissions to grant. Defaults to POS access when omitted and the member has none.",
+          },
+        },
       },
       CheckoutRequest: {
         type: "object",

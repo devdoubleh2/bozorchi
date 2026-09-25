@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal } from "lucide-react";
+import { ShieldCheck, Trash2, RefreshCcw, Clock, MoreHorizontal, Link2, Copy, Check, TicketPlus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -55,6 +55,32 @@ interface StaffAssignmentsResponse {
   approved: StaffAssignment[];
 }
 
+type InviteStatus = "outstanding" | "used" | "revoked" | "expired";
+
+interface StoreInvite {
+  id: string;
+  organization_id: string;
+  store_id: string;
+  store_name: string | null;
+  expires_at: string;
+  used_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+  status: InviteStatus;
+}
+
+interface InvitesResponse {
+  invites: StoreInvite[];
+}
+
+interface CreateInviteResponse {
+  invite: StoreInvite;
+  token: string;
+}
+
+const buildInviteLink = (token: string): string =>
+  `${window.location.origin}/register?invite=${encodeURIComponent(token)}`;
+
 interface StaffPageProps {
   standalone?: boolean;
 }
@@ -67,6 +93,8 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<StaffAssignment | null>(null);
+  const [freshInvite, setFreshInvite] = useState<{ invite: StoreInvite; token: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const storeId = userStore?.store?.id ?? "";
 
@@ -89,6 +117,61 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
     (a) => a.user.email !== user?.email
   );
 
+  const { data: invitesData } = useQuery({
+    queryKey: ["storeInvites"],
+    queryFn: async () => api.get<InvitesResponse>("/api/staff/invites"),
+    enabled: isAdmin,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  const outstandingInvites: StoreInvite[] = (invitesData?.invites ?? []).filter(
+    (invite) => invite.status === "outstanding"
+  );
+
+  const invalidateInvites = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["storeInvites"] });
+  }, [queryClient]);
+
+  const createInviteMutation = useMutation({
+    mutationFn: () =>
+      api.post<CreateInviteResponse>("/api/staff/invites", {
+        store_id: storeId,
+      }),
+    onSuccess: (result) => {
+      setFreshInvite({ invite: result.invite, token: result.token });
+      setActionMessage(
+        t("staff.invites.created", { defaultValue: "Invite created. Share the link with the new cashier." })
+      );
+      invalidateInvites();
+    },
+    onError: (error: Error) => {
+      setActionMessage(error.message || t("errors.generic"));
+    },
+  });
+
+  const revokeInviteMutation = useMutation({
+    mutationFn: (inviteId: string) =>
+      api.delete<{ message: string }>(`/api/staff/invites/${inviteId}`),
+    onSuccess: () => {
+      setActionMessage(t("staff.invites.revoked", { defaultValue: "Invite revoked." }));
+      invalidateInvites();
+    },
+    onError: (error: Error) => {
+      setActionMessage(error.message || t("errors.generic"));
+    },
+  });
+
+  const copyInviteLink = useCallback(async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(buildInviteLink(token));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }, []);
+
   const invalidateAssignments = useCallback(() => {
     queryClient.invalidateQueries({
       queryKey: ["staffAssignments", storeId],
@@ -96,9 +179,10 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
   }, [queryClient, storeId]);
 
   const approveMutation = useMutation({
-    mutationFn: (assignmentId: string) =>
+    mutationFn: (data: { assignmentId: string; permissions?: PermissionType[] }) =>
       api.post<{ message: string }>(
-        `/api/staff/assignments/${assignmentId}/approve`
+        `/api/staff/assignments/${data.assignmentId}/approve`,
+        data.permissions ? { permissions: data.permissions } : undefined
       ),
     onSuccess: () => {
       setActionMessage(t("staff.approveSuccess"));
@@ -216,12 +300,24 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
               {isPending ? (
                 <>
                   <DropdownMenuItem
-                    onClick={() => approveMutation.mutate(assignment.id)}
+                    onClick={() => approveMutation.mutate({ assignmentId: assignment.id })}
                     disabled={approveMutation.isPending}
                     className="flex items-center gap-2"
                   >
                     <ShieldCheck className="h-4 w-4" />
                     {t("staff.approve")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedAssignment(assignment);
+                      setRoleDialogOpen(true);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {t("staff.approveWithPermissions", {
+                      defaultValue: "Set permissions & approve",
+                    })}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => removeMutation.mutate(assignment.id)}
@@ -304,6 +400,108 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
         <>
           <Card className="border-border/60">
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Link2 className="size-5 text-muted-foreground" />
+                {t("staff.invites.title", { defaultValue: "Cashier invites" })}
+              </CardTitle>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setFreshInvite(null);
+                  createInviteMutation.mutate();
+                }}
+                disabled={createInviteMutation.isPending || !storeId}
+              >
+                <TicketPlus className="mr-2 size-4" />
+                {t("staff.invites.create", { defaultValue: "New invite" })}
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {t("staff.invites.description", {
+                  defaultValue:
+                    "Create a single-use invite link for this store and share it with the new cashier. They join as pending until you approve them below.",
+                })}
+              </p>
+
+              {freshInvite ? (
+                <div className="rounded-md border border-border/60 bg-muted/40 px-4 py-3">
+                  <p className="text-sm font-medium">
+                    {t("staff.invites.shareTitle", { defaultValue: "Share this invite link" })}
+                  </p>
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <code className="min-w-0 flex-1 truncate rounded bg-background px-2 py-1.5 text-xs">
+                      {buildInviteLink(freshInvite.token)}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => copyInviteLink(freshInvite.token)}
+                    >
+                      {copied ? (
+                        <Check className="mr-2 size-4" />
+                      ) : (
+                        <Copy className="mr-2 size-4" />
+                      )}
+                      {copied
+                        ? t("common.copied", { defaultValue: "Copied" })
+                        : t("common.copy", { defaultValue: "Copy" })}
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("staff.invites.codeLabel", { defaultValue: "Invite code:" })}{" "}
+                    <code className="break-all">{freshInvite.token}</code>
+                  </p>
+                </div>
+              ) : null}
+
+              {outstandingInvites.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("staff.invites.none", { defaultValue: "No outstanding invites." })}
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("staff.invites.store", { defaultValue: "Store" })}</TableHead>
+                        <TableHead>{t("staff.invites.expires", { defaultValue: "Expires" })}</TableHead>
+                        <TableHead className="text-right">{t("common.actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {outstandingInvites.map((invite) => (
+                        <TableRow key={invite.id}>
+                          <TableCell>
+                            <span className="font-medium">
+                              {invite.store_name ?? invite.store_id}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(invite.expires_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive"
+                              onClick={() => revokeInviteMutation.mutate(invite.id)}
+                              disabled={revokeInviteMutation.isPending}
+                            >
+                              {t("staff.invites.revoke", { defaultValue: "Revoke" })}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>{t("staff.pendingRequests")}</CardTitle>
               <Badge variant="outline">
                 {pendingAssignments.length} {t("staff.requests")}
@@ -374,7 +572,7 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
             </CardContent>
           </Card>
 
-          {/* Role Assignment Dialog */}
+          {/* Role Assignment Dialog (permissions at or after approval) */}
           {selectedAssignment && (
             <RoleAssignmentDialog
               key={selectedAssignment.id}
@@ -382,10 +580,17 @@ export default function StaffPage({ standalone = false }: StaffPageProps) {
               onOpenChange={setRoleDialogOpen}
               assignment={selectedAssignment}
               onUpdate={(permissions) => {
-                updateMutation.mutate({ assignmentId: selectedAssignment.id, permissions });
+                if (!selectedAssignment.approved) {
+                  approveMutation.mutate({
+                    assignmentId: selectedAssignment.id,
+                    permissions,
+                  });
+                } else {
+                  updateMutation.mutate({ assignmentId: selectedAssignment.id, permissions });
+                }
                 setRoleDialogOpen(false);
               }}
-              isUpdating={updateMutation.isPending}
+              isUpdating={updateMutation.isPending || approveMutation.isPending}
             />
           )}
         </>
@@ -408,10 +613,16 @@ function RoleAssignmentDialog({
   isUpdating: boolean;
 }) {
   const { t } = useTranslation();
-  const [permissions, setPermissions] = useState<PermissionType[]>(assignment.permissions ?? []);
+  const defaultPermissions = (a: StaffAssignment): PermissionType[] =>
+    !a.approved && (a.permissions ?? []).length === 0
+      ? ["POS_ACCESS"]
+      : (a.permissions ?? []);
+  const [permissions, setPermissions] = useState<PermissionType[]>(() =>
+    defaultPermissions(assignment)
+  );
 
   useEffect(() => {
-    setPermissions(assignment.permissions ?? []);
+    setPermissions(defaultPermissions(assignment));
   }, [assignment]);
 
   const PERMISSION_LIST: { value: PermissionType; label: string; description: string }[] = [

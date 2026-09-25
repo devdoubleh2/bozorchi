@@ -469,11 +469,12 @@
     "nameRequired": "Ism majburiy",
     "invalidEmail": "Iltimos, to'g'ri email kiriting",
     "passwordRequired": "Parol majburiy",
-    "passwordMinLength": "Parol kamida 6 ta belgi bo'lishi kerak",
+    "passwordMinLength": "Parol kamida 8 ta belgidan iborat bo'lishi kerak",
     "confirmPasswordRequired": "Parolni tasdiqlash majburiy",
     "passwordsDoNotMatch": "Parollar mos kelmaydi",
     "registrationSuccess": "Ro'yxatdan o'tish muvaffaqiyatli! Tasdiqlash uchun elektron pochtangizni tekshiring.",
-    "unexpectedError": "Kutilmagan xatolik yuz berdi"
+    "unexpectedError": "Kutilmagan xatolik yuz berdi",
+    "passwordComplexity": "Parol katta harf, kichik harf va raqamni o'z ichiga olishi kerak"
   },
   "currency": {
     "UZS": "so'm",
